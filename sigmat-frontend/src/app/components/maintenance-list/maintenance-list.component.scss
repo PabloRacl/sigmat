@@ -1,0 +1,183 @@
+.page-container {
+  padding: 24px;
+  background-color: #f8fafc;
+  min-height: calc(100vh - 60px);
+}
+
+.page-header {
+  margin-bottom: 24px;
+
+  .header-titles {
+    h1 {
+      font-size: 1.8rem;
+      color: #0f172a;
+      margin: 0 0 8px 0;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .badge {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 1rem;
+        padding: 2px 10px;
+        border-radius: 12px;
+      }
+    }
+
+    p {
+      color: #64748b;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.card-content {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.equip-info {
+  display: flex;
+  flex-direction: column;
+
+  .patrimonio {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 0.95rem;
+  }
+
+  .tipo {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+}
+
+.truncate-text {
+  display: inline-block;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.aberta {
+    background: #fef9c3;
+    color: #a16207;
+  }
+  
+  &.em_andamento {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  &.aguardando_peca {
+    background: #ffedd5;
+    color: #c2410c;
+  }
+
+  &.concluida {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  &.cancelada {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+}
+
+.btn-action {
+  background: #f1f5f9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+}
+
+.os-form {
+  .form-field {
+    margin-bottom: 15px;
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #334155;
+      font-size: 0.9rem;
+    }
+  }
+
+  .conclusao-fields {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin-top: 15px;
+  }
+
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid #cbd5e1;
+      padding: 8px 16px;
+      border-radius: 6px;
+      color: #475569;
+      font-weight: 600;
+      cursor: pointer;
+
+      &:hover {
+        background: #f1f5f9;
+      }
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+
+      &:hover {
+        background: #2563eb;
+      }
+
+      &:disabled {
+        background: #94a3b8;
+        cursor: not-allowed;
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+<p-dialog 
+  [(visible)]="visible" 
+  [header]="'Linha do Tempo: ' + (equipment?.patrimonio)" 
+  [modal]="true" 
+  [style]="{width: '560px'}" 
+  styleClass="eq-dialog" 
+  [draggable]="false"
+  (onHide)="fechar()"
+>
+  <div class="eq-timeline">
+    <div class="eq-timeline-item" *ngFor="let log of history">
+      <div class="eq-timeline-marker" [ngClass]="log.acao"></div>
+      <div class="eq-timeline-content">
+        <div class="eq-timeline-header">
+          <span class="eq-acao-tag" [ngClass]="log.acao">{{ log.acao }}</span>
+          <span class="date">{{ log.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <p class="desc">{{ log.descricao }}</p>
+        <span class="user"><i class="pi pi-user"></i> {{ log.usuario?.nome }}</span>
+        
+        <div class="eq-diff-wrap" *ngIf="log.dadosAlterados">
+          <button class="eq-btn-toggle" (click)="log.showDiff = !log.showDiff">
+            <i class="pi" [ngClass]="log.showDiff ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+            {{ log.showDiff ? 'Ocultar detalhes' : 'Ver detalhes da alteração' }}
+          </button>
+          <div *ngIf="log.showDiff" class="eq-diff-container">
+            <div class="eq-diff-item" *ngFor="let item of log.parsedDiff">
+              <span class="eq-diff-key">{{ item.key }}:</span>
+              
+              <ng-container *ngIf="item.isUpdate; else createView">
+                <div class="eq-diff-update">
+                  <span class="eq-diff-old" [title]="item.oldValue">{{ item.oldValue }}</span>
+                  <i class="pi pi-arrow-right"></i>
+                  <span class="eq-diff-new" [title]="item.newValue">{{ item.newValue }}</span>
+                </div>
+              </ng-container>
+              
+              <ng-template #createView>
+                <span class="eq-diff-value" [title]="item.value">{{ item.value }}</span>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="eq-empty" *ngIf="history.length === 0 && !loading">
+      <i class="pi pi-calendar-times"></i>
+      <p>Sem histórico registrado para este equipamento.</p>
+    </div>
+  </div>
+</p-dialog>

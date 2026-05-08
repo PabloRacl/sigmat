@@ -1,0 +1,182 @@
+<!-- Cabeçalho da Página -->
+<div class="re-header">
+  <div>
+    <h1>Relatórios SIGMAT</h1>
+    <p>Extração de dados e histórico de movimentações do sistema</p>
+  </div>
+</div>
+
+<!-- Seção de Abas do Relatório -->
+<p-tabView styleClass="re-tabview">
+
+    <!-- Aba 1: Inventário Geral -->
+  <p-tabPanel header="Inventário Completo">
+
+    <!-- Cabeçalho verde -->
+    <div class="re-green-head">
+      <span>
+        <i class="pi pi-box"></i>
+        Total de Equipamentos Carregados: <strong>{{ inventario.length | number }}</strong>
+        <span *ngIf="inventario.length !== inventarioOriginal.length" class="re-filter-note">
+          (de {{ inventarioOriginal.length | number }} no total)
+        </span>
+      </span>
+      <div class="re-export-actions">
+        <button class="re-btn-export" (click)="exportarCSV()" [disabled]="inventario.length === 0" pTooltip="Exportar CSV" tooltipPosition="bottom">
+          <i class="pi pi-file-excel"></i> CSV
+        </button>
+        <button class="re-btn-export" (click)="exportarPDF()" [disabled]="inventario.length === 0" pTooltip="Exportar PDF" tooltipPosition="bottom">
+          <i class="pi pi-file-pdf"></i> PDF
+        </button>
+        <button class="re-btn-export" (click)="exportarWord()" [disabled]="inventario.length === 0" pTooltip="Exportar Word" tooltipPosition="bottom">
+          <i class="pi pi-file-word"></i> Word
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de busca e filtros -->
+    <div class="re-toolbar">
+      <div class="re-search-box">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          pInputText
+          placeholder="Buscar por Patrimônio, Série, SEI, Marca, Seção..."
+          [(ngModel)]="termoBusca"
+          (input)="aplicarFiltros()"
+        />
+      </div>
+
+      <div class="re-filter-row">
+        <p-dropdown [options]="secoes" [(ngModel)]="filtroSecaoId"
+          optionLabel="sigla" optionValue="id" [showClear]="true"
+          placeholder="Seção" appendTo="body" (onChange)="aplicarFiltros()">
+        </p-dropdown>
+
+        <p-dropdown [options]="tipos" [(ngModel)]="filtroTipoId"
+          optionLabel="nome" optionValue="id" [showClear]="true"
+          placeholder="Tipo" appendTo="body" (onChange)="aplicarFiltros()">
+        </p-dropdown>
+
+        <p-dropdown [options]="status" [(ngModel)]="filtroStatusId"
+          optionLabel="nome" optionValue="id" [showClear]="true"
+          placeholder="Status" appendTo="body" (onChange)="aplicarFiltros()">
+        </p-dropdown>
+
+        <p-dropdown [options]="disponibilidades" [(ngModel)]="filtroDisponibilidadeId"
+          optionLabel="nome" optionValue="id" [showClear]="true"
+          placeholder="Disponibilidade" appendTo="body" (onChange)="aplicarFiltros()">
+        </p-dropdown>
+
+        <button class="re-btn-ghost" (click)="limparFiltros()">
+          <i class="pi pi-times"></i> Limpar
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="re-table-wrap">
+      <p-table
+        [value]="inventario"
+        [loading]="carregando"
+        [rows]="50"
+        [paginator]="true"
+        [rowHover]="true"
+        styleClass="p-datatable-sm p-datatable-gridlines"
+        [scrollable]="true"
+        scrollHeight="calc(100vh - 420px)"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="min-width: 130px; text-align: center">DISPONIBILIDADE</th>
+            <th style="min-width: 110px">SEÇÃO</th>
+            <th style="min-width: 120px">DIRETORIA</th>
+            <th style="min-width: 150px">TIPO</th>
+            <th style="min-width: 150px">PATRIMÔNIO</th>
+            <th style="min-width: 130px">SEI</th>
+            <th style="min-width: 130px">N.SÉRIE</th>
+            <th style="min-width: 120px">MARCA</th>
+            <th style="min-width: 120px">MODELO</th>
+            <th style="min-width: 100px; text-align: center">STATUS</th>
+            <th style="min-width: 130px">DATA AQUISIÇÃO</th>
+            <th style="min-width: 140px">TIPO AQUISIÇÃO</th>
+            <th style="min-width: 170px">USUÁRIO SOLICITANTE</th>
+            <th style="min-width: 140px">DATA SOLICITAÇÃO</th>
+            <th style="min-width: 160px">RETORNO EMPRÉSTIMO</th>
+            <th style="min-width: 220px">OBSERVAÇÃO</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-e>
+          <tr>
+            <td style="text-align: center">
+              <span class="re-badge" [ngClass]="obterCorDisponibilidade(e.disponibilidade?.nome)">
+                {{ e.disponibilidade?.nome || '—' }}
+              </span>
+            </td>
+            <td><strong>{{ e.secao?.sigla || '—' }}</strong></td>
+            <td>{{ e.secao?.diretoria?.sigla || '—' }}</td>
+            <td>{{ e.tipoEquipamento?.nome || '—' }}</td>
+            <td><span class="re-patrimonio">{{ e.patrimonio }}</span></td>
+            <td>{{ e.sei || '—' }}</td>
+            <td>{{ e.numeroSerie || '—' }}</td>
+            <td>{{ e.marca?.nome || '—' }}</td>
+            <td>{{ e.modelo?.nome || '—' }}</td>
+            <td style="text-align: center">
+              <span class="re-badge" [ngClass]="obterCorStatus(e.status?.nome)">
+                {{ e.status?.nome || '—' }}
+              </span>
+            </td>
+            <td>{{ formatarData(e.dataAquisicao) || '—' }}</td>
+            <td>{{ e.tipoAquisicao?.nome || '—' }}</td>
+            <td>
+              <span *ngIf="e.solicitante; else noUser">
+                <i class="pi pi-user" style="font-size: 0.75rem; margin-right: 4px"></i>
+                {{ e.solicitante }}
+              </span>
+              <ng-template #noUser>—</ng-template>
+            </td>
+            <td>{{ formatarData(e.dataSolicitacao) || '—' }}</td>
+            <td>{{ formatarData(e.dataRetornoEmprestimo) || '—' }}</td>
+            <td>
+              <span class="re-obs" [pTooltip]="e.observacao" tooltipPosition="top">
+                {{ e.observacao || '—' }}
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="16">
+              <div class="re-empty">
+                <i class="pi pi-box"></i>
+                <p *ngIf="!carregando">Nenhum equipamento encontrado com os filtros atuais.</p>
+                <p *ngIf="carregando">Carregando inventário...</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+  </p-tabPanel>
+
+  <!-- Aba 2: Consolidado por Unidade -->
+  <p-tabPanel header="Resumo por Unidade">
+    <div class="re-resumo-grid">
+      <div class="re-resumo-card" *ngFor="let u of resumoUnidades">
+        <div class="re-resumo-card__sigla">{{ u.sigla }}</div>
+        <div class="re-resumo-card__total">{{ u.total | number }}</div>
+        <div class="re-resumo-card__label">equipamentos</div>
+        <div class="re-resumo-card__bar">
+          <div class="re-resumo-card__fill"
+            [style.width.%]="(u.total / inventarioOriginal.length) * 100">
+          </div>
+        </div>
+      </div>
+    </div>
+  </p-tabPanel>
+
+</p-tabView>
+

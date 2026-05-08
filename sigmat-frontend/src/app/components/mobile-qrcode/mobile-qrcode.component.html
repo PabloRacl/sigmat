@@ -1,0 +1,111 @@
+<div class="mobile-container">
+  <!-- Carregando -->
+  <div class="loading-state" *ngIf="carregando">
+    <div class="spinner"></div>
+    <p>Buscando dados no SIGMAT...</p>
+  </div>
+
+  <!-- Erro -->
+  <div class="error-state" *ngIf="erro && !carregando">
+    <div class="icon-error"><i class="pi pi-exclamation-triangle"></i></div>
+    <h2>Ops!</h2>
+    <p>{{ erro }}</p>
+    <button class="btn-primary" (click)="voltarAoSistema()">Voltar ao Sistema</button>
+  </div>
+
+  <!-- Detalhes do Equipamento -->
+  <div class="equip-details" *ngIf="equipamento && !carregando">
+    
+    <!-- Cabeçalho V2 -->
+    <header class="mobile-header">
+      <div class="brand">
+        <span class="dtec">DTEC</span>
+        <span class="sigmat">SIGMAT</span>
+      </div>
+    </header>
+
+    <div class="card-hero">
+      <div class="status-badge" [ngClass]="equipamento.status?.nome | lowercase">
+        <span class="status-dot"></span>
+        {{ equipamento.status?.nome }}
+      </div>
+      
+      <h1 class="patrimonio">{{ equipamento.patrimonio || 'S/P' }}</h1>
+      <p class="tipo">{{ equipamento.tipoEquipamento?.nome || 'Equipamento' }} {{ equipamento.marca?.nome ? '· ' + equipamento.marca.nome : '' }}</p>
+    </div>
+
+    <div class="card-info">
+      <h3 class="section-title">Localização Atual</h3>
+      
+      <div class="info-row">
+        <div class="info-icon"><i class="pi pi-map-marker"></i></div>
+        <div class="info-text">
+          <span class="label">Seção / Unidade</span>
+          <span class="value">{{ equipamento.secao?.sigla || 'Não alocado' }}</span>
+        </div>
+      </div>
+
+      <div class="info-row" *ngIf="equipamento.disponibilidade">
+        <div class="info-icon"><i class="pi pi-info-circle"></i></div>
+        <div class="info-text">
+          <span class="label">Disponibilidade</span>
+          <span class="value">{{ equipamento.disponibilidade?.nome }}</span>
+        </div>
+      </div>
+      
+      <div class="info-row" *ngIf="equipamento.solicitante">
+        <div class="info-icon"><i class="pi pi-user"></i></div>
+        <div class="info-text">
+          <span class="label">Responsável / Cautelado</span>
+          <span class="value">{{ equipamento.solicitante }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-info" *ngIf="equipamento.numeroSerie || equipamento.dataAquisicao">
+      <h3 class="section-title">Dados Técnicos</h3>
+      
+      <div class="info-grid">
+        <div class="grid-item" *ngIf="equipamento.numeroSerie">
+          <span class="label">Número de Série</span>
+          <span class="value">{{ equipamento.numeroSerie }}</span>
+        </div>
+        <div class="grid-item" *ngIf="equipamento.dataAquisicao">
+          <span class="label">Data de Aquisição</span>
+          <span class="value">{{ equipamento.dataAquisicao | date:'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Histórico de Movimentações (NOVO) -->
+    <div class="card-info" *ngIf="historico.length > 0">
+      <div class="section-header-row">
+        <h3 class="section-title">Histórico Recente</h3>
+        <button class="btn-toggle" (click)="exibirHistorico = !exibirHistorico">
+          {{ exibirHistorico ? 'Ocultar' : 'Ver Detalhes' }}
+        </button>
+      </div>
+      
+      <div class="mobile-timeline" *ngIf="exibirHistorico">
+        <div class="timeline-item" *ngFor="let item of historico.slice(0, 5)">
+          <div class="tl-marker"></div>
+          <div class="tl-content">
+            <span class="tl-date">{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span class="tl-action">{{ item.acao }}</span>
+            <span class="tl-desc">{{ item.descricao }}</span>
+            <span class="tl-user">por {{ item.usuario?.nomeGuerra || item.usuario?.nome }}</span>
+          </div>
+        </div>
+      </div>
+      <p class="empty-timeline" *ngIf="!exibirHistorico">Clique em 'Ver Detalhes' para consultar o rastro.</p>
+    </div>
+
+    <div class="action-footer">
+      <button class="btn-secondary" (click)="voltarAoSistema()">
+        <i class="pi pi-home"></i> Acessar Sistema
+      </button>
+    </div>
+
+  </div>
+</div>
+

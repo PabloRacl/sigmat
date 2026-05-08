@@ -1,0 +1,83 @@
+<div class="au-header">
+  <div class="au-header__title">
+    <h1>Logs de Auditoria</h1>
+    <p>Histórico completo de operações e alterações no patrimônio</p>
+  </div>
+</div>
+
+<div class="au-card">
+  <div class="au-search-wrap">
+    <span class="p-input-icon-left w-full">
+      <i class="pi pi-search"></i>
+      <input 
+        type="text" 
+        pInputText 
+        class="w-full" 
+        placeholder="Filtrar logs por usuário, patrimônio ou descrição..." 
+        (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+      />
+    </span>
+  </div>
+
+  <p-table 
+    #dt
+    [value]="logs" 
+    [loading]="carregando"
+    [paginator]="true" 
+    [rows]="20"
+    [globalFilterFields]="['usuario.nome', 'equipamento.patrimonio', 'descricao', 'acao']"
+    responsiveLayout="scroll"
+    styleClass="p-datatable-sm au-table"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 160px">Data/Hora</th>
+        <th style="width: 120px">Ação</th>
+        <th>Usuário</th>
+        <th>Material</th>
+        <th>Descrição</th>
+        <th style="width: 80px; text-align: center">Dados</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-log>
+      <tr>
+        <td class="au-date">{{ log.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+        <td>
+          <p-tag [severity]="obterCorAcao(log.acao)" [value]="log.acao"></p-tag>
+        </td>
+        <td>
+          <div class="au-user">
+            <strong>{{ log.usuario?.nome }}</strong>
+            <small>{{ log.usuario?.matricula }}</small>
+          </div>
+        </td>
+        <td>
+          <span class="au-pat" *ngIf="log.equipamento?.patrimonio">{{ log.equipamento.patrimonio }}</span>
+          <span class="au-none" *ngIf="!log.equipamento?.patrimonio">—</span>
+        </td>
+        <td class="au-desc">{{ log.descricao }}</td>
+        <td style="text-align: center">
+          <button 
+            *ngIf="log.dadosAlterados"
+            class="au-btn-info" 
+            [pTooltip]="formatarJSON(log.dadosAlterados)" 
+            tooltipPosition="left"
+            tooltipStyleClass="au-json-tooltip"
+          >
+            <i class="pi pi-code"></i>
+          </button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6">
+          <div class="au-empty">
+            <i class="pi pi-info-circle"></i>
+            <p>Nenhum log de auditoria encontrado.</p>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

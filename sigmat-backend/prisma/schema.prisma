@@ -1,0 +1,384 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Diretoria {
+  id        Int        @id @default(autoincrement())
+  sigla     String     @unique @db.VarChar(50)
+  nome      String     @db.VarChar(200)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  batalhoes Batalhao[]
+  secoes    Secao[]
+
+  @@map("diretorias")
+}
+
+model Batalhao {
+  id          Int        @id @default(autoincrement())
+  sigla       String     @unique @db.VarChar(50)
+  nome        String     @db.VarChar(200)
+  cidade      String?    @db.VarChar(100)
+  endereco    String?    @db.VarChar(255)
+  telefoneBpm String?    @map("telefone_bpm") @db.VarChar(50)
+  telefoneTi  String?    @map("telefone_ti") @db.VarChar(50)
+  diretoriaId Int?       @map("diretoria_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  diretoria   Diretoria? @relation(fields: [diretoriaId], references: [id])
+  secoes      Secao[]
+  usuarios    Usuario[]
+
+  @@map("batalhoes")
+}
+
+model Secao {
+  id                    Int             @id @default(autoincrement())
+  sigla                 String          @unique @db.VarChar(50)
+  nome                  String          @db.VarChar(200)
+  batalhaoId            Int?            @map("batalhao_id")
+  diretoriaId           Int?            @map("diretoria_id")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+  equipamentos          Equipamento[]
+  batalhao              Batalhao?       @relation(fields: [batalhaoId], references: [id])
+  diretoria             Diretoria?      @relation(fields: [diretoriaId], references: [id])
+  transferenciasDestino Transferencia[] @relation("DestinoTransferencia")
+  transferenciasOrigem  Transferencia[] @relation("OrigemTransferencia")
+  usuarios              Usuario[]
+  usuariosPermitidos    UsuarioSecao[]
+
+  @@map("secoes")
+}
+
+model Usuario {
+  id                        Int                 @id @default(autoincrement())
+  login                     String              @unique @db.VarChar(50)
+  matricula                 String              @db.VarChar(50)
+  nome                      String              @db.VarChar(200)
+  email                     String?             @db.VarChar(200)
+  telefone                  String?             @db.VarChar(50)
+  nomeGuerra                String?             @map("nome_guerra") @db.VarChar(100)
+  statusFuncional           String?             @map("status_funcional") @db.VarChar(100)
+  postoGraduacao            String?             @map("posto_graduacao") @db.VarChar(100)
+  batalhaoId                Int?                @map("batalhao_id")
+  secaoId                   Int?                @map("secao_id")
+  perfil                    PerfilUsuario
+  createdAt                 DateTime            @default(now()) @map("created_at")
+  updatedAt                 DateTime            @updatedAt @map("updated_at")
+  alteracoesAprovadas       AlteracaoPendente[] @relation("Aprovador")
+  alteracoesSolicitadas     AlteracaoPendente[] @relation("Solicitante")
+  equipamentosAprovados     Equipamento[]       @relation("UsuarioAprovador")
+  equipamentosNegados       Equipamento[]       @relation("UsuarioNegador")
+  equipamentosResponsaveis  Equipamento[]       @relation("UsuarioResponsavel")
+  logsOperacoes             LogOperacao[]
+  transferenciasRecebidas   Transferencia[]     @relation("RecebedorTransferencia")
+  transferenciasSolicitadas Transferencia[]     @relation("SolicitanteTransferencia")
+  batalhao                  Batalhao?                @relation(fields: [batalhaoId], references: [id])
+  secao                     Secao?                   @relation(fields: [secaoId], references: [id])
+  secoesPermitidas          UsuarioSecao[]
+  tiposPermitidos           UsuarioTipoEquipamento[]
+  ordensServicoSolicitadas  OrdemServico[]      @relation("SolicitanteOS")
+  refreshTokens             RefreshToken[]
+
+  @@map("usuarios")
+}
+
+model TipoEquipamento {
+  id           Int           @id @default(autoincrement())
+  nome         String        @unique @db.VarChar(100)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  equipamentos Equipamento[]
+  usuariosPermitidos UsuarioTipoEquipamento[]
+
+  @@map("tipos_equipamento")
+}
+
+model Marca {
+  id           Int           @id @default(autoincrement())
+  nome         String        @unique @db.VarChar(100)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  equipamentos Equipamento[]
+  modelos      Modelo[]
+
+  @@map("marcas")
+}
+
+model Modelo {
+  id           Int           @id @default(autoincrement())
+  nome         String        @db.VarChar(100)
+  marcaId      Int?          @map("marca_id")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  equipamentos Equipamento[]
+  marca        Marca?        @relation(fields: [marcaId], references: [id])
+  @@index([marcaId])
+  @@map("modelos")
+}
+
+model StatusEquipamento {
+  id                Int           @id @default(autoincrement())
+  nome              String        @unique @db.VarChar(50)
+  descricaoAmigavel String?       @map("descricao_amigavel") @db.VarChar(255)
+  corEmoji          String?       @map("cor_emoji") @db.VarChar(50)
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  equipamentos      Equipamento[]
+
+  @@map("status_equipamento")
+}
+
+model TipoAquisicao {
+  id                Int           @id @default(autoincrement())
+  nome              String        @unique @db.VarChar(100)
+  descricaoAmigavel String?       @map("descricao_amigavel") @db.VarChar(255)
+  corEmoji          String?       @map("cor_emoji") @db.VarChar(50)
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  equipamentos      Equipamento[]
+
+  @@map("tipos_aquisicao")
+}
+
+model Disponibilidade {
+  id           Int           @id @default(autoincrement())
+  nome         String        @unique @db.VarChar(50)
+  descricao    String?       @db.VarChar(255)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  equipamentos Equipamento[]
+
+  @@map("disponibilidades")
+}
+
+model Equipamento {
+  id                    Int                 @id @default(autoincrement())
+  patrimonio            String              @unique @db.VarChar(50)
+  numeroSerie           String?             @map("numero_serie") @db.VarChar(200)
+  sei                   String?             @db.VarChar(200)
+  dataAquisicao         DateTime?           @map("data_aquisicao") @db.Date
+  observacao            String?
+  dataEntrada           DateTime            @default(now()) @map("data_entrada")
+  tipoEquipamentoId     Int                 @map("tipo_equipamento_id")
+  marcaId               Int?                @map("marca_id")
+  modeloId              Int?                @map("modelo_id")
+  statusId              Int                 @map("status_id")
+  tipoAquisicaoId       Int?                @map("tipo_aquisicao_id")
+  disponibilidadeId     Int                 @map("disponibilidade_id")
+  secaoId               Int                 @map("secao_id")
+  usuarioResponsavelId  Int?                @map("usuario_responsavel_id")
+  dataRetornoEmprestimo DateTime?           @map("data_retorno_emprestimo") @db.Date
+  dataAprovacao         DateTime?           @map("data_aprovacao")
+  usuarioAprovadorId    Int?                @map("usuario_aprovador_id")
+  motivoNegacao         String?             @map("motivo_negacao")
+  usuarioNegadorId      Int?                @map("usuario_negador_id")
+  especificacoes            Json?               @map("especificacoes")
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+  valor                 Decimal?            @db.Decimal(10, 2)
+  dataSolicitacao       DateTime?           @map("data_solicitacao") @db.Date
+  solicitante           String?             @db.VarChar(200)
+  fotos                 Json?
+  alteracoesPendentes   AlteracaoPendente[]
+  disponibilidade       Disponibilidade     @relation(fields: [disponibilidadeId], references: [id])
+  marca                 Marca?              @relation(fields: [marcaId], references: [id])
+  modelo                Modelo?             @relation(fields: [modeloId], references: [id])
+  secao                 Secao               @relation(fields: [secaoId], references: [id])
+  status                StatusEquipamento   @relation(fields: [statusId], references: [id])
+  tipoAquisicao         TipoAquisicao?      @relation(fields: [tipoAquisicaoId], references: [id])
+  tipoEquipamento       TipoEquipamento     @relation(fields: [tipoEquipamentoId], references: [id])
+  usuarioAprovador      Usuario?            @relation("UsuarioAprovador", fields: [usuarioAprovadorId], references: [id])
+  usuarioNegador        Usuario?            @relation("UsuarioNegador", fields: [usuarioNegadorId], references: [id])
+  usuarioResponsavel    Usuario?            @relation("UsuarioResponsavel", fields: [usuarioResponsavelId], references: [id])
+  logsOperacoes         LogOperacao[]
+  transferencias        Transferencia[]
+  ordensServico         OrdemServico[]
+
+  @@index([patrimonio])
+  @@index([sei])
+  @@index([numeroSerie])
+  @@index([secaoId])
+  @@index([statusId])
+  @@index([tipoEquipamentoId])
+  @@index([usuarioResponsavelId])
+  @@map("equipamentos")
+}
+
+model AlteracaoPendente {
+  id              Int         @id @default(autoincrement())
+  equipamentoId   Int         @map("equipamento_id")
+  dadosAntigos    Json        @map("dados_antigos")
+  dadosNovos      Json        @map("dados_novos")
+  camposAlterados String[]    @map("campos_alterados")
+  solicitanteId   Int         @map("solicitante_id")
+  dataSolicitacao DateTime    @default(now()) @map("data_solicitacao")
+  aprovadoPorId   Int?        @map("aprovado_por_id")
+  dataAprovacao   DateTime?   @map("data_aprovacao")
+  aprovado        Boolean?
+  motivoNegacao   String?     @map("motivo_negacao")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  aprovadoPor     Usuario?    @relation("Aprovador", fields: [aprovadoPorId], references: [id])
+  equipamento     Equipamento @relation(fields: [equipamentoId], references: [id])
+  solicitante     Usuario     @relation("Solicitante", fields: [solicitanteId], references: [id])
+
+  @@index([equipamentoId])
+  @@index([solicitanteId])
+  @@map("alteracoes_pendentes")
+}
+
+model Transferencia {
+  id              Int                 @id @default(autoincrement())
+  equipamentoId   Int                 @map("equipamento_id")
+  origemId        Int                 @map("origem_id")
+  destinoId       Int                 @map("destino_id")
+  solicitanteId   Int                 @map("solicitante_id")
+  recebedorId     Int?                @map("recebedor_id")
+  status          StatusTransferencia @default(PENDENTE)
+  observacao      String?
+  dataEnvio       DateTime            @default(now()) @map("data_envio")
+  dataRecebimento DateTime?           @map("data_recebimento")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+  destino         Secao               @relation("DestinoTransferencia", fields: [destinoId], references: [id])
+  equipamento     Equipamento         @relation(fields: [equipamentoId], references: [id])
+  origem          Secao               @relation("OrigemTransferencia", fields: [origemId], references: [id])
+  recebedor       Usuario?            @relation("RecebedorTransferencia", fields: [recebedorId], references: [id])
+  solicitante     Usuario             @relation("SolicitanteTransferencia", fields: [solicitanteId], references: [id])
+
+  @@index([equipamentoId])
+  @@index([destinoId])
+  @@index([solicitanteId])
+  @@index([status])
+  @@map("transferencias")
+}
+
+model LogOperacao {
+  id             Int          @id @default(autoincrement())
+  equipamentoId  Int?         @map("equipamento_id")
+  usuarioId      Int          @map("usuario_id")
+  acao           AcaoLog
+  descricao      String
+  dadosAlterados Json?        @map("dados_alterados")
+  ip             String?      @db.VarChar(50)
+  userAgent      String?      @map("user_agent")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  equipamento    Equipamento? @relation(fields: [equipamentoId], references: [id])
+  usuario        Usuario      @relation(fields: [usuarioId], references: [id])
+
+  @@index([equipamentoId])
+  @@index([usuarioId])
+  @@index([createdAt])
+  @@map("log_operacoes")
+}
+
+model UsuarioSecao {
+  id             Int      @id @default(autoincrement())
+  usuarioId      Int      @map("usuario_id")
+  secaoId        Int      @map("secao_id")
+  dataAssociacao DateTime @default(now()) @map("data_associacao")
+  usuario        Usuario  @relation(fields: [usuarioId], references: [id])
+  secao          Secao    @relation(fields: [secaoId], references: [id])
+
+  @@unique([usuarioId, secaoId])
+  @@map("usuario_secoes")
+}
+
+model UsuarioTipoEquipamento {
+  id                Int             @id @default(autoincrement())
+  usuarioId         Int             @map("usuario_id")
+  tipoEquipamentoId Int             @map("tipo_equipamento_id")
+  dataAssociacao    DateTime        @default(now()) @map("data_associacao")
+  usuario           Usuario         @relation(fields: [usuarioId], references: [id])
+  tipoEquipamento   TipoEquipamento @relation(fields: [tipoEquipamentoId], references: [id])
+
+  @@unique([usuarioId, tipoEquipamentoId])
+  @@map("usuario_tipos_equipamento")
+}
+
+enum PerfilUsuario {
+  ADMIN_DTEC
+  DIRETORIA
+  COMANDANTE
+  USUARIO_BATALHAO
+}
+
+enum StatusTransferencia {
+  PENDENTE
+  CONCLUIDA
+  CANCELADA
+}
+
+enum AcaoLog {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  TRANSFER
+  BATCH_UPDATE
+  ABERTURA_OS
+  ATUALIZACAO_OS
+  TRANSFERENCIA_CONCLUIDA
+  LOGIN
+  LOGOUT
+}
+
+model OrdemServico {
+  id                Int       @id @default(autoincrement())
+  equipamentoId     Int       @map("equipamento_id")
+  solicitanteId     Int       @map("solicitante_id")
+  tecnicoResponsavel String?  @map("tecnico_responsavel") @db.VarChar(200)
+  descricaoProblema String    @map("descricao_problema")
+  status            StatusManutencao @default(ABERTA)
+  dataAbertura      DateTime  @default(now()) @map("data_abertura")
+  dataPrevisao      DateTime? @map("data_previsao")
+  dataConclusao     DateTime? @map("data_conclusao")
+  solucaoAplicada   String?   @map("solucao_aplicada")
+  valorGasto        Decimal?  @db.Decimal(10, 2) @map("valor_gasto")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  equipamento       Equipamento @relation(fields: [equipamentoId], references: [id])
+  solicitante       Usuario     @relation("SolicitanteOS", fields: [solicitanteId], references: [id])
+
+  @@index([equipamentoId])
+  @@index([status])
+  @@index([solicitanteId])
+  @@map("ordens_servico")
+}
+
+enum StatusManutencao {
+  ABERTA
+  EM_ANDAMENTO
+  AGUARDANDO_PECA
+  CONCLUIDA
+  CANCELADA
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  usuarioId Int      @map("usuario_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("refresh_tokens")
+}
+
+model TokenBlacklist {
+  id        Int      @id @default(autoincrement())
+  jti       String   @unique // JWT ID
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("token_blacklist")
+}

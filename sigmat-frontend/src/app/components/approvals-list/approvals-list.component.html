@@ -1,0 +1,173 @@
+<!-- ══ PAGE HEADER ══════════════════════════════════════════════ -->
+<div class="ap-header">
+  <div class="ap-header__title">
+    <h1>Solicitações de Aprovação</h1>
+    <p>Valide alterações pendentes de equipamentos e materiais</p>
+  </div>
+  <span class="ap-count-badge" *ngIf="pendencias.length > 0">
+    <i class="pi pi-clock"></i> {{ pendencias.length }} pendente(s)
+  </span>
+</div>
+
+<!-- ══ CARD TABELA ══════════════════════════════════════════════ -->
+<div class="ap-card">
+
+  <div class="ap-card__head">
+    <div class="ap-card__icon">
+      <i class="pi pi-verified"></i>
+    </div>
+    <div>
+      <h3 class="ap-card__label">Alterações Aguardando Decisão</h3>
+      <span class="ap-card__sub">Revise os campos alterados e aprove ou rejeite cada solicitação</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="ap-loading" *ngIf="carregando">
+    <div class="ap-spinner"></div>
+    <p>Buscando pendências...</p>
+  </div>
+
+  <!-- Tabela -->
+  <table class="ap-table" *ngIf="!carregando">
+    <thead>
+      <tr>
+        <th>Equipamento</th>
+        <th>Solicitante</th>
+        <th>Data</th>
+        <th>Campos Alterados</th>
+        <th style="text-align:center">Decisão</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of pendencias">
+        <td>
+          <div class="ap-equip">
+            <span class="ap-patrimonio">{{ p.equipamento?.patrimonio }}</span>
+            <span class="ap-tipo">{{ p.equipamento?.tipoEquipamento?.nome }}</span>
+          </div>
+        </td>
+        <td>
+          <div class="ap-user">
+            <i class="pi pi-user"></i>
+            <div>
+              <span class="ap-user__name">{{ p.solicitante?.nome }}</span>
+              <span class="ap-user__posto">{{ p.solicitante?.postoGraduacao }}</span>
+            </div>
+          </div>
+        </td>
+        <td class="ap-date">{{ p.dataSolicitacao | date:'dd/MM/yyyy HH:mm' }}</td>
+        <td>
+          <div class="ap-tags">
+            <span class="ap-tag" *ngFor="let campo of p.camposAlterados">
+              {{ traduzirCampo(campo) }}
+            </span>
+          </div>
+        </td>
+        <td>
+          <div class="ap-actions">
+            <button class="ap-btn-info" (click)="verDetalhes(p)"
+              pTooltip="Ver detalhes da alteração" tooltipPosition="top">
+              <i class="pi pi-eye"></i> Detalhes
+            </button>
+            <ng-container *ngIf="ehAdmin">
+              <button class="ap-btn-approve" (click)="aprovar(p.id)"
+                pTooltip="Aprovar e aplicar alteração" tooltipPosition="top">
+                <i class="pi pi-check"></i> Aprovar
+              </button>
+              <button class="ap-btn-reject" (click)="abrirNegar(p)"
+                pTooltip="Rejeitar esta alteração" tooltipPosition="top">
+                <i class="pi pi-times"></i> Negar
+              </button>
+            </ng-container>
+            <ng-container *ngIf="!ehAdmin">
+              <button class="ap-btn-reject" style="background-color: #f59e0b; color: white; border: none;" (click)="cancelarPedido(p)"
+                pTooltip="Cancelar minha solicitação" tooltipPosition="top">
+                <i class="pi pi-undo"></i> Cancelar
+              </button>
+            </ng-container>
+          </div>
+        </td>
+      </tr>
+      <tr *ngIf="pendencias.length === 0">
+        <td colspan="5">
+          <div class="ap-empty">
+            <i class="pi pi-check-circle"></i>
+            <p>Nenhuma solicitação pendente no momento. Tudo em dia!</p>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ MODAL NEGAR ══════════════════════════════════════════════ -->
+<p-dialog
+  [(visible)]="exibirModalNegar"
+  header="Justificar Rejeição"
+  [modal]="true"
+  [style]="{ width: '460px' }"
+  styleClass="ap-dialog"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <ng-template pTemplate="content">
+    <div class="ap-form">
+      <p class="ap-form__info">
+        <i class="pi pi-info-circle"></i>
+        Informe o motivo para não aprovar esta alteração. O solicitante será notificado.
+      </p>
+      <div class="ap-form__field">
+        <label>Motivo da Rejeição <span class="req">*</span></label>
+        <textarea pInputTextarea
+          [(ngModel)]="motivoNegacao"
+          rows="4"
+          style="width:100%"
+          placeholder="Descreva o motivo da rejeição...">
+        </textarea>
+      </div>
+    </div>
+  </ng-template>
+  <ng-template pTemplate="footer">
+    <button class="ap-btn-ghost" (click)="exibirModalNegar = false">
+      <i class="pi pi-times"></i> Cancelar
+    </button>
+    <button class="ap-btn-reject-confirm"
+      [disabled]="!motivoNegacao"
+      (click)="confirmarNegar()">
+      <i class="pi pi-ban"></i> Confirmar Rejeição
+    </button>
+  </ng-template>
+</p-dialog>
+
+<!-- ══ MODAL DETALHES ════════════════════════════════════════════ -->
+<p-dialog
+  [(visible)]="exibirModalDetalhes"
+  [header]="'Comparação: ' + pendenciaSelecionada?.equipamento?.patrimonio"
+  [modal]="true"
+  [style]="{ width: '600px' }"
+  styleClass="ap-dialog"
+  [draggable]="false"
+>
+  <div class="ap-diff" *ngIf="pendenciaSelecionada">
+    <div class="ap-diff__header">
+      <div class="label">Campo</div>
+      <div class="old">Valor Atual</div>
+      <div class="new">Novo Valor</div>
+    </div>
+    <div class="ap-diff__row" *ngFor="let campo of pendenciaSelecionada.camposAlterados">
+      <div class="label">{{ traduzirCampo(campo) }}</div>
+      <div class="old">{{ traduzirValor(pendenciaSelecionada.dadosAntigos[campo]) }}</div>
+      <div class="new">{{ traduzirValor(pendenciaSelecionada.dadosNovos[campo]) }}</div>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button class="ap-btn-ghost" (click)="exibirModalDetalhes = false">Fechar</button>
+    <button *ngIf="ehAdmin" class="ap-btn-approve" (click)="aprovar(pendenciaSelecionada.id); exibirModalDetalhes = false">Aprovar Agora</button>
+    <button *ngIf="!ehAdmin" class="ap-btn-reject" style="background-color: #f59e0b; color: white; border: none;" (click)="cancelarPedido(pendenciaSelecionada); exibirModalDetalhes = false">Cancelar Pedido</button>
+  </ng-template>
+</p-dialog>
+
+<p-toast position="bottom-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
+

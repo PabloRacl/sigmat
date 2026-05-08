@@ -1,0 +1,48 @@
+<p-dialog 
+  [(visible)]="visible" 
+  [header]="'Especificações: ' + (equipment?.patrimonio)" 
+  [modal]="true" 
+  [style]="{width: '600px'}"
+  styleClass="eq-dialog"
+  [draggable]="false"
+  (onHide)="fechar()"
+>
+  <div class="eq-details-grid">
+    <!-- Dados Básicos -->
+    <div class="eq-details-section">
+      <div class="eq-details-section__title"><i class="pi pi-info-circle"></i> Dados Básicos</div>
+      <div class="eq-details-row">
+        <span class="label">Patrimônio:</span>
+        <span class="val">{{ equipment?.patrimonio }}</span>
+      </div>
+      <div class="eq-details-row">
+        <span class="label">Tipo:</span>
+        <span class="val">{{ equipment?.tipoEquipamento?.nome }}</span>
+      </div>
+      <div class="eq-details-row">
+        <span class="label">Marca/Modelo:</span>
+        <span class="val">{{ equipment?.marca?.nome }} {{ equipment?.modelo?.nome }}</span>
+      </div>
+      <div class="eq-details-row">
+        <span class="label">Nº Série:</span>
+        <span class="val">{{ equipment?.numeroSerie || '—' }}</span>
+      </div>
+    </div>
+
+    <!-- Atributos Técnicos -->
+    <div class="eq-details-section" *ngIf="chavesEspecificacoes.length > 0">
+      <div class="eq-details-section__title"><i class="pi pi-cog"></i> Atributos Técnicos</div>
+      <div class="eq-specs-grid">
+        <div class="eq-spec-item" *ngFor="let key of chavesEspecificacoes">
+          <span class="eq-spec-label">{{ formatarChave(key) }}</span>
+          <span class="eq-spec-val">{{ equipment.especificacoes[key] }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="eq-empty" *ngIf="chavesEspecificacoes.length === 0">
+      <i class="pi pi-info-circle"></i>
+      <p>Nenhuma especificação técnica detalhada registrada para este item.</p>
+    </div>
+  </div>
+</p-dialog>

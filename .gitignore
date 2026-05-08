@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.angular/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
+
+# Personal and Temp Files
+Arquivos/
+Meus Pensamentos Sigmat/
+Obsidian/
+*.docx
+*.csv
+*.pdf

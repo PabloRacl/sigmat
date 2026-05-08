@@ -1,0 +1,173 @@
+<!-- Cabeçalho da Página -->
+<div class="dh-header">
+  <div class="dh-header__title">
+    <h1>Dashboard SIGMAT</h1>
+    <p>Bem-vindo ao centro de comando do patrimônio da PMPE</p>
+  </div>
+  <div class="dh-header__actions">
+    <div class="dh-quick-search">
+      <i class="pi pi-search"></i>
+      <input type="text" placeholder="Busca rápida de patrimônio..." #quickSearch (keyup.enter)="irParaEquipamentos(quickSearch.value)">
+      <button class="dh-quick-search__btn" (click)="irParaEquipamentos(quickSearch.value)" title="Pesquisar">
+        <i class="pi pi-arrow-right"></i>
+      </button>
+    </div>
+    <button class="dh-btn-refresh" [class.spinning]="loading" (click)="carregarDados()" title="Atualizar dados">
+      <i class="pi pi-refresh"></i>
+      Atualizar
+    </button>
+  </div>
+</div>
+
+<!-- Cards de Resumo Estatístico -->
+<div class="dh-stats" *ngIf="summary">
+  <div class="dh-stat-card">
+    <div class="dh-stat-card__icon blue"><i class="pi pi-box"></i></div>
+    <div class="dh-stat-card__info">
+      <span class="dh-stat-card__val">{{ summary.total }}</span>
+      <span class="dh-stat-card__label">Total Geral</span>
+    </div>
+  </div>
+  <div class="dh-stat-card">
+    <div class="dh-stat-card__icon green"><i class="pi pi-check-circle"></i></div>
+    <div class="dh-stat-card__info">
+      <span class="dh-stat-card__val">{{ summary.ativos }}</span>
+      <span class="dh-stat-card__label">Equipamentos Ativos</span>
+    </div>
+  </div>
+  <div class="dh-stat-card">
+    <div class="dh-stat-card__icon amber"><i class="pi pi-sync"></i></div>
+    <div class="dh-stat-card__info">
+      <span class="dh-stat-card__val">{{ summary.emprestados }}</span>
+      <span class="dh-stat-card__label">Materiais Acautelados</span>
+    </div>
+  </div>
+  <div class="dh-stat-card">
+    <div class="dh-stat-card__icon orange"><i class="pi pi-cog"></i></div>
+    <div class="dh-stat-card__info">
+      <span class="dh-stat-card__val">{{ summary.manutencao }}</span>
+      <span class="dh-stat-card__label">Em Manutenção</span>
+    </div>
+  </div>
+  <div class="dh-stat-card">
+    <div class="dh-stat-card__icon red"><i class="pi pi-ban"></i></div>
+    <div class="dh-stat-card__info">
+      <span class="dh-stat-card__val">{{ summary.inativos }}</span>
+      <span class="dh-stat-card__label">Inativos / Baixados</span>
+    </div>
+  </div>
+</div>
+
+<!-- Estado de Carregamento -->
+<div class="dh-loading" *ngIf="loading">
+  <div class="dh-spinner"></div>
+  <p>Consolidando indicadores em tempo real...</p>
+</div>
+
+<!-- Grades de Gráficos Principais -->
+<div class="dh-grid" *ngIf="!loading && charts">
+  
+  <!-- Painel Principal -->
+  <div class="dh-card main-chart">
+    <div class="dh-card__head">
+      <div class="dh-card__icon indigo">
+        <i class="pi pi-chart-line"></i>
+      </div>
+      <div class="dh-card__titles">
+        <h3 class="dh-card__label">Distribuição Detalhada</h3>
+        <span class="dh-card__sub">Análise multidimensional do inventário atual</span>
+      </div>
+      <div class="dh-card__actions">
+        <p-dropdown
+          [options]="opcoesGrafico"
+          [(ngModel)]="graficoSelecionado"
+          optionLabel="label"
+          [style]="{ minWidth: '220px' }"
+          appendTo="body"
+          styleClass="dh-dropdown"
+        ></p-dropdown>
+      </div>
+    </div>
+
+    <div class="dh-card__content">
+      <div class="dh-chart-wrapper" *ngIf="dadosGraficoAtual">
+        <p-chart
+          [type]="tipoGraficoAtual"
+          [data]="dadosGraficoAtual"
+          [options]="opcoesGraficoAtual"
+          width="100%"
+          height="350px"
+        ></p-chart>
+      </div>
+    </div>
+  </div>
+
+  <!-- Atividades Recentes -->
+  <div class="dh-card activities">
+    <div class="dh-card__head">
+      <div class="dh-card__icon slate">
+        <i class="pi pi-history"></i>
+      </div>
+      <div class="dh-card__titles">
+        <h3 class="dh-card__label">Log de Operações</h3>
+        <span class="dh-card__sub">Últimas movimentações no sistema</span>
+      </div>
+    </div>
+
+    <div class="dh-card__content no-padding scrollable">
+      <div class="dh-activity-list" *ngIf="activities.length > 0">
+        <div class="dh-activity-item" *ngFor="let act of activities">
+          <div class="dh-activity-item__icon">
+            <i class="pi pi-pencil"></i>
+          </div>
+          <div class="dh-activity-item__info">
+            <p class="dh-activity-item__desc">{{ act.descricao || act.acao }}</p>
+            <div class="dh-activity-item__meta">
+              <span class="user">{{ act.usuario?.nome }}</span>
+              <span class="dot">•</span>
+              <span class="date">{{ act.createdAt | date:'dd/MM HH:mm' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dh-empty-activities" *ngIf="activities.length === 0">
+        <i class="pi pi-calendar-times"></i>
+        <p>Sem atividades registradas hoje.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Seção de Gráficos Secundários -->
+<div class="dh-grid secondary" *ngIf="!loading && charts">
+  
+  <div class="dh-card mini">
+    <div class="dh-card__head sm">
+      <h3 class="dh-card__label">Situação do Material</h3>
+    </div>
+    <div class="dh-card__content">
+      <p-chart type="doughnut" [data]="charts.porStatus" [options]="opcoesPie" height="200px"></p-chart>
+    </div>
+  </div>
+
+  <div class="dh-card mini">
+    <div class="dh-card__head sm">
+      <h3 class="dh-card__label">Disponibilidade Imediata</h3>
+    </div>
+    <div class="dh-card__content">
+      <p-chart type="pie" [data]="charts.porDisponibilidade" [options]="opcoesPie" height="200px"></p-chart>
+    </div>
+  </div>
+
+  <div class="dh-card mini">
+    <div class="dh-card__head sm">
+      <h3 class="dh-card__label">Tipos Predominantes</h3>
+    </div>
+    <div class="dh-card__content">
+      <p-chart type="bar" [data]="charts.porTipo" [options]="opcoesBar" height="200px"></p-chart>
+    </div>
+  </div>
+
+</div>
+

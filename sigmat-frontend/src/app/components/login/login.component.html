@@ -1,0 +1,69 @@
+<div class="login-container">
+  <div class="background-decor">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+  </div>
+
+  <div class="login-card">
+    <div class="header">
+      <div class="logo">
+        <i class="shield-icon">🛡️</i>
+        <span>SIGMAT</span>
+      </div>
+      <h2>Sistema de Gestão de Materiais</h2>
+      <p>Polícia Militar de Pernambuco</p>
+    </div>
+
+      <form class="login-form" (ngSubmit)="login()">
+        <div class="input-group">
+          <label for="username">Matrícula SEI</label>
+          <div class="input-wrapper">
+            <i class="pi pi-user"></i>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              [(ngModel)]="username" 
+              placeholder="Digite sua matrícula" 
+              required
+            >
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="password">Senha SEI</label>
+          <div class="input-wrapper">
+            <i class="pi pi-lock"></i>
+            <input 
+              [type]="showPassword ? 'text' : 'password'" 
+              id="password" 
+              name="password" 
+              [(ngModel)]="password" 
+              placeholder="••••••••" 
+              required
+            >
+            <i 
+              [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" 
+              class="toggle-password" 
+              (click)="togglePasswordVisibility()"
+            ></i>
+          </div>
+        </div>
+
+        <div class="error-msg" *ngIf="error">
+          <i class="pi pi-times-circle"></i>
+          {{ error }}
+        </div>
+
+        <button type="submit" class="login-btn" [disabled]="loading">
+          <span *ngIf="!loading">Acessar Sistema</span>
+          <i class="pi pi-spin pi-spinner" *ngIf="loading"></i>
+        </button>
+      </form>
+
+    <div class="footer">
+      <p>&copy; 2026 DTEC - PMPE</p>
+    </div>
+  </div>
+</div>
+

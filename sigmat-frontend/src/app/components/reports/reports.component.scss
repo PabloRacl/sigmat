@@ -1,0 +1,245 @@
+/* ═══════════════════════════════════════════════════════════
+   RELATÓRIOS — Design igual ao Equipamentos (padrão re-*)
+   ═══════════════════════════════════════════════════════════ */
+
+.re-header {
+  margin-bottom: 1.5rem;
+  h1 {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 4px;
+    letter-spacing: -0.5px;
+  }
+  p {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+}
+
+// ── Cabeçalho verde ─────────────────────────────────────────
+.re-green-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #10b981;
+  color: #fff;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  border-radius: 10px 10px 0 0;
+
+  .re-filter-note {
+    font-weight: 400;
+    font-size: 0.85rem;
+    opacity: 0.85;
+    margin-left: 0.5rem;
+  }
+}
+
+// ── Barra de Ferramentas ─────────────────────────────────────
+.re-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+}
+
+.re-search-box {
+  position: relative;
+  i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+  }
+  input {
+    width: 100%;
+    padding-left: 2.5rem;
+    height: 42px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    font-size: 0.9rem;
+    &:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+  }
+}
+
+.re-filter-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+// ── Tabela ──────────────────────────────────────────────────
+.re-table-wrap {
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  overflow: hidden;
+}
+
+::ng-deep .p-datatable-gridlines .p-datatable-thead > tr > th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  white-space: nowrap !important;
+  padding: 0.75rem 1rem !important;
+}
+::ng-deep .p-datatable-gridlines .p-datatable-tbody > tr > td {
+  padding: 0.65rem 1rem !important;
+  font-size: 0.85rem !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  color: #334155;
+}
+
+// ── Badges ──────────────────────────────────────────────────
+.re-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+
+  &.verde   { background: #f0fdf4; color: #16a34a; }
+  &.amarelo { background: #fffbeb; color: #d97706; }
+  &.azul    { background: #eff6ff; color: #2563eb; }
+  &.vermelho{ background: #fef2f2; color: #ef4444; }
+  &.cinza   { background: #f8fafc; color: #64748b; }
+}
+
+.re-patrimonio {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.re-obs {
+  display: block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  color: #64748b;
+}
+
+// ── Botões ──────────────────────────────────────────────────
+.re-export-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.re-btn-export {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s;
+  &:hover { background: rgba(255,255,255,0.25); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.re-btn-ghost {
+  background: #fff;
+  color: #64748b;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  &:hover { background: #f1f5f9; }
+}
+
+// ── Empty State ─────────────────────────────────────────────
+.re-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #94a3b8;
+  i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+  p { margin: 0; font-size: 0.95rem; }
+}
+
+// ── Resumo por Unidade ──────────────────────────────────────
+.re-resumo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.re-resumo-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: transform 0.15s, box-shadow 0.15s;
+  &:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+
+  &__sigla {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+  }
+  &__total {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #2563eb;
+    line-height: 1;
+  }
+  &__label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-bottom: 0.75rem;
+  }
+  &__bar {
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  &__fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    border-radius: 99px;
+    min-width: 4px;
+    transition: width 0.5s ease;
+  }
+}
+
+// ── TabView override ─────────────────────────────────────────
+::ng-deep .re-tabview {
+  .p-tabview-nav { border-bottom: 2px solid #e2e8f0 !important; background: transparent !important; }
+  .p-tabview-nav li .p-tabview-nav-link { border: none !important; background: transparent !important; font-weight: 600; color: #64748b; }
+  .p-tabview-nav li.p-highlight .p-tabview-nav-link { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; }
+  .p-tabview-panels { padding: 0 !important; background: transparent !important; }
+}
