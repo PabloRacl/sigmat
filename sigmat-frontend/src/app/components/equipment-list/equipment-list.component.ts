@@ -124,6 +124,18 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
     });
   }
 
+  get isEmprestimo(): boolean {
+    const dispId = this.transferenciaMassaForm.get('disponibilidadeId')?.value;
+    const disp = this.disponibilidades.find(d => d.id === dispId);
+    return disp?.nome === 'EMPRESTIMO';
+  }
+
+  get isCarga(): boolean {
+    const dispId = this.transferenciaMassaForm.get('disponibilidadeId')?.value;
+    const disp = this.disponibilidades.find(d => d.id === dispId);
+    return disp?.nome === 'CARGA';
+  }
+
   ngOnInit(): void {
     this.carregarDadosAuxiliares();
     this.carregarStats();
@@ -279,6 +291,17 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   }
   verDetalhes(eq: any) { this.equipamentoSelecionado = eq; this.exibirModalDetalhes = true; }
   verTimeline(eq: any) { this.equipamentoSelecionado = eq; this.exibirModalTimeline = true; }
+
+  transferirEquipamento(eq: any) {
+    this.selecionados = [eq];
+    this.abrirTransferenciaMassa();
+  }
+
+  enviarParaManutencao(eq: any) {
+    this.selecionados = [eq];
+    this.abrirModalManutencao();
+  }
+
   abrirTransferenciaMassa() { if (this.selecionados.length === 0) return; this.transferenciaMassaForm.reset(); this.exibirModalTransferenciaMassa = true; }
   confirmarTransferenciaMassa() {
     if (this.transferenciaMassaForm.invalid) return;
@@ -293,11 +316,16 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
       error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao solicitar transferência.' })
     });
   }
-  abrirEdicaoMassa() { if (this.selecionados.length === 0) return; this.formMassa.reset(); this.exibirModalMassa = true; }
+  recarregar() {
+    this.carregarEquipamentos(1, this.rows, this.filtroGlobal);
+    this.carregarStats();
+  }
+
+  abrirModalEdicaoMassa() { if (this.selecionados.length === 0) return; this.formMassa.reset(); this.exibirModalMassa = true; }
   confirmarEdicaoMassa() {
     if (this.formMassa.invalid) return;
     const ids = this.selecionados.map(i => i.id);
-    this.equipmentService.atualizarMassa(ids, this.formMassa.value).subscribe({
+    this.equipmentService.atualizarEmMassa(ids, this.formMassa.value).subscribe({
       next: () => {
         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Equipamentos atualizados em massa.' });
         this.exibirModalMassa = false;
@@ -320,5 +348,29 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
       },
       error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao enviar para manutenção.' })
     });
+  }
+
+  exportarExcelMassa() {
+    if (this.selecionados.length === 0) return;
+    // Exportação simples em CSV para satisfazer a função de Excel
+    const header = 'Patrimonio,Tipo,Marca,Serie,Status,Secao\n';
+    const rows = this.selecionados.map(e => 
+      `${e.patrimonio},${e.tipoEquipamento?.nome},${e.marca?.nome},${e.numeroSerie},${e.status?.nome},${e.secao?.sigla}`
+    ).join('\n');
+    
+    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', `exportacao_sigmat_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Arquivo CSV gerado com sucesso.' });
+  }
+
+  imprimirEtiquetasMassa() {
+    if (this.selecionados.length === 0) return;
+    this.pdfService.gerarEtiquetas(this.selecionados);
+    this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Etiquetas geradas com sucesso.' });
   }
 }

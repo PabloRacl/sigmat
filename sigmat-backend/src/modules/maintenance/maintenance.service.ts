@@ -180,6 +180,54 @@ export class MaintenanceService {
     this.notificationsService.notificarAtualizacaoGlobal();
     return resultado;
   }
+
+  async criarMassa(dados: any, usuarioId: number) {
+    const { ids, descricaoProblema, tecnicoResponsavel, dataPrevisao } = dados;
+
+    const statusManutencao = await this.prisma.statusEquipamento.findFirst({
+      where: { nome: 'MANUTENÇÃO' }
+    });
+
+    const resultado = await this.prisma.$transaction(async (tx: any) => {
+      const ordens = [];
+
+      for (const equipamentoId of ids) {
+        const os = await tx.ordemServico.create({
+          data: {
+            equipamentoId,
+            solicitanteId: usuarioId,
+            descricaoProblema,
+            tecnicoResponsavel,
+            dataPrevisao: dataPrevisao ? new Date(dataPrevisao) : null,
+            status: StatusManutencao.ABERTA
+          }
+        });
+
+        if (statusManutencao) {
+          await tx.equipamento.update({
+            where: { id: equipamentoId },
+            data: { statusId: statusManutencao.id }
+          });
+        }
+
+        await tx.logOperacao.create({
+          data: {
+            equipamentoId,
+            usuarioId,
+            acao: AcaoLog.ABERTURA_OS,
+            descricao: `Ordem de Serviço #${os.id} aberta via ação em massa. Problema: ${descricaoProblema}`
+          }
+        });
+
+        ordens.push(os);
+      }
+
+      return ordens;
+    });
+
+    this.notificationsService.notificarAtualizacaoGlobal();
+    return resultado;
+  }
 }
 
 

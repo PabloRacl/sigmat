@@ -25,6 +25,11 @@ export class MaintenanceController {
     return this.MaintenanceService.criar(dados, usuario.id);
   }
 
+  @Post('massa')
+  criarMassa(@Body() dados: any, @LoggedUser() usuario: any) {
+    return this.MaintenanceService.criarMassa(dados, usuario.id);
+  }
+
   @Patch(':id/status')
   atualizarStatus(
     @Param('id', ParseIntPipe) id: number,

@@ -21,6 +21,10 @@ export class MaintenanceService {
     return this.http.post<any>(this.API_URL, dados);
   }
 
+  criarMassa(ids: number[], dados: any) {
+    return this.http.post<any>(`${this.API_URL}/massa`, { ids, ...dados });
+  }
+
   atualizarStatus(id: number, status: string, dadosAdicionais: any = {}) {
     return this.http.patch<any>(`${this.API_URL}/${id}/status`, { status, ...dadosAdicionais });
   }
