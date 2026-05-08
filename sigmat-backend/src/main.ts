@@ -19,7 +19,8 @@ async function inicializarApp() {
 
   app.enableCors({
     origin: [
-      process.env.FRONTEND_URL || 'http://localhost:4200',
+      'https://sigmat.vercel.app',
+      'http://localhost:4200',
       'http://127.0.0.1:4200'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
