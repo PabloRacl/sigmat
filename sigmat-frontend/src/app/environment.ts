@@ -1,5 +1,5 @@
 export const environment = {
-  production: false,
-  apiUrl: 'http://127.0.0.1:3001'
+  production: true,
+  apiUrl: 'https://sigmat.onrender.com'
 };
 
