@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { SeiService } from '../../integrations/sei/sei.service';
 import { UsersService } from '../users/users.service';
@@ -72,7 +72,7 @@ export class AuthService {
       // Temporariamente expõe a mensagem de erro real para debug em produção
       if (error instanceof UnauthorizedException) throw error;
       
-      throw new Error(`Erro Interno (Debug): ${error?.message || 'Sem mensagem'}`);
+      throw new InternalServerErrorException(`Debug Error: ${error?.message || 'Sem mensagem'}`);
     }
   }
 
