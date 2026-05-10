@@ -49,51 +49,51 @@ model Secao {
   diretoria             Diretoria?      @relation(fields: [diretoriaId], references: [id])
   transferenciasDestino Transferencia[] @relation("DestinoTransferencia")
   transferenciasOrigem  Transferencia[] @relation("OrigemTransferencia")
-  usuarios              Usuario[]
   usuariosPermitidos    UsuarioSecao[]
+  usuarios              Usuario[]
 
   @@map("secoes")
 }
 
 model Usuario {
-  id                        Int                 @id @default(autoincrement())
-  login                     String              @unique @db.VarChar(50)
-  matricula                 String              @db.VarChar(50)
-  nome                      String              @db.VarChar(200)
-  email                     String?             @db.VarChar(200)
-  telefone                  String?             @db.VarChar(50)
-  nomeGuerra                String?             @map("nome_guerra") @db.VarChar(100)
-  statusFuncional           String?             @map("status_funcional") @db.VarChar(100)
-  postoGraduacao            String?             @map("posto_graduacao") @db.VarChar(100)
-  batalhaoId                Int?                @map("batalhao_id")
-  secaoId                   Int?                @map("secao_id")
+  id                        Int                      @id @default(autoincrement())
+  login                     String                   @unique @db.VarChar(50)
+  matricula                 String                   @db.VarChar(50)
+  nome                      String                   @db.VarChar(200)
+  email                     String?                  @db.VarChar(200)
+  telefone                  String?                  @db.VarChar(50)
+  nomeGuerra                String?                  @map("nome_guerra") @db.VarChar(100)
+  statusFuncional           String?                  @map("status_funcional") @db.VarChar(100)
+  postoGraduacao            String?                  @map("posto_graduacao") @db.VarChar(100)
+  batalhaoId                Int?                     @map("batalhao_id")
+  secaoId                   Int?                     @map("secao_id")
   perfil                    PerfilUsuario
-  createdAt                 DateTime            @default(now()) @map("created_at")
-  updatedAt                 DateTime            @updatedAt @map("updated_at")
-  alteracoesAprovadas       AlteracaoPendente[] @relation("Aprovador")
-  alteracoesSolicitadas     AlteracaoPendente[] @relation("Solicitante")
-  equipamentosAprovados     Equipamento[]       @relation("UsuarioAprovador")
-  equipamentosNegados       Equipamento[]       @relation("UsuarioNegador")
-  equipamentosResponsaveis  Equipamento[]       @relation("UsuarioResponsavel")
+  createdAt                 DateTime                 @default(now()) @map("created_at")
+  updatedAt                 DateTime                 @updatedAt @map("updated_at")
+  alteracoesAprovadas       AlteracaoPendente[]      @relation("Aprovador")
+  alteracoesSolicitadas     AlteracaoPendente[]      @relation("Solicitante")
+  equipamentosAprovados     Equipamento[]            @relation("UsuarioAprovador")
+  equipamentosNegados       Equipamento[]            @relation("UsuarioNegador")
+  equipamentosResponsaveis  Equipamento[]            @relation("UsuarioResponsavel")
   logsOperacoes             LogOperacao[]
-  transferenciasRecebidas   Transferencia[]     @relation("RecebedorTransferencia")
-  transferenciasSolicitadas Transferencia[]     @relation("SolicitanteTransferencia")
-  batalhao                  Batalhao?                @relation(fields: [batalhaoId], references: [id])
-  secao                     Secao?                   @relation(fields: [secaoId], references: [id])
+  ordensServicoSolicitadas  OrdemServico[]           @relation("SolicitanteOS")
+  refreshTokens             RefreshToken[]
+  transferenciasRecebidas   Transferencia[]          @relation("RecebedorTransferencia")
+  transferenciasSolicitadas Transferencia[]          @relation("SolicitanteTransferencia")
   secoesPermitidas          UsuarioSecao[]
   tiposPermitidos           UsuarioTipoEquipamento[]
-  ordensServicoSolicitadas  OrdemServico[]      @relation("SolicitanteOS")
-  refreshTokens             RefreshToken[]
+  batalhao                  Batalhao?                @relation(fields: [batalhaoId], references: [id])
+  secao                     Secao?                   @relation(fields: [secaoId], references: [id])
 
   @@map("usuarios")
 }
 
 model TipoEquipamento {
-  id           Int           @id @default(autoincrement())
-  nome         String        @unique @db.VarChar(100)
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
-  equipamentos Equipamento[]
+  id                 Int                      @id @default(autoincrement())
+  nome               String                   @unique @db.VarChar(100)
+  createdAt          DateTime                 @default(now()) @map("created_at")
+  updatedAt          DateTime                 @updatedAt @map("updated_at")
+  equipamentos       Equipamento[]
   usuariosPermitidos UsuarioTipoEquipamento[]
 
   @@map("tipos_equipamento")
@@ -118,6 +118,7 @@ model Modelo {
   updatedAt    DateTime      @updatedAt @map("updated_at")
   equipamentos Equipamento[]
   marca        Marca?        @relation(fields: [marcaId], references: [id])
+
   @@index([marcaId])
   @@map("modelos")
 }
@@ -178,7 +179,7 @@ model Equipamento {
   usuarioAprovadorId    Int?                @map("usuario_aprovador_id")
   motivoNegacao         String?             @map("motivo_negacao")
   usuarioNegadorId      Int?                @map("usuario_negador_id")
-  especificacoes            Json?               @map("especificacoes")
+  especificacoes        Json?               @map("especificacoes")
   createdAt             DateTime            @default(now()) @map("created_at")
   updatedAt             DateTime            @updatedAt @map("updated_at")
   valor                 Decimal?            @db.Decimal(10, 2)
@@ -197,8 +198,8 @@ model Equipamento {
   usuarioNegador        Usuario?            @relation("UsuarioNegador", fields: [usuarioNegadorId], references: [id])
   usuarioResponsavel    Usuario?            @relation("UsuarioResponsavel", fields: [usuarioResponsavelId], references: [id])
   logsOperacoes         LogOperacao[]
-  transferencias        Transferencia[]
   ordensServico         OrdemServico[]
+  transferencias        Transferencia[]
 
   @@index([patrimonio])
   @@index([sei])
@@ -283,8 +284,8 @@ model UsuarioSecao {
   usuarioId      Int      @map("usuario_id")
   secaoId        Int      @map("secao_id")
   dataAssociacao DateTime @default(now()) @map("data_associacao")
-  usuario        Usuario  @relation(fields: [usuarioId], references: [id])
   secao          Secao    @relation(fields: [secaoId], references: [id])
+  usuario        Usuario  @relation(fields: [usuarioId], references: [id])
 
   @@unique([usuarioId, secaoId])
   @@map("usuario_secoes")
@@ -295,11 +296,55 @@ model UsuarioTipoEquipamento {
   usuarioId         Int             @map("usuario_id")
   tipoEquipamentoId Int             @map("tipo_equipamento_id")
   dataAssociacao    DateTime        @default(now()) @map("data_associacao")
-  usuario           Usuario         @relation(fields: [usuarioId], references: [id])
   tipoEquipamento   TipoEquipamento @relation(fields: [tipoEquipamentoId], references: [id])
+  usuario           Usuario         @relation(fields: [usuarioId], references: [id])
 
   @@unique([usuarioId, tipoEquipamentoId])
   @@map("usuario_tipos_equipamento")
+}
+
+model OrdemServico {
+  id                 Int              @id @default(autoincrement())
+  equipamentoId      Int              @map("equipamento_id")
+  solicitanteId      Int              @map("solicitante_id")
+  tecnicoResponsavel String?          @map("tecnico_responsavel") @db.VarChar(200)
+  descricaoProblema  String           @map("descricao_problema")
+  status             StatusManutencao @default(ABERTA)
+  dataAbertura       DateTime         @default(now()) @map("data_abertura")
+  dataPrevisao       DateTime?        @map("data_previsao")
+  dataConclusao      DateTime?        @map("data_conclusao")
+  solucaoAplicada    String?          @map("solucao_aplicada")
+  valorGasto         Decimal?         @map("valor_gasto") @db.Decimal(10, 2)
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  equipamento        Equipamento      @relation(fields: [equipamentoId], references: [id])
+  solicitante        Usuario          @relation("SolicitanteOS", fields: [solicitanteId], references: [id])
+
+  @@index([equipamentoId])
+  @@index([status])
+  @@index([solicitanteId])
+  @@map("ordens_servico")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  usuarioId Int      @map("usuario_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("refresh_tokens")
+}
+
+model TokenBlacklist {
+  id        Int      @id @default(autoincrement())
+  jti       String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("token_blacklist")
 }
 
 enum PerfilUsuario {
@@ -330,55 +375,10 @@ enum AcaoLog {
   LOGOUT
 }
 
-model OrdemServico {
-  id                Int       @id @default(autoincrement())
-  equipamentoId     Int       @map("equipamento_id")
-  solicitanteId     Int       @map("solicitante_id")
-  tecnicoResponsavel String?  @map("tecnico_responsavel") @db.VarChar(200)
-  descricaoProblema String    @map("descricao_problema")
-  status            StatusManutencao @default(ABERTA)
-  dataAbertura      DateTime  @default(now()) @map("data_abertura")
-  dataPrevisao      DateTime? @map("data_previsao")
-  dataConclusao     DateTime? @map("data_conclusao")
-  solucaoAplicada   String?   @map("solucao_aplicada")
-  valorGasto        Decimal?  @db.Decimal(10, 2) @map("valor_gasto")
-  createdAt         DateTime  @default(now()) @map("created_at")
-  updatedAt         DateTime  @updatedAt @map("updated_at")
-
-  equipamento       Equipamento @relation(fields: [equipamentoId], references: [id])
-  solicitante       Usuario     @relation("SolicitanteOS", fields: [solicitanteId], references: [id])
-
-  @@index([equipamentoId])
-  @@index([status])
-  @@index([solicitanteId])
-  @@map("ordens_servico")
-}
-
 enum StatusManutencao {
   ABERTA
   EM_ANDAMENTO
   AGUARDANDO_PECA
   CONCLUIDA
   CANCELADA
-}
-
-model RefreshToken {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
-  usuarioId Int      @map("usuario_id")
-  expiresAt DateTime @map("expires_at")
-  createdAt DateTime @default(now()) @map("created_at")
-  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-
-  @@index([usuarioId])
-  @@map("refresh_tokens")
-}
-
-model TokenBlacklist {
-  id        Int      @id @default(autoincrement())
-  jti       String   @unique // JWT ID
-  expiresAt DateTime @map("expires_at")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("token_blacklist")
 }

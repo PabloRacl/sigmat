@@ -557,6 +557,7 @@ async function importLogsOperacao() {
 
 async function main() {
   console.log('Iniciando importação de dados reais...');
+  /*
   try {
     await prisma.logOperacao.deleteMany({});
     await prisma.transferencia.deleteMany({});
@@ -575,6 +576,7 @@ async function main() {
     await prisma.disponibilidade.deleteMany({});
     await prisma.tipoAquisicao.deleteMany({});
   } catch (e) { }
+  */
 
   await importStatusEquipamento();
   await importDisponibilidades();
