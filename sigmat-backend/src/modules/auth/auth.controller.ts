@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Req, UseGuards, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { Throttle } from '@nestjs/throttler';
@@ -13,6 +13,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() body: LoginDto) {
     return this.authService.loginComSei(body.usuario, body.senha);
+  }
+
+  @Get('debug-ping')
+  async ping() {
+    return { status: "Code Version: 1.0.1 - Debug Enabled", time: new Date().toISOString() };
   }
 
   @Post('refresh')
