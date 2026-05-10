@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
+import express from 'express';
 
 const server = express();
 
@@ -19,7 +19,6 @@ export const bootstrap = async (expressInstance: any) => {
   return app;
 };
 
-// Vercel Entry Point
 export default async (req: any, res: any) => {
   await bootstrap(server);
   server(req, res);
