@@ -1,27 +1,20 @@
-import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
+  private readonly logger = new Logger(PrismaService.name);
+
   constructor() {
-    // Configura a string de conexão usando a variável de ambiente
-    const connectionString = process.env.DATABASE_URL;
-    // Cria um pool de conexões do PostgreSQL
-    const pool = new Pool({ connectionString });
-    // Configura o adaptador do Prisma para PostgreSQL
-    const adapter = new PrismaPg(pool);
-    super({ adapter });
+    super({
+      log: ['error', 'warn'],
+    });
   }
 
   async onModuleInit() {
-    // Conecta ao banco de dados ao iniciar o módulo
     await this.$connect();
+    this.logger.log('Prisma conectado ao banco de dados.');
   }
-
-  // enableShutdownHooks não é mais necessário no Prisma 5+ e causa crash.
-
 }
 
 
