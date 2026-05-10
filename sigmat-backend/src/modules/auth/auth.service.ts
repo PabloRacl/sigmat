@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { SeiService } from '../../integrations/sei/sei.service';
 import { UsersService } from '../users/users.service';
@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private readonly seiService: SeiService,
     private readonly usersService: UsersService,
@@ -67,6 +68,7 @@ export class AuthService {
       };
 
     } catch (error) {
+      this.logger.error(`Erro no loginComSei: ${error?.message}`, error?.stack);
       throw error;
     }
   }
