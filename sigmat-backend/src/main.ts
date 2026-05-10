@@ -1,18 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
-import { join } from 'path';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import * as express from 'express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
-async function inicializarApp() {
-  const logger = new Logger('Bootstrap');
-  logger.log('Iniciando aplicação SIGMAT (Version Debug 1.0.2)...');
+// Instância do Express que será usada pelo Vercel
+const server = express();
 
-  const app = await NestFactory.create(AppModule);
+async function bootstrap(expressInstance: any) {
+  const app = await NestFactory.create(
+    AppModule,
+    new ExpressAdapter(expressInstance),
+  );
 
-  app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
-
+  // Configurações globais (CORS, Pipes, etc.)
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
@@ -28,18 +30,33 @@ async function inicializarApp() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
-  
+
+  // Swagger apenas se necessário
   const config = new DocumentBuilder()
     .setTitle('SIGMAT V2 - API')
-    .setDescription('Documentação da API do Sistema de Gestão de Materiais e Tecnologias da PMPE')
     .setVersion('2.0')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
 
-  const port = process.env.PORT ?? 3001;
-  await app.listen(port, '0.0.0.0');
-  logger.log(`Servidor rodando na porta ${port} - SIGMAT Pronto.`);
+  // Inicializa o app NestJS sem chamar o listen() (quem controla o listen é o Vercel ou o modo local)
+  await app.init();
 }
-inicializarApp();
+
+// Handler para o Vercel
+export default async (req: any, res: any) => {
+  await bootstrap(server);
+  server(req, res);
+};
+
+// Código para rodar LOCALMENTE (não afeta o Vercel)
+if (process.env.NODE_ENV !== 'production') {
+  const localApp = express();
+  bootstrap(localApp).then(() => {
+    const port = process.env.PORT ?? 3001;
+    localApp.listen(port, () => {
+      console.log(`[LOCAL] Servidor rodando na porta ${port}`);
+    });
+  });
+}
