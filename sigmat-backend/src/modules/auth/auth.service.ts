@@ -69,7 +69,10 @@ export class AuthService {
 
     } catch (error) {
       this.logger.error(`Erro no loginComSei: ${error?.message}`, error?.stack);
-      throw error;
+      // Temporariamente expõe a mensagem de erro real para debug em produção
+      if (error instanceof UnauthorizedException) throw error;
+      
+      throw new Error(`Erro Interno (Debug): ${error?.message || 'Sem mensagem'}`);
     }
   }
 
