@@ -1,12 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { join } from 'path';
 import * as express from 'express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { PrismaService } from './database/prisma.service';
 
 async function inicializarApp() {
+  const logger = new Logger('Bootstrap');
+  logger.log('Iniciando aplicação SIGMAT (Version Debug 1.0.2)...');
+
   const app = await NestFactory.create(AppModule);
 
   app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
@@ -36,14 +38,8 @@ async function inicializarApp() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
 
-  // NestJS 10+ e Prisma 5+ gerenciam o shutdown automaticamente
-
-  await app.listen(process.env.PORT ?? 3001, '0.0.0.0');
+  const port = process.env.PORT ?? 3001;
+  await app.listen(port, '0.0.0.0');
+  logger.log(`Servidor rodando na porta ${port} - SIGMAT Pronto.`);
 }
 inicializarApp();
-
-
-
-
-
-
