@@ -86,6 +86,12 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   filtroStatus: number | null = null;
   filtroDisponibilidade: number | null = null;
   filtroSecao: number | null = null;
+  filtroMarca: number | null = null;
+  filtroPatrimonio: string = '';
+  filtroSei: string = '';
+  filtroNumeroSerie: string = '';
+  filtroDataAquisicao: Date | null = null;
+  filtroObservacao: string = '';
   exibirFiltrosAvancados = false;
 
   // Estatísticas para os cards
@@ -153,6 +159,7 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
     this.configService.listarDisponibilidades().subscribe(res => this.disponibilidades = res);
     this.configService.listarTiposAquisicao().subscribe(res => this.tiposAquisicao = res);
     this.configService.listarSecoes().subscribe(res => this.secoes = res);
+    this.configService.listarMarcas().subscribe(res => this.marcas = res);
   }
 
   carregarStats() {
@@ -169,13 +176,19 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
     if (this.filtroStatus) filtrosAtivos.statusId = this.filtroStatus;
     if (this.filtroDisponibilidade) filtrosAtivos.disponibilidadeId = this.filtroDisponibilidade;
     if (this.filtroSecao) filtrosAtivos.secaoId = this.filtroSecao;
+    if (this.filtroMarca) filtrosAtivos.marcaId = this.filtroMarca;
+    if (this.filtroPatrimonio) filtrosAtivos.patrimonio = this.filtroPatrimonio;
+    if (this.filtroSei) filtrosAtivos.sei = this.filtroSei;
+    if (this.filtroNumeroSerie) filtrosAtivos.numeroSerie = this.filtroNumeroSerie;
+    if (this.filtroObservacao) filtrosAtivos.observacao = this.filtroObservacao;
+    if (this.filtroDataAquisicao) filtrosAtivos.dataAquisicao = this.filtroDataAquisicao.toISOString();
 
     this.equipmentService.listarTodos(page, limit, search, filtrosAtivos).subscribe({
       next: (res) => {
         this.equipamentos = res.itens || [];
         this.totalRecords = res.total || 0;
         this.carregando = false;
-        this.atualizarStatsFiltro();
+        this.atualizarStatsFiltro(this.totalRecords);
       },
       error: (err) => {
         console.error('Erro ao carregar:', err);
@@ -202,6 +215,12 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
     this.filtroStatus = null;
     this.filtroDisponibilidade = null;
     this.filtroSecao = null;
+    this.filtroMarca = null;
+    this.filtroPatrimonio = '';
+    this.filtroSei = '';
+    this.filtroNumeroSerie = '';
+    this.filtroDataAquisicao = null;
+    this.filtroObservacao = '';
     this.first = 0;
     this.selecionados = [];
     this.cestaAberta = false;
@@ -210,16 +229,28 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   }
 
   get filtroAtivo(): boolean {
-    return !!(this.filtroTipo || this.filtroStatus || this.filtroDisponibilidade || this.filtroSecao || this.filtroGlobal);
+    return !!(
+      this.filtroTipo || this.filtroStatus || this.filtroDisponibilidade || 
+      this.filtroSecao || this.filtroGlobal || this.filtroMarca || 
+      this.filtroPatrimonio || this.filtroSei || this.filtroNumeroSerie || 
+      this.filtroDataAquisicao || this.filtroObservacao
+    );
   }
 
-  atualizarStatsFiltro() {
+  atualizarStatsFiltro(total?: number) {
     if (!this.filtroAtivo) {
       this.totalFiltrado = null;
       this.contandoFiltro = false;
       return;
     }
 
+    if (total !== undefined) {
+      this.totalFiltrado = total;
+      this.contandoFiltro = false;
+      return;
+    }
+
+    // Caso precise forçar uma atualização manual sem ter o total em mãos
     this.contandoFiltro = true;
     const filtrosAtivos: any = {};
     if (this.filtroTipo) filtrosAtivos.tipoId = this.filtroTipo;
@@ -242,6 +273,7 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   secoes: any[] = [];
   tiposAquisicao: any[] = [];
   tipos: any[] = [];
+  marcas: any[] = [];
   exibirModal = false;
   exibirModalTimeline = false;
   exibirModalDetalhes = false;

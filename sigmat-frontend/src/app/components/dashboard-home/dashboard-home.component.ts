@@ -43,10 +43,67 @@ export class DashboardHomeComponent implements OnInit {
     return {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom' as const, labels: { padding: 20, font: { size: 13 } } },
-        tooltip: { padding: 12 },
+      animation: {
+        duration: 2000,
+        easing: 'easeOutQuart',
+        animateRotate: true,
+        animateScale: true
       },
+      plugins: {
+        legend: { 
+          position: 'bottom' as const, 
+          labels: { 
+            padding: 10, // Reduzido
+            usePointStyle: true,
+            pointStyle: 'circle',
+            font: { size: 10, weight: '600' }, // Fonte menor
+            color: '#64748b'
+          } 
+        },
+        tooltip: { 
+          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+          padding: 12,
+          cornerRadius: 8
+        },
+      },
+      cutout: '55%',
+    };
+  }
+
+  get opcoesPolar() {
+    return {
+      responsive: true,
+      maintainAspectRatio: true,
+      animation: {
+        duration: 2000,
+        easing: 'easeOutQuart',
+        animateRotate: true,
+        animateScale: true
+      },
+      plugins: {
+        legend: { 
+          position: 'bottom' as const, 
+          labels: { 
+            padding: 10, // Reduzido
+            usePointStyle: true,
+            pointStyle: 'circle',
+            font: { size: 9, weight: '600' }, // Fonte bem compacta
+            color: '#64748b'
+          } 
+        },
+        tooltip: { 
+          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+          padding: 10,
+          cornerRadius: 8
+        },
+      },
+      scales: {
+        r: {
+          grid: { color: 'rgba(226, 232, 240, 0.5)' },
+          angleLines: { display: false },
+          ticks: { display: false }
+        }
+      }
     };
   }
 
@@ -56,23 +113,42 @@ export class DashboardHomeComponent implements OnInit {
       responsive: true,
       maintainAspectRatio: false,
       indexAxis: isHorizontal ? ('y' as const) : ('x' as const),
+      animation: {
+        duration: 1500,
+        easing: 'easeOutElastic',
+        delay: (context: any) => context.dataIndex * 100
+      },
       plugins: {
         legend: { display: false },
-        tooltip: { padding: 12 },
+        tooltip: { 
+          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+          padding: 12,
+          cornerRadius: 8
+        },
       },
       scales: {
-        x: { beginAtZero: true, grid: { display: !isHorizontal }, ticks: { stepSize: 1 } },
-        y: { beginAtZero: true, grid: { display: isHorizontal } },
+        x: { 
+          beginAtZero: true, 
+          grid: { display: false }, 
+          ticks: { color: '#94a3b8', font: { size: 11 } } 
+        },
+        y: { 
+          beginAtZero: true, 
+          grid: { color: 'rgba(226, 232, 240, 0.5)', borderDash: [5, 5] },
+          ticks: { color: '#94a3b8', font: { size: 11 } }
+        },
       },
     };
   }
 
-  get tipoGraficoAtual(): 'pie' | 'bar' | 'doughnut' | 'line' {
-    return this.graficoSelecionado.tipo as 'pie' | 'bar' | 'doughnut' | 'line';
+  get tipoGraficoAtual(): 'pie' | 'bar' | 'doughnut' | 'line' | 'polarArea' {
+    return this.graficoSelecionado.tipo as any;
   }
 
   get opcoesGraficoAtual(): any {
-    return this.tipoGraficoAtual === 'bar' ? this.opcoesBar : this.opcoesPie;
+    if (this.tipoGraficoAtual === 'bar') return this.opcoesBar;
+    if (this.tipoGraficoAtual === 'polarArea') return this.opcoesPolar;
+    return this.opcoesPie;
   }
 
   ngOnInit(): void {
