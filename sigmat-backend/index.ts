@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './src/app.module';
@@ -24,15 +25,18 @@ export const bootstrap = async (expressInstance: any) => {
 export default async (req: any, res: any) => {
   try {
     if (!cachedApp) {
+      console.log('Iniciando Bootstrap do NestJS...');
       cachedApp = await bootstrap(server);
+      console.log('Bootstrap concluído com sucesso.');
     }
-    server(req, res);
+    return server(req, res);
   } catch (err: any) {
-    console.error('VERCEL_CRASH:', err);
+    console.error('ERRO CRÍTICO NO VERCEL:', err);
     res.status(500).json({
-      error: 'Bootstrap Failed',
+      error: 'Falha na inicialização do servidor (Bootstrap Failed)',
       message: err.message,
-      check: { db: !!process.env.DATABASE_URL }
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+      db_configured: !!process.env.DATABASE_URL
     });
   }
 };
