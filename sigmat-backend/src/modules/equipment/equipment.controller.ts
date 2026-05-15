@@ -22,9 +22,16 @@ export class EquipmentController {
     @Query('statusId') statusId?: number,
     @Query('disponibilidadeId') disponibilidadeId?: number,
     @Query('secaoId') secaoId?: number,
+    @Query('marcaId') marcaId?: number,
+    @Query('patrimonio') patrimonio?: string,
+    @Query('sei') sei?: string,
+    @Query('numeroSerie') numeroSerie?: string,
+    @Query('dataAquisicao') dataAquisicao?: string,
+    @Query('observacao') observacao?: string,
   ) {
     return this.equipmentService.listarTodos(usuario, { 
-      page, limit, search, tipoId, statusId, disponibilidadeId, secaoId 
+      page, limit, search, tipoId, statusId, disponibilidadeId, secaoId, 
+      marcaId, patrimonio, sei, numeroSerie, dataAquisicao, observacao
     });
   }
 

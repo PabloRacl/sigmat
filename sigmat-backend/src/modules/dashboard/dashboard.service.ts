@@ -132,15 +132,36 @@ export class DashboardService {
       ],
     };
 
+    // Mapeamento de cores por significado (Peso da situação - Estilo Futurista/Neon)
+    const coresStatus: Record<string, string> = {
+      ATIVO: '#00c853', // Verde Intenso (Solicitado pelo usuário)
+      DISPONÍVEL: '#00e0b0', // Ciano/Verde Neon
+      MANUTENÇÃO: '#ff9f00', // Laranja Elétrico
+      RESERVA: '#00b0ff', // Azul Vibrante
+      DANO: '#ff3d00', // Vermelho Laranja
+      INATIVO: '#d50000', // Vermelho Profundo
+      EXTRAVIADO: '#455a64', // Blue Grey
+      PENDENTE_APROVACAO: '#7c4dff', // Roxo Neon
+    };
+
+    const coresDisponibilidade: Record<string, string> = {
+      CARGA: '#00e676', // Verde Ácido
+      EMPRESTIMO: '#ffab00', // Âmbar Intenso
+      BAIXA: '#78909c', // Slate
+    };
+
+    const corPadrao = '#cbd5e1';
+
     // Por Status — Pizza
     const statsStatus = {
       labels: porStatus.map((s: any) => s.nome),
       datasets: [
         {
           data: porStatus.map((s: any) => s._count.equipamentos),
-          backgroundColor: ['#22c55e', '#eab308', '#ef4444', '#64748b'],
-          hoverBackgroundColor: ['#16a34a', '#ca8a04', '#dc2626', '#475569'],
-          borderWidth: 0,
+          backgroundColor: porStatus.map((s: any) => coresStatus[s.nome] || corPadrao),
+          hoverOffset: 15,
+          borderWidth: 2,
+          borderColor: '#ffffff',
         },
       ],
     };
@@ -151,8 +172,8 @@ export class DashboardService {
       datasets: [
         {
           data: porDisponibilidade.map((d: any) => d._count.equipamentos),
-          backgroundColor: ['#22c55e', '#f59e0b', '#94a3b8'],
-          hoverBackgroundColor: ['#16a34a', '#d97706', '#64748b'],
+          backgroundColor: porDisponibilidade.map((d: any) => coresDisponibilidade[d.nome] || corPadrao),
+          hoverOffset: 4,
           borderWidth: 0,
         },
       ],

@@ -94,19 +94,31 @@ export class EquipmentService {
       });
     }
 
-    if (and.length > 0) {
-      where.AND = and;
+    // 3. Filtros Avançados (Unificados no AND para permitir busca por coluna específica)
+    if (params.tipoId) and.push({ tipoEquipamentoId: Number(params.tipoId) });
+    if (params.statusId) and.push({ statusId: Number(params.statusId) });
+    if (params.disponibilidadeId) and.push({ disponibilidadeId: Number(params.disponibilidadeId) });
+    if (params.secaoId) and.push({ secaoId: Number(params.secaoId) });
+    if (params.marcaId) and.push({ marcaId: Number(params.marcaId) });
+
+    // Filtros de Texto Específicos
+    if (params.patrimonio) and.push({ patrimonio: { contains: params.patrimonio, mode: 'insensitive' } });
+    if (params.sei) and.push({ sei: { contains: params.sei, mode: 'insensitive' } });
+    if (params.numeroSerie) and.push({ numeroSerie: { contains: params.numeroSerie, mode: 'insensitive' } });
+    if (params.observacao) and.push({ observacao: { contains: params.observacao, mode: 'insensitive' } });
+    
+    // Filtro de Data de Aquisição
+    if (params.dataAquisicao) {
+      const data = new Date(params.dataAquisicao);
+      if (!isNaN(data.getTime())) {
+        const startOfDay = new Date(data.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(data.setHours(23, 59, 59, 999));
+        and.push({ dataAquisicao: { gte: startOfDay, lte: endOfDay } });
+      }
     }
 
-    if (params.tipoId) where.tipoEquipamentoId = Number(params.tipoId);
-    if (params.statusId) where.statusId = Number(params.statusId);
-    if (params.disponibilidadeId) where.disponibilidadeId = Number(params.disponibilidadeId);
-    
-    // Se o filtro avançado de seção for preenchido, ele deve respeitar a permissão do usuário
-    // Se where.AND já tiver uma regra de seção, adicionamos um AND para restringir à seção filtrada
-    if (params.secaoId) {
-      if (!where.AND) where.AND = [];
-      where.AND.push({ secaoId: Number(params.secaoId) });
+    if (and.length > 0) {
+      where.AND = and;
     }
 
     this.logger.log(`Listando equipamentos para usuário: ${userFull.login}`);
