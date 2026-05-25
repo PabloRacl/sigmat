@@ -8,22 +8,28 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
 
   &__title {
     h1 {
-      font-size: 1.85rem;
+      font-size: 1.35rem;
       font-weight: 800;
       color: #0f172a;
-      margin: 0 0 4px;
+      margin: 0;
       letter-spacing: -0.5px;
     }
 
     p {
       color: #64748b;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       margin: 0;
     }
+  }
+
+  .tf-btn-primary {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
   }
 }
 
@@ -63,50 +69,50 @@
 // ── Card container ─────────────────────────────────────────────
 .tf-card {
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 10px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
   overflow: hidden;
 
   // Cabeçalho interno do card
   &__head {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1.25rem 1.5rem;
+    gap: 0.75rem;
+    padding: 0.5rem 0.85rem;
     border-bottom: 1px solid #f1f5f9;
     background: #f8fafc;
   }
 
   &__icon {
-    width: 44px;
-    height: 44px;
+    width: 34px;
+    height: 34px;
     background: #eff6ff;
     color: #2563eb;
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 0.95rem;
     flex-shrink: 0;
   }
 
   &__label {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #0f172a;
-    margin: 0 0 2px;
+    margin: 0;
   }
 
   &__sub {
-    font-size: 0.82rem;
+    font-size: 0.75rem;
     color: #64748b;
   }
 }
 
 // ── Barra de busca ─────────────────────────────────────────────
 .tf-search-wrap {
-  padding: 1rem 1.5rem;
+  padding: 0.65rem 1rem;
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -115,7 +121,7 @@
   align-items: center;
   gap: 0;
   border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
   background: #ffffff;
   max-width: 520px;
@@ -123,13 +129,13 @@
 
   &:focus-within {
     border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
   }
 
   &__icon {
-    padding: 0 0.75rem;
+    padding: 0 0.65rem;
     color: #94a3b8;
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     flex-shrink: 0;
   }
 
@@ -137,8 +143,8 @@
     flex: 1;
     border: none;
     outline: none;
-    padding: 0.7rem 1rem 0.7rem 0;
-    font-size: 0.9rem;
+    padding: 6px 8px 6px 0;
+    font-size: 0.85rem;
     color: #334155;
     background: transparent;
 
@@ -151,22 +157,22 @@
 
 // ── Tabela p-table ─────────────────────────────────────────────
 ::ng-deep .tf-table {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 
   .p-datatable-thead>tr>th {
     background: #f8fafc;
     color: #475569;
-    font-size: 0.78rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 1rem 1.25rem;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1rem;
     border-bottom: 2px solid #e2e8f0;
     border-top: none;
   }
 
   .p-datatable-tbody>tr>td {
-    padding: 0.9rem 1.25rem;
+    padding: 0.65rem 1rem;
     color: #334155;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
@@ -184,7 +190,7 @@
   .p-paginator {
     border-top: 1px solid #e2e8f0;
     background: #f8fafc;
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 }
 

@@ -24,7 +24,7 @@ $bg-cancelada:    #fee2e2;
 
 :host {
   display: block;
-  padding: 24px;
+  padding: 12px 16px;
   background: $bg-page;
   min-height: calc(100vh - 60px);
   font-family: 'Inter', sans-serif;
@@ -35,38 +35,44 @@ $bg-cancelada:    #fee2e2;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 0.75rem;
 
   &__title {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
   }
 
   &__icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
     background: linear-gradient(135deg, #f59e0b, #d97706);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.4rem;
-    box-shadow: 0 4px 12px rgba(245,158,11,.3);
+    font-size: 0.95rem;
+    box-shadow: 0 2px 6px rgba(245,158,11,.2);
   }
 
   h1 {
-    margin: 0 0 4px;
-    font-size: 1.6rem;
+    margin: 0;
+    font-size: 1.35rem;
     font-weight: 700;
     color: $text-main;
   }
 
   p {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: $text-sub;
+  }
+
+  .mn-btn-primary {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
   }
 }
 
@@ -74,15 +80,15 @@ $bg-cancelada:    #fee2e2;
 .mn-summary {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .mn-sum-card {
   background: $bg-card;
   border: 2px solid $border;
-  border-radius: $radius;
-  padding: 16px;
+  border-radius: 10px;
+  padding: 0.5rem 0.85rem;
   cursor: pointer;
   transition: all .2s ease;
   text-align: center;
@@ -100,19 +106,19 @@ $bg-cancelada:    #fee2e2;
 
   &__val {
     display: block;
-    font-size: 1.9rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: $text-main;
     line-height: 1.1;
   }
 
   &__label {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     color: $text-sub;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: .5px;
-    margin-top: 4px;
+    letter-spacing: .3px;
+    margin-top: 2px;
     display: block;
   }
 
@@ -126,7 +132,7 @@ $bg-cancelada:    #fee2e2;
 // ═══ CARD PRINCIPAL ══════════════════════════════════════════════════════════
 .mn-card {
   background: $bg-card;
-  border-radius: $radius;
+  border-radius: 10px;
   border: 1px solid $border;
   box-shadow: $shadow;
   overflow: hidden;
@@ -137,7 +143,7 @@ $bg-cancelada:    #fee2e2;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px;
+  padding: 0.65rem 1rem;
   border-bottom: 1px solid $border;
 
   &__right {
@@ -160,20 +166,20 @@ $bg-cancelada:    #fee2e2;
 
   &__icon {
     position: absolute;
-    left: 12px;
+    left: 10px;
     top: 50%;
     transform: translateY(-50%);
     color: $text-light;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     pointer-events: none;
   }
 
   &__input {
     width: 100%;
-    padding: 8px 36px;
+    padding: 6px 32px;
     border: 1px solid $border;
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     background: #f8fafc;
     color: $text-main;
     outline: none;
@@ -181,7 +187,7 @@ $bg-cancelada:    #fee2e2;
 
     &:focus {
       border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+      box-shadow: 0 0 0 3px rgba(99,102,241,.08);
       background: white;
     }
   }
@@ -203,9 +209,19 @@ $bg-cancelada:    #fee2e2;
 }
 
 // ═══ TABELA ══════════════════════════════════════════════════════════════════
-.mn-table {
+::ng-deep .mn-table {
   .mn-row-atrasada td {
     background: #fffbeb !important;
+  }
+  
+  .p-datatable-thead > tr > th {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.05em !important;
+  }
+  .p-datatable-tbody > tr > td {
+    padding: 0.65rem 1rem !important;
+    font-size: 0.85rem !important;
   }
 }
 

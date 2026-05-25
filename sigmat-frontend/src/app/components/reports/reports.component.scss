@@ -3,17 +3,17 @@
    ═══════════════════════════════════════════════════════════ */
 
 .re-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
   h1 {
-    font-size: 1.85rem;
+    font-size: 1.35rem;
     font-weight: 800;
     color: #0f172a;
-    margin: 0 0 4px;
+    margin: 0;
     letter-spacing: -0.5px;
   }
   p {
     color: #64748b;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     margin: 0;
   }
 }
@@ -25,8 +25,8 @@
   justify-content: space-between;
   background: #10b981;
   color: #fff;
-  padding: 1rem 1.5rem;
-  font-size: 1rem;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.88rem;
   font-weight: 600;
   flex-wrap: wrap;
   gap: 0.75rem;
@@ -34,7 +34,7 @@
 
   .re-filter-note {
     font-weight: 400;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     opacity: 0.85;
     margin-left: 0.5rem;
   }
@@ -45,7 +45,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 1rem 1.5rem;
+  padding: 0.65rem 1rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-top: none;
@@ -63,11 +63,11 @@
   input {
     width: 100%;
     padding-left: 2.5rem;
-    height: 42px;
+    height: 34px;
     border-radius: 8px;
     border: 1.5px solid #e2e8f0;
-    font-size: 0.9rem;
-    &:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    font-size: 0.85rem;
+    &:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08); }
   }
 }
 
@@ -147,9 +147,9 @@
   color: #fff;
   border: 1px solid rgba(255,255,255,0.35);
   border-radius: 8px;
-  padding: 8px 16px;
+  padding: 6px 12px;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -164,9 +164,9 @@
   color: #64748b;
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
-  padding: 7px 14px;
+  padding: 5px 12px;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -190,39 +190,39 @@
 // ── Resumo por Unidade ──────────────────────────────────────
 .re-resumo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-  padding: 1rem 0;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+  padding: 0.75rem 0;
 }
 
 .re-resumo-card {
   background: #fff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
   transition: transform 0.15s, box-shadow 0.15s;
-  &:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+  &:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
 
   &__sigla {
-    font-size: 1rem;
+    font-size: 0.85rem;
     font-weight: 700;
     color: #1e293b;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
   &__total {
-    font-size: 2rem;
+    font-size: 1.35rem;
     font-weight: 800;
     color: #2563eb;
-    line-height: 1;
+    line-height: 1.1;
   }
   &__label {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     color: #94a3b8;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
   }
   &__bar {
-    height: 6px;
+    height: 5px;
     background: #e2e8f0;
     border-radius: 99px;
     overflow: hidden;

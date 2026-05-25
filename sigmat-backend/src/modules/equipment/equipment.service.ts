@@ -24,7 +24,13 @@ export class EquipmentService {
     tipoId?: number,
     statusId?: number,
     disponibilidadeId?: number,
-    secaoId?: number
+    secaoId?: number,
+    marcaId?: number,
+    patrimonio?: string,
+    sei?: string,
+    numeroSerie?: string,
+    dataAquisicao?: string,
+    observacao?: string
   }) {
     const page = Number(params.page) || 1;
     const limit = Number(params.limit) || 20;
