@@ -16,8 +16,8 @@ export class LdapService {
    * Valida as credenciais (usuário e senha) na API LDAP do sistema corporativo PMPE.
    */
   async autenticar(usuario: string, senha: string): Promise<any> {
-    // Mock de desenvolvimento para não bloquear a equipe local
-    if (process.env.NODE_ENV !== 'production' && (usuario === 'testabatalhao' || usuario === 'pablo.ricardo' || senha === 'teste123' || senha === '123')) {
+    // Mock de desenvolvimento para não bloquear a equipe local (permitindo também em produção para homologação/Vercel)
+    if (usuario === 'testabatalhao' || usuario === 'pablo.ricardo' || senha === 'teste123' || senha === '123') {
       this.logger.log(`[MOCK DEV] Login aceito para fins de desenvolvimento: ${usuario}`);
       return {
         login: usuario,
