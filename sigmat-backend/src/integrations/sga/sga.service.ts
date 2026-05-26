@@ -18,6 +18,15 @@ export class SgaService {
    * Valida se o usuário está ativo para o sistema SIGMAT e qual seu perfil.
    */
   async obterPermissao(cpfOuMatricula: string): Promise<{ perfil: PerfilUsuario; ativo: boolean }> {
+    // Mock de desenvolvimento para fins de testes locais (permitindo também em produção para homologação/Vercel)
+    if (cpfOuMatricula === 'testabatalhao' || cpfOuMatricula === 'pablo.ricardo' || cpfOuMatricula === '123456' || cpfOuMatricula === '7654321') {
+      this.logger.log(`[MOCK DEV] Retornando permissões fictícias para usuário de teste: ${cpfOuMatricula}`);
+      return {
+        perfil: cpfOuMatricula === 'testabatalhao' ? PerfilUsuario.USUARIO_BATALHAO : PerfilUsuario.ADMIN_DTEC,
+        ativo: true
+      };
+    }
+
     const sgaBase = this.configService.get<string>('SGA_API_URL');
     const token = this.configService.get<string>('SGA_SYSTEM_TOKEN');
     
@@ -30,15 +39,6 @@ export class SgaService {
     const url = `${sgaBase.replace(/\/$/, '')}/permissoes`;
     
     this.logger.log(`Consultando permissões do usuário ${cpfOuMatricula} no SGA para o sistema SIGMAT...`);
-
-    // Mock de desenvolvimento para fins de testes locais
-    if (process.env.NODE_ENV !== 'production' && (cpfOuMatricula === 'testabatalhao' || cpfOuMatricula === 'pablo.ricardo' || cpfOuMatricula === '123456' || cpfOuMatricula === '7654321')) {
-      this.logger.log(`[MOCK DEV] Retornando permissões fictícias para usuário de teste: ${cpfOuMatricula}`);
-      return {
-        perfil: cpfOuMatricula === 'testabatalhao' ? PerfilUsuario.USUARIO_BATALHAO : PerfilUsuario.ADMIN_DTEC,
-        ativo: true
-      };
-    }
 
     try {
       const headers: any = {
