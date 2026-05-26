@@ -12,7 +12,7 @@ export class AuthController {
   @Post('login-sei')
   @HttpCode(HttpStatus.OK)
   async login(@Body() body: LoginDto) {
-    return this.authService.loginComSei(body.usuario, body.senha);
+    return this.authService.loginCorporativo(body.usuario, body.senha);
   }
 
   @Get('debug-ping')

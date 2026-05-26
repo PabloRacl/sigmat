@@ -622,3 +622,19 @@ $bg-cancelada:    #fee2e2;
     padding: 14px 20px;
   }
 }
+
+/* Premium glassmorphism modal styling */
+.glass-modal {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+@supports not (backdrop-filter: blur(12px)) {
+  .glass-modal {
+    background: rgba(255, 255, 255, 0.85);
+  }
+}

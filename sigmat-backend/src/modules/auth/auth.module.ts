@@ -5,7 +5,8 @@ import { ConfigService, ConfigModule } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
-import { SeiModule } from '../../integrations/sei/sei.module';
+import { LdapModule } from '../../integrations/ldap/ldap.module';
+import { SgaModule } from '../../integrations/sga/sga.module';
 import { JwtStrategy } from './jwt.strategy';
 import { DatabaseModule } from '../../database/database.module';
 
@@ -13,7 +14,8 @@ import { DatabaseModule } from '../../database/database.module';
   imports: [
     DatabaseModule,
     UsersModule,
-    SeiModule,
+    LdapModule,
+    SgaModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

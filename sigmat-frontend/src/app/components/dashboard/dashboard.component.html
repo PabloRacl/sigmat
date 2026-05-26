@@ -1,9 +1,15 @@
 <div class="dashboard-layout">
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.collapsed]="isSidebarCollapsed">
     <div class="logo-area">
       <i class="pi pi-shield logo-icon"></i>
-      <span class="logo-text">SIGMAT</span>
+      <span class="logo-text" *ngIf="!isSidebarCollapsed">SIGMAT</span>
+      <button class="toggle-btn" (click)="toggleSidebar()" pTooltip="Minimizar Menu" tooltipPosition="right" *ngIf="!isSidebarCollapsed">
+        <i class="pi pi-angle-left"></i>
+      </button>
+      <button class="toggle-btn-small" (click)="toggleSidebar()" pTooltip="Expandir Menu" tooltipPosition="right" *ngIf="isSidebarCollapsed">
+        <i class="pi pi-angle-right"></i>
+      </button>
     </div>
 
     <nav class="nav-menu">
@@ -23,17 +29,14 @@
         <i class="pi pi-users icon"></i>
         <span class="text">Usuários</span>
       </a>
-      <a routerLink="transfers" routerLinkActive="active" class="nav-item" title="Movimentação de material entre unidades">
-        <i class="pi pi-truck icon"></i>
-        <span class="text">Transferência de Unidade</span>
-      </a>
+
       <a routerLink="maintenance" routerLinkActive="active" class="nav-item" title="Gerenciar ordens de serviço">
         <i class="pi pi-wrench icon"></i>
         <span class="text">Manutenção</span>
       </a>
-      <a routerLink="approvals" routerLinkActive="active" class="nav-item" title="Validar solicitações de alteração">
-        <i class="pi pi-check-circle icon"></i>
-        <span class="text">Aprovações</span>
+      <a routerLink="approvals" routerLinkActive="active" class="nav-item" title="Central de transferências e aprovações de edições">
+        <i class="pi pi-verified icon"></i>
+        <span class="text">Movimentações & Aprovações</span>
       </a>
       <a routerLink="reports" routerLinkActive="active" class="nav-item" title="Exportar dados consolidados">
         <i class="pi pi-file-export icon"></i>

@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
-import { SeiModule } from './integrations/sei/sei.module';
+import { LdapModule } from './integrations/ldap/ldap.module';
+import { SgaModule } from './integrations/sga/sga.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
@@ -33,7 +34,8 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 
     SharedModule,
     NotificationsModule,
-    SeiModule,
+    LdapModule,
+    SgaModule,
     AuthModule,
     UsersModule,
     EquipmentModule,

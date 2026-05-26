@@ -25,6 +25,7 @@ export class DashboardComponent implements OnInit {
 
   usuario$!: Observable<any>;
   totalPendentes = 0;
+  isSidebarCollapsed = false;
   termoBusca: string = '';
 
   ngOnInit(): void {
@@ -46,6 +47,10 @@ export class DashboardComponent implements OnInit {
   sair() {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  toggleSidebar() {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 }
 

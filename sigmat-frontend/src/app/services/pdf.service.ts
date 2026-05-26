@@ -215,67 +215,136 @@ export class PdfService {
   }
 
   async gerarEtiquetas(itens: any[]) {
-    const doc = new jsPDF();
-    const labelWidth = 60;
-    const labelHeight = 40;
-    const margin = 10;
-    const itemsPerRow = 3;
-    const itemsPerCol = 6;
+    // Dimensões padrão para etiquetas térmicas (60mm x 40mm)
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: [60, 40]
+    });
     
-    let curX = margin;
-    let curY = margin;
-    let count = 0;
-
     for (let i = 0; i < itens.length; i++) {
       const item = itens[i];
-      if (count > 0 && count % (itemsPerRow * itemsPerCol) === 0) {
+      if (i > 0) {
         doc.addPage();
-        curX = margin;
-        curY = margin;
       }
 
-      // Desenha contorno da etiqueta
-      doc.setDrawColor(200, 200, 200);
-      doc.rect(curX, curY, labelWidth, labelHeight);
+      const curX = 0;
+      const curY = 0;
 
-      // Conteúdo da Etiqueta
-      doc.setFontSize(8);
+      // 1. Cabeçalho Corporativo PMPE (Navy Blue)
+      doc.setFillColor(15, 23, 42);
+      doc.rect(curX, curY, 60, 9, 'F');
+
+      // ── DESENHAR EMBLEMA VETORIAL PMPE ──
+      const embX = curX + 5.5;
+      const embY = curY + 4.5;
+      
+      // Círculo dourado externo
+      doc.setFillColor(218, 165, 32);
+      doc.circle(embX, embY, 3.2, 'F');
+
+      // Círculo interno azul
+      doc.setFillColor(15, 23, 42);
+      doc.circle(embX, embY, 2.8, 'F');
+
+      // Escudo vetorial interno (triângulo estilizado em dourado)
+      doc.setFillColor(218, 165, 32);
+      doc.triangle(
+        embX, embY + 2.0,
+        embX - 1.6, embY - 1.2,
+        embX + 1.6, embY - 1.2,
+        'F'
+      );
+
+      // Pequena cruz azul interna no escudo
+      doc.setDrawColor(15, 23, 42);
+      doc.setLineWidth(0.2);
+      doc.line(embX, embY - 0.7, embX, embY + 1.2);
+      doc.line(embX - 0.8, embY + 0.2, embX + 0.8, embY + 0.2);
+
+      // Texto do Cabeçalho (Branco)
+      doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text('PMPE - SIGMAT V2', curX + 5, curY + 7);
+      doc.setFontSize(5);
+      doc.text('POLÍCIA MILITAR DE PERNAMBUCO', curX + 10.5, curY + 3.8);
       
-      doc.setFontSize(10);
-      doc.text(item.patrimonio || 'S/P', curX + 5, curY + 15);
-      
-      doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
-      doc.text(item.tipoEquipamento?.nome || 'Material', curX + 5, curY + 20);
-      doc.text(item.marca?.nome || '', curX + 5, curY + 24);
+      doc.setFontSize(6.2);
+      doc.text('SIGMAT — GESTÃO DE PATRIMÔNIO', curX + 10.5, curY + 6.8);
 
-      // QR Code local
+      // 2. QR Code (Lateral Direita - Compactado para 15x15mm para melhor espaço)
       try {
         const baseUrl = window.location.origin;
         const equipUrl = `${baseUrl}/qrcode/${item.id}`;
-        const qrDataUrl = await QRCode.toDataURL(equipUrl, { margin: 1, width: 100 });
-        doc.addImage(qrDataUrl, 'PNG', curX + 35, curY + 5, 20, 20);
+        const qrDataUrl = await QRCode.toDataURL(equipUrl, { margin: 1, width: 80 });
+        doc.addImage(qrDataUrl, 'PNG', curX + 41, curY + 11.5, 15, 15);
       } catch (err) {
-        console.error('Erro ao gerar QR Code', err);
+        console.error('Erro ao gerar QR Code para etiqueta:', err);
       }
 
-      doc.setFontSize(6);
-      doc.text('DTEC/SISTEMAS', curX + 35, curY + 28);
+      // 3. Informações do Equipamento (Coluna da Esquerda)
+      
+      // Campo 1: PATRIMÔNIO
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(5);
+      doc.setTextColor(120, 130, 140);
+      doc.text('PATRIMÔNIO', curX + 4, curY + 13.5);
+      
+      doc.setTextColor(15, 23, 42);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text(item.patrimonio || 'S/PAT', curX + 4, curY + 17.2);
 
-      // Atualiza coordenadas
-      count++;
-      if (count % itemsPerRow === 0) {
-        curX = margin;
-        curY += labelHeight + 5;
-      } else {
-        curX += labelWidth + 5;
-      }
+      // Campo 2: TIPO DE MATERIAL
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(5);
+      doc.setTextColor(120, 130, 140);
+      doc.text('TIPO DE MATERIAL', curX + 4, curY + 21.0);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.2);
+      doc.setTextColor(51, 65, 85);
+      doc.text(item.tipoEquipamento?.nome || 'Não Informado', curX + 4, curY + 24.5);
+      
+      // Campo 3: MARCA / MODELO
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(5);
+      doc.setTextColor(120, 130, 140);
+      doc.text('MARCA / MODELO', curX + 4, curY + 28.2);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`${item.marca?.nome || '—'} ${item.modelo?.nome || ''}`, curX + 4, curY + 31.8);
+
+      // 4. Seção (Alinhada à Direita com a borda do QR Code - X = 56)
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(5);
+      doc.setTextColor(120, 130, 140);
+      doc.text('SEÇÃO / UNIDADE', curX + 56, curY + 28.2, { align: 'right' });
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(29, 78, 216); // Azul royal PMPE
+      doc.text(item.secao?.sigla || 'DTEC', curX + 56, curY + 31.8, { align: 'right' });
+
+      // 5. Rodapé da Etiqueta
+      // Linha separadora discreta
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.18);
+      doc.line(curX + 3, curY + 35.0, curX + 57, curY + 35.0);
+
+      // Textos institucionais do rodapé
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(4.8);
+      doc.setTextColor(148, 163, 184);
+      doc.text('DTEC / SISTEMAS', curX + 4, curY + 38.2);
+      
+      // Alinhado à direita na borda
+      doc.text('AUDITORIA VIA QR CODE', curX + 56, curY + 38.2, { align: 'right' });
     }
 
-    doc.save(`etiquetas_patrimonio_${new Date().getTime()}.pdf`);
+    doc.save(`etiquetas_sigmat_${new Date().getTime()}.pdf`);
   }
 }
 

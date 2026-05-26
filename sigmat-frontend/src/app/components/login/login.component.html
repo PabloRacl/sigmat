@@ -16,7 +16,7 @@
 
       <form class="login-form" (ngSubmit)="login()">
         <div class="input-group">
-          <label for="username">Matrícula SEI</label>
+          <label for="username">Matrícula ou CPF</label>
           <div class="input-wrapper">
             <i class="pi pi-user"></i>
             <input 
@@ -24,14 +24,14 @@
               id="username" 
               name="username" 
               [(ngModel)]="username" 
-              placeholder="Digite sua matrícula" 
+              placeholder="Digite sua matrícula ou CPF" 
               required
             >
           </div>
         </div>
 
         <div class="input-group">
-          <label for="password">Senha SEI</label>
+          <label for="password">Senha Corporativa</label>
           <div class="input-wrapper">
             <i class="pi pi-lock"></i>
             <input 

@@ -14,8 +14,8 @@ export class AuthService {
   private usuarioSubject = new BehaviorSubject<any>(this.getUsuario());
   public usuario$ = this.usuarioSubject.asObservable();
 
-  login(matricula: string, senha_sei: string) {
-    return this.http.post<any>(`${this.API_URL}/login-sei`, { usuario: matricula, senha: senha_sei })
+  login(matricula: string, senha: string) {
+    return this.http.post<any>(`${this.API_URL}/login-sei`, { usuario: matricula, senha })
       .pipe(
         tap(res => {
           if (res.access_token) {

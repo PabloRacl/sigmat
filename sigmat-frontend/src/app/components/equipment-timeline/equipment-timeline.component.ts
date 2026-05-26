@@ -107,6 +107,28 @@ export class EquipmentTimelineComponent {
     return result;
   }
 
+  obterIconeAcao(acao: string): string {
+    const a = acao?.toUpperCase();
+    if (a === 'CREATE') return 'pi pi-plus';
+    if (a === 'UPDATE' || a === 'BATCH_UPDATE') return 'pi pi-pencil';
+    if (a === 'DELETE') return 'pi pi-trash';
+    if (a === 'APPROVE') return 'pi pi-check-circle';
+    if (a === 'REJECT') return 'pi pi-times-circle';
+    if (a === 'TRANSFER' || a === 'TRANSFERENCIA_CONCLUIDA') return 'pi pi-truck';
+    if (a === 'ABERTURA_OS' || a === 'ATUALIZACAO_OS') return 'pi pi-wrench';
+    return 'pi pi-info-circle';
+  }
+
+  obterClasseAcao(acao: string): string {
+    const a = acao?.toUpperCase();
+    if (a === 'CREATE' || a === 'APPROVE') return 'success';
+    if (a === 'UPDATE' || a === 'BATCH_UPDATE') return 'info';
+    if (a === 'DELETE' || a === 'REJECT') return 'danger';
+    if (a === 'TRANSFER' || a === 'TRANSFERENCIA_CONCLUIDA') return 'warning';
+    if (a === 'ABERTURA_OS' || a === 'ATUALIZACAO_OS') return 'maintenance';
+    return 'neutral';
+  }
+
   fechar() {
     this.visibleChange.emit(false);
   }

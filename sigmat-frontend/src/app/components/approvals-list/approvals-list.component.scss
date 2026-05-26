@@ -1,24 +1,30 @@
 /* ═══════════════════════════════════════════════════════════════
-   APROVAÇÕES — Premium Layout (padrão BEM ap-*)
+   APROVAÇÕES & MOVIMENTAÇÕES — Premium Layout (Deep Indigo)
    ═══════════════════════════════════════════════════════════════ */
+
+/* Variáveis de Tema */
+$primary-color: #1e293b; /* Deep Indigo */
+$glass-bg: rgba(255, 255, 255, 0.6);
+$glass-border: rgba(255, 255, 255, 0.4);
+$glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 
 .ap-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 
   &__title {
     h1 {
-      font-size: 1.35rem;
+      font-size: 1.4rem;
       font-weight: 800;
-      color: #0f172a;
+      color: $primary-color;
       margin: 0;
       letter-spacing: -0.5px;
     }
     p {
       color: #64748b;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       margin: 0;
     }
   }
@@ -38,47 +44,14 @@
   white-space: nowrap;
 }
 
-// ── Card ───────────────────────────────────────────────────────
+// ── Card Glass Morphism ────────────────────────────────────────
 .ap-card {
-  background: #ffffff;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  background: $glass-bg;
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  border: 1px solid $glass-border;
+  box-shadow: $glass-shadow;
   overflow: hidden;
-
-  &__head {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0.85rem;
-    border-bottom: 1px solid #f1f5f9;
-    background: #f8fafc;
-  }
-
-  &__icon {
-    width: 34px;
-    height: 34px;
-    background: #fef3c7;
-    color: #d97706;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.95rem;
-    flex-shrink: 0;
-  }
-
-  &__label {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin: 0;
-  }
-
-  &__sub {
-    font-size: 0.75rem;
-    color: #64748b;
-  }
 }
 
 // ── Loading ────────────────────────────────────────────────────
@@ -97,47 +70,139 @@
   width: 36px;
   height: 36px;
   border: 3px solid #e2e8f0;
-  border-top-color: #2563eb;
+  border-top-color: $primary-color;
   border-radius: 50%;
   animation: ap-spin 0.8s linear infinite;
 }
 
 @keyframes ap-spin { to { transform: rotate(360deg); } }
 
-// ── Tabela ─────────────────────────────────────────────────────
-.ap-table {
-  width: 100%;
-  border-collapse: collapse;
-
-  thead tr th {
-    background: #f8fafc;
-    color: #475569;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.75rem 1rem;
+// ── Tab View Styles ────────────────────────────────────────────
+::ng-deep .ap-tabview {
+  .p-tabview-nav {
+    background: transparent;
     border-bottom: 2px solid #e2e8f0;
-    text-align: left;
+    padding: 0 1rem;
+
+    li {
+      margin-right: 1.5rem;
+      
+      .p-tabview-nav-link {
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid transparent;
+        padding: 1rem 0.5rem;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+      }
+      
+      &.p-highlight .p-tabview-nav-link {
+        color: $primary-color;
+        border-bottom: 2px solid $primary-color;
+      }
+    }
   }
 
-  tbody tr {
-    transition: background 0.15s;
-
-    &:hover td { background: #f8fafc; }
-    &:last-child td { border-bottom: none; }
-  }
-
-  tbody td {
-    padding: 0.65rem 1rem;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
-    font-size: 0.85rem;
-    vertical-align: middle;
+  .p-tabview-panels {
+    background: transparent;
+    padding: 1rem;
   }
 }
 
-// ── Células ────────────────────────────────────────────────────
+.ap-tab-badge {
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.ap-tab-desc {
+  background: #f8fafc;
+  border-left: 4px solid #3b82f6;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  color: #334155;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  i { color: #3b82f6; font-size: 1.1rem; }
+}
+
+// ── Tabela ─────────────────────────────────────────────────────
+::ng-deep .ap-table {
+  .p-datatable-table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  
+  .p-datatable-thead > tr > th {
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #cbd5e1;
+  }
+
+  .p-datatable-tbody > tr {
+    transition: background 0.2s;
+    background: transparent;
+
+    &:hover { background: rgba(255, 255, 255, 0.5); }
+    
+    > td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+// ── Rota (Origem / Destino) ────────────────────────────────────
+.ap-route {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+}
+
+.route-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+
+  &.origin {
+    background: #f1f5f9;
+    color: #475569;
+    border-color: #cbd5e1;
+  }
+  
+  &.dest {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+  }
+}
+
+.route-arrow {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+// ── Células Diversas ───────────────────────────────────────────
 .ap-equip {
   display: flex;
   flex-direction: column;
@@ -153,7 +218,7 @@
   font-family: monospace;
   font-weight: 700;
   font-size: 0.85rem;
-  color: #0f172a;
+  color: $primary-color;
 }
 
 .ap-tipo {
@@ -164,22 +229,15 @@
 .ap-user {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   color: #64748b;
 
-  i { font-size: 1.1rem; flex-shrink: 0; }
+  i { font-size: 1rem; flex-shrink: 0; }
 
   &__name {
-    display: block;
     font-weight: 600;
-    color: #1e293b;
-    font-size: 0.88rem;
-  }
-
-  &__posto {
-    display: block;
-    font-size: 0.75rem;
-    color: #94a3b8;
+    color: $primary-color;
+    font-size: 0.85rem;
   }
 }
 
@@ -226,18 +284,18 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition: all 0.2s;
   white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(22, 163, 74, 0.3);
 
-  &:hover { background: #15803d; transform: translateY(-1px); }
-  i { font-size: 0.8rem; }
+  &:hover { background: #15803d; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(22, 163, 74, 0.4); }
 }
 
 .ap-btn-reject {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: transparent;
+  background: #fff;
   color: #dc2626;
   border: 1.5px solid #fecaca;
   padding: 7px 13px;
@@ -245,18 +303,17 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: all 0.2s;
   white-space: nowrap;
 
-  &:hover { background: #fee2e2; border-color: #dc2626; }
-  i { font-size: 0.8rem; }
+  &:hover { background: #fee2e2; border-color: #dc2626; transform: translateY(-1px); }
 }
 
 .ap-btn-info {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: transparent;
+  background: #fff;
   color: #2563eb;
   border: 1.5px solid #bfdbfe;
   padding: 7px 13px;
@@ -264,14 +321,55 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: all 0.2s;
   white-space: nowrap;
 
-  &:hover { background: #eff6ff; border-color: #2563eb; }
-  i { font-size: 0.8rem; }
+  &:hover { background: #eff6ff; border-color: #2563eb; transform: translateY(-1px); }
 }
 
-// ── Diff View ──────────────────────────────────────────────────
+// ── Empty ──────────────────────────────────────────────────────
+.ap-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 2rem;
+  color: #94a3b8;
+
+  i { font-size: 2.5rem; margin-bottom: 1rem; color: #cbd5e1; }
+  p { margin: 0; font-size: 0.95rem; }
+}
+
+// ── Modais (Negar, Detalhes) ───────────────────────────────────
+.ap-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  &__info {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    color: #1e40af;
+    margin: 0;
+
+    i { margin-top: 2px; flex-shrink: 0; }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    label { font-size: 0.9rem; font-weight: 600; color: #374151; }
+    .req { color: #ef4444; }
+  }
+}
+
 .ap-diff {
   display: flex;
   flex-direction: column;
@@ -301,93 +399,10 @@
 
     &:last-child { border-bottom: none; }
 
-    .label { font-weight: 700; color: #1e293b; font-size: 0.85rem; }
+    .label { font-weight: 700; color: $primary-color; font-size: 0.85rem; }
     .old { color: #64748b; font-size: 0.85rem; text-decoration: line-through; opacity: 0.7; }
-    .new { color: #16a34a; font-weight: 700; font-size: 0.88rem; background: #f0fdf4; padding: 4px 8px; border-radius: 4px; }
+    .new { color: #16a34a; font-weight: 700; font-size: 0.88rem; background: #f0fdf4; padding: 4px 8px; border-radius: 4px; border: 1px solid #bbf7d0;}
   }
-}
-
-// ── Empty ──────────────────────────────────────────────────────
-.ap-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 4rem 2rem;
-  color: #94a3b8;
-
-  i { font-size: 3rem; margin-bottom: 1rem; color: #22c55e; }
-  p { margin: 0; font-size: 1rem; }
-}
-
-// ── Modal form ─────────────────────────────────────────────────
-.ap-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-
-  &__info {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 10px;
-    padding: 12px 14px;
-    font-size: 0.88rem;
-    color: #1e40af;
-    margin: 0;
-
-    i { margin-top: 2px; flex-shrink: 0; }
-  }
-
-  &__field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-
-    label {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    .req { color: #ef4444; }
-  }
-}
-
-.ap-btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
-  color: #64748b;
-  border: 1.5px solid #e2e8f0;
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-
-  &:hover { background: #f1f5f9; color: #334155; }
-}
-
-.ap-btn-reject-confirm {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #dc2626;
-  color: #fff;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-
-  &:hover:not(:disabled) { background: #b91c1c; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
 ::ng-deep .ap-dialog {
@@ -399,7 +414,7 @@
     background: #f8fafc;
     border-bottom: 1px solid #e2e8f0;
     padding: 1.25rem 1.5rem;
-    .p-dialog-title { font-weight: 700; font-size: 1.1rem; color: #0f172a; }
+    .p-dialog-title { font-weight: 700; font-size: 1.1rem; color: $primary-color; }
   }
 
   .p-dialog-content { padding: 1.5rem; }

@@ -9,6 +9,7 @@ import { TransfersService } from '../../services/transfers.service';
 import { MaintenanceService } from '../../services/maintenance.service';
 import { DashboardService } from '../../services/dashboard.service';
 import { AuthService } from '../../services/auth.service';
+import { ReportsService } from '../../services/reports.service';
 
 // PrimeNG 18 Modules
 import { DialogModule } from 'primeng/dialog';
@@ -62,6 +63,7 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   private maintenanceService = inject(MaintenanceService);
   private dashboardService = inject(DashboardService);
   private authService = inject(AuthService);
+  private reportsService = inject(ReportsService);
   private messageService = inject(MessageService);
   public uploadService = inject(UploadService);
   private pdfService = inject(PdfService);
@@ -76,9 +78,20 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   equipamentos: any[] = [];
   totalRecords = 0;
   rows = 20;
+  rowsPerPage = [20, 50, 100];
   first = 0;
   carregando = true;
   filtroGlobal = '';
+
+  // New handler for pagination events (page or size change)
+  onPageChange(event: any) {
+    // PrimeNG passes first, rows, page, pageCount
+    this.first = event.first ?? 0;
+    this.rows = event.rows ?? this.rows;
+    // Recarregar dados usando o novo tamanho de página
+    this.loadEquipamentosLazy({ first: this.first, rows: this.rows, sortField: null, sortOrder: null, filters: {} });
+  }
+
   ready = true; // Restaurando para true por padrão para evitar o loading-init que não existia
 
   // Filtros Avançados
@@ -126,8 +139,8 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
     this.manutencaoForm = this.fb.group({
       descricaoProblema: ['', Validators.required],
       tecnicoResponsavel: [''],
-      dataPrevisao: [null]
-    });
+      dataPrevisao: [null],
+      statusId: [null, Validators.required]    });
   }
 
   get isEmprestimo(): boolean {
@@ -136,6 +149,7 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
     return disp?.nome === 'EMPRESTIMO';
   }
 
+
   get isCarga(): boolean {
     const dispId = this.transferenciaMassaForm.get('disponibilidadeId')?.value;
     const disp = this.disponibilidades.find(d => d.id === dispId);
@@ -143,7 +157,22 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.carregarDadosAuxiliares();
+    
+    // Subscribe to status changes to set default forecast date
+    this.manutencaoForm.get('statusId')?.valueChanges.subscribe(status => {
+      // Example: set forecast 7 days from now for statuses involving 'PEÇA'
+        if (status && status.toString().toUpperCase().includes('PEÇA')) {
+          const date = new Date();
+          date.setDate(date.getDate() + 7);
+          this.manutencaoForm.patchValue({ dataPrevisao: date });
+        }
+        // Record history entry
+        this.manutencaoHistory.push({
+          status: status ? status.toString() : '',
+          previsao: this.manutencaoForm.get('dataPrevisao')?.value || null,
+          timestamp: new Date()
+        });
+    });
     this.carregarStats();
     // A carga inicial será disparada pelo onLazyLoad da tabela
   }
@@ -269,6 +298,8 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
 
   // Modais e Auxiliares (mantidos como estavam originalmente)
   status: any[] = [];
+  // History of maintenance actions
+  manutencaoHistory: { status: string; previsao: Date | null; timestamp: Date }[] = [];
   disponibilidades: any[] = [];
   secoes: any[] = [];
   tiposAquisicao: any[] = [];
@@ -335,11 +366,41 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   }
 
   abrirTransferenciaMassa() { if (this.selecionados.length === 0) return; this.transferenciaMassaForm.reset(); this.exibirModalTransferenciaMassa = true; }
+
+// Abre modal de manutenção para os equipamentos selecionados
+abrirModalManutencao() {
+  if (this.selecionados.length === 0) return;
+  this.manutencaoForm.reset();
+  this.exibirModalManutencao = true;
+}
   confirmarTransferenciaMassa() {
     if (this.transferenciaMassaForm.invalid) return;
     const ids = this.selecionados.map(i => i.id);
-    this.transfersService.solicitarMassa(ids, this.transferenciaMassaForm.value).subscribe({
+    const form = this.transferenciaMassaForm.value;
+    const destinoId = form.destinoId;
+    const observacao = form.observacao;
+    const disponibilidadeId = form.disponibilidadeId;
+    const solicitante = form.solicitante;
+    const dataSolicitacao = form.dataSolicitacao ? form.dataSolicitacao.toISOString() : undefined;
+    const dataRetornoEmprestimo = form.dataRetornoEmprestimo ? form.dataRetornoEmprestimo.toISOString() : undefined;
+    this.transfersService.solicitarMassa(
+      ids,
+      destinoId,
+      observacao,
+      disponibilidadeId,
+      solicitante,
+      dataSolicitacao,
+      dataRetornoEmprestimo
+    ).subscribe({
       next: () => {
+        if (this.ehAdmin) {
+          this.reportsService.registrarLog('TRANSFERENCIA_MASSA_DIRETA', {
+            usuario: this.authService.getUsuario()?.nome,
+            equipamentosIds: ids,
+            destinoId: destinoId,
+            mensagem: 'Transferência processada diretamente sem aprovação (Admin)'
+          }).subscribe({ error: () => {} });
+        }
         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Transferência em massa solicitada.' });
         this.exibirModalTransferenciaMassa = false;
         this.limparSelecao();
@@ -367,20 +428,20 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
       error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar equipamentos.' })
     });
   }
-  abrirModalManutencao() { if (this.selecionados.length === 0) return; this.manutencaoForm.reset(); this.exibirModalManutencao = true; }
-  confirmarManutencao() {
-    if (this.manutencaoForm.invalid) return;
-    const ids = this.selecionados.map(i => i.id);
-    this.maintenanceService.criarMassa(ids, this.manutencaoForm.value).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Ordem de serviço criada para os equipamentos selecionados.' });
-        this.exibirModalManutencao = false;
-        this.limparSelecao();
-        this.carregarEquipamentos(1, this.rows, this.filtroGlobal);
-      },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao enviar para manutenção.' })
-    });
-  }
+    // Confirma criação de ordem de serviço em massa para os equipamentos selecionados
+    confirmarManutencao() {
+      if (this.manutencaoForm.invalid) return;
+      const ids = this.selecionados.map(i => i.id);
+      this.maintenanceService.criarMassa(ids, this.manutencaoForm.value).subscribe({
+        next: () => {
+          this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Ordem de serviço criada para os equipamentos selecionados.' });
+          this.exibirModalManutencao = false;
+          this.limparSelecao();
+          this.carregarEquipamentos(1, this.rows, this.filtroGlobal);
+        },
+        error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao enviar para manutenção.' })
+      });
+    }
 
   exportarExcelMassa() {
     if (this.selecionados.length === 0) return;
@@ -404,5 +465,24 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
     if (this.selecionados.length === 0) return;
     this.pdfService.gerarEtiquetas(this.selecionados);
     this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Etiquetas geradas com sucesso.' });
+  }
+
+  imprimirEtiquetaUnica(eq: any) {
+    this.pdfService.gerarEtiquetas([eq]);
+    this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: `Etiqueta do patrimônio ${eq.patrimonio} gerada.` });
+  }
+
+  obterDestinoSigla(): string {
+    const destinoId = this.transferenciaMassaForm.get('destinoId')?.value;
+    if (!destinoId) return '';
+    const sec = this.secoes.find(s => s.id === destinoId);
+    return sec ? sec.sigla : '';
+  }
+
+  obterDestinoNome(): string {
+    const destinoId = this.transferenciaMassaForm.get('destinoId')?.value;
+    if (!destinoId) return '';
+    const sec = this.secoes.find(s => s.id === destinoId);
+    return sec ? sec.nome : '';
   }
 }

@@ -21,12 +21,20 @@ export class MaintenanceService {
     return this.http.post<any>(this.API_URL, dados);
   }
 
+  // Cria ordens de serviço em massa
   criarMassa(ids: number[], dados: any) {
     return this.http.post<any>(`${this.API_URL}/massa`, { ids, ...dados });
   }
 
-  atualizarStatus(id: number, status: string, dadosAdicionais: any = {}) {
-    return this.http.patch<any>(`${this.API_URL}/${id}/status`, { status, ...dadosAdicionais });
+  // Atualiza status e demais campos (previsão, técnico, solução, custo) em uma única chamada
+  atualizarStatus(id: number, payload: any) {
+    // payload deve conter ao menos `{ status: string, ...outrosCampos }`
+    return this.http.patch<any>(`${this.API_URL}/${id}/status`, payload);
+  }
+
+  // Obtém histórico de alterações da ordem
+  obterHistorico(id: number) {
+    return this.http.get<any[]>(`${this.API_URL}/${id}/historico`);
   }
 }
 

@@ -23,6 +23,10 @@ export class ReportsService {
   obterAuditoria(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/auditoria`);
   }
+
+  registrarLog(acao: string, detalhes: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/log`, { acao, detalhes, dataHora: new Date().toISOString() });
+  }
 }
 
 

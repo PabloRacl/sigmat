@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApprovalsService } from '../../services/approvals.service';
+import { TransfersService } from '../../services/transfers.service';
 import { NotificationsService } from '../../services/notifications.service';
 import { AuthService } from '../../services/auth.service';
 import { DialogModule } from 'primeng/dialog';
@@ -12,25 +13,31 @@ import { MessageService } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
+import { TabViewModule } from 'primeng/tabview';
+import { TableModule } from 'primeng/table';
 
 @Component({
   selector: 'app-approvals-list',
   standalone: true,
-  imports: [CommonModule, DialogModule, ButtonModule, InputTextarea, ToastModule, TooltipModule, FormsModule, ConfirmDialogModule],
+  imports: [CommonModule, DialogModule, ButtonModule, InputTextarea, ToastModule, TooltipModule, FormsModule, ConfirmDialogModule, TabViewModule, TableModule],
   providers: [MessageService, ConfirmationService],
   templateUrl: './approvals-list.component.html',
   styleUrl: './approvals-list.component.scss'
 })
 export class ApprovalsListComponent implements OnInit {
   private approvalsService = inject(ApprovalsService);
+  private transfersService = inject(TransfersService);
   private notificationsService = inject(NotificationsService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private authService = inject(AuthService);
 
   pendencias: any[] = [];
+  transferencias: any[] = []; // Transferências pendentes gerais (saída/entrada)
+  
   carregando = true;
   ehAdmin = false;
+  usuarioLogado: any = null;
 
   exibirModalNegar = false;
   exibirModalDetalhes = false;
@@ -38,9 +45,76 @@ export class ApprovalsListComponent implements OnInit {
   motivoNegacao = '';
 
   ngOnInit() {
-    const perfil = this.authService.getUsuario()?.perfil;
+    this.usuarioLogado = this.authService.getUsuario();
+    const perfil = this.usuarioLogado?.perfil;
     this.ehAdmin = perfil === 'ADMIN_DTEC' || perfil === 'DIRETORIA';
+    this.carregarTudo();
+  }
+
+  carregarTudo() {
     this.carregar();
+    this.carregarTransferencias();
+  }
+
+  carregarTransferencias() {
+    this.transfersService.listarPendentes().subscribe({
+      next: (res) => {
+        this.transferencias = res;
+      },
+      error: () => {}
+    });
+  }
+
+  get transEnviadas(): any[] {
+    if (this.ehAdmin) return this.transferencias;
+    return this.transferencias.filter(t => t.origemId === this.usuarioLogado?.secaoId);
+  }
+
+  get transRecebidas(): any[] {
+    if (this.ehAdmin) return this.transferencias;
+    return this.transferencias.filter(t => t.destinoId === this.usuarioLogado?.secaoId);
+  }
+
+  get podeAprovarRecebimento(): boolean {
+    return this.usuarioLogado?.perfil === 'COMANDANTE' || this.ehAdmin;
+  }
+
+  receberTransferencia(id: number) {
+    this.confirmationService.confirm({
+      message: 'Deseja confirmar o recebimento deste material?',
+      header: 'Recebimento de Carga',
+      icon: 'pi pi-info-circle',
+      acceptLabel: 'Confirmar',
+      rejectLabel: 'Cancelar',
+      accept: () => {
+        this.transfersService.confirmar(id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Material recebido.' });
+            this.carregarTransferencias();
+          },
+          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao confirmar.' })
+        });
+      }
+    });
+  }
+
+  cancelarTransferencia(id: number) {
+    this.confirmationService.confirm({
+      message: 'Deseja cancelar o envio desta carga?',
+      header: 'Cancelar Envio',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Sim',
+      rejectLabel: 'Não',
+      accept: () => {
+        this.transfersService.cancelar(id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'warn', summary: 'Cancelado', detail: 'Transferência cancelada.' });
+            this.carregarTransferencias();
+          },
+          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao cancelar.' })
+        });
+      }
+    });
   }
 
   verDetalhes(p: any) {

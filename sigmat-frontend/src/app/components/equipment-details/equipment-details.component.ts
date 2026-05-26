@@ -29,6 +29,21 @@ export class EquipmentDetailsComponent {
       .join(' ');
   }
 
+  obterCorStatus(status: string): string {
+    const s = status?.toUpperCase();
+    if (s === 'ATIVO' || s === 'DISPONÍVEL') return 'success';
+    if (s === 'MANUTENÇÃO' || s === 'PENDENTE_APROVACAO') return 'warning';
+    if (s === 'INATIVO' || s === 'EXTRAVIADO' || s === 'DANO') return 'danger';
+    return 'neutral';
+  }
+
+  obterCorDisponibilidade(disp: string): string {
+    const d = disp?.toUpperCase();
+    if (d === 'CARGA') return 'success';
+    if (d === 'EMPRESTIMO') return 'warning';
+    return 'neutral';
+  }
+
   fechar() {
     this.visibleChange.emit(false);
   }

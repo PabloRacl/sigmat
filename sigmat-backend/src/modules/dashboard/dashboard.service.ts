@@ -3,7 +3,7 @@ import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async obterEstatisticas(usuario: any) {
     const userFull = await this.prisma.usuario.findUnique({
@@ -102,8 +102,8 @@ export class DashboardService {
       sigla: b.sigla,
       total: b.secoes.reduce((acc: number, s: any) => acc + s._count.equipamentos, 0)
     }))
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 15);
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 15);
 
     const statsBatalhao = {
       labels: dadosBatalhao.map(d => d.sigla),
@@ -132,9 +132,9 @@ export class DashboardService {
       ],
     };
 
-    // Mapeamento de cores por significado (Peso da situação - Estilo Futurista/Neon)
+    // Mapeamento de cores por significado
     const coresStatus: Record<string, string> = {
-      ATIVO: '#00c853', // Verde Intenso (Solicitado pelo usuário)
+      ATIVO: '#00c853', // Verde Intenso 
       DISPONÍVEL: '#00e0b0', // Ciano/Verde Neon
       MANUTENÇÃO: '#ff9f00', // Laranja Elétrico
       RESERVA: '#00b0ff', // Azul Vibrante
@@ -184,9 +184,9 @@ export class DashboardService {
       nome: m.nome,
       total: m.modelos.reduce((acc: number, mod: any) => acc + mod._count.equipamentos, 0)
     }))
-    .filter(m => m.total > 0)
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 10);
+      .filter(m => m.total > 0)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 10);
 
     const statsMarca = {
       labels: dadosMarcas.map(d => d.nome),
@@ -264,7 +264,7 @@ export class DashboardService {
 
       if (and.length > 0) {
         equipamentoWhere.AND = and;
-        
+
         // Regra do log: Ou é um log do PRÓPRIO usuário (como login/logout),
         // Ou é um log de um equipamento que pertence às seções que ele tem acesso
         whereLog.OR = [

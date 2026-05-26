@@ -235,7 +235,6 @@ export class MaintenanceListComponent implements OnInit {
 
     this.maintenanceService.atualizarStatus(
       this.osSelecionada.id,
-      this.statusForm.value.status,
       this.statusForm.value
     ).subscribe({
       next: () => {

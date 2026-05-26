@@ -1,48 +1,118 @@
 <p-dialog 
   [(visible)]="visible" 
-  [header]="'Especificações: ' + (equipment?.patrimonio)" 
+  [header]="'Detalhes do Equipamento — ' + (equipment?.patrimonio)" 
   [modal]="true" 
-  [style]="{width: '600px'}"
-  styleClass="eq-dialog"
+  [style]="{width: '780px'}"
+  [breakpoints]="{ '960px': '75vw', '641px': '100vw' }"
+  styleClass="eq-details-dialog"
   [draggable]="false"
+  [resizable]="false"
   (onHide)="fechar()"
 >
-  <div class="eq-details-grid">
-    <!-- Dados Básicos -->
-    <div class="eq-details-section">
-      <div class="eq-details-section__title"><i class="pi pi-info-circle"></i> Dados Básicos</div>
-      <div class="eq-details-row">
-        <span class="label">Patrimônio:</span>
-        <span class="val">{{ equipment?.patrimonio }}</span>
+  <div class="eq-det" *ngIf="equipment">
+    <!-- Header Summary Card -->
+    <div class="eq-det-hero">
+      <div class="eq-det-hero__left">
+        <span class="eq-det-hero__type">{{ equipment?.tipoEquipamento?.nome }}</span>
+        <h2 class="eq-det-hero__title">{{ equipment?.marca?.nome }} {{ equipment?.modelo?.nome || '' }}</h2>
+        <div class="eq-det-hero__badges">
+          <span class="eq-det-badge status" [ngClass]="obterCorStatus(equipment?.status?.nome)">
+            <i class="pi pi-circle-fill"></i> {{ equipment?.status?.nome || 'Sem Status' }}
+          </span>
+          <span class="eq-det-badge disp" [ngClass]="obterCorDisponibilidade(equipment?.disponibilidade?.nome)">
+            <i class="pi pi-info-circle"></i> {{ equipment?.disponibilidade?.nome || 'Sem Carga' }}
+          </span>
+        </div>
       </div>
-      <div class="eq-details-row">
-        <span class="label">Tipo:</span>
-        <span class="val">{{ equipment?.tipoEquipamento?.nome }}</span>
-      </div>
-      <div class="eq-details-row">
-        <span class="label">Marca/Modelo:</span>
-        <span class="val">{{ equipment?.marca?.nome }} {{ equipment?.modelo?.nome }}</span>
-      </div>
-      <div class="eq-details-row">
-        <span class="label">Nº Série:</span>
-        <span class="val">{{ equipment?.numeroSerie || '—' }}</span>
-      </div>
-    </div>
-
-    <!-- Atributos Técnicos -->
-    <div class="eq-details-section" *ngIf="chavesEspecificacoes.length > 0">
-      <div class="eq-details-section__title"><i class="pi pi-cog"></i> Atributos Técnicos</div>
-      <div class="eq-specs-grid">
-        <div class="eq-spec-item" *ngFor="let key of chavesEspecificacoes">
-          <span class="eq-spec-label">{{ formatarChave(key) }}</span>
-          <span class="eq-spec-val">{{ equipment.especificacoes[key] }}</span>
+      <div class="eq-det-hero__right">
+        <div class="pat-pill">
+          <span class="pat-label">PATRIMÔNIO</span>
+          <span class="pat-val">{{ equipment?.patrimonio }}</span>
         </div>
       </div>
     </div>
 
-    <div class="eq-empty" *ngIf="chavesEspecificacoes.length === 0">
-      <i class="pi pi-info-circle"></i>
-      <p>Nenhuma especificação técnica detalhada registrada para este item.</p>
+    <div class="eq-det-grid">
+      <!-- Coluna da Esquerda: Identificação e Localização -->
+      <div class="eq-det-col">
+        
+        <!-- Bloco 1: Identificação -->
+        <div class="eq-det-card">
+          <h3 class="eq-det-card__title"><i class="pi pi-id-card"></i> Identificação Geral</h3>
+          <div class="eq-det-row">
+            <span class="lbl">Número de Série</span>
+            <span class="val bold">{{ equipment?.numeroSerie || '—' }}</span>
+          </div>
+          <div class="eq-det-row">
+            <span class="lbl">Processo SEI</span>
+            <span class="val">{{ equipment?.sei || '—' }}</span>
+          </div>
+          <div class="eq-det-row">
+            <span class="lbl">Tipo de Aquisição</span>
+            <span class="val">{{ equipment?.tipoAquisicao?.nome || '—' }}</span>
+          </div>
+          <div class="eq-det-row">
+            <span class="lbl">Valor Estimado</span>
+            <span class="val bold price" *ngIf="equipment?.valor">{{ equipment?.valor | currency:'BRL':'symbol':'1.2-2' }}</span>
+            <span class="val" *ngIf="!equipment?.valor">—</span>
+          </div>
+        </div>
+
+        <!-- Bloco 2: Localização e Responsabilidade -->
+        <div class="eq-det-card">
+          <h3 class="eq-det-card__title"><i class="pi pi-map-marker"></i> Localização & Carga</h3>
+          <div class="eq-det-row flex-col">
+            <span class="lbl">Seção Responsável</span>
+            <span class="val bold main-text">{{ equipment?.secao?.sigla }} — {{ equipment?.secao?.nome || '—' }}</span>
+          </div>
+          <div class="eq-det-row flex-col" *ngIf="equipment?.secao?.batalhao">
+            <span class="lbl">Batalhão / OPM</span>
+            <span class="val main-text">{{ equipment?.secao?.batalhao?.sigla }} — {{ equipment?.secao?.batalhao?.nome || '—' }}</span>
+          </div>
+          <div class="eq-det-row" *ngIf="equipment?.usuarioResponsavel">
+            <span class="lbl">Responsável (Detentor)</span>
+            <span class="val bold">{{ equipment?.usuarioResponsavel?.nome }}</span>
+          </div>
+          <div class="eq-det-row">
+            <span class="lbl">Data de Cadastro</span>
+            <span class="val">{{ equipment?.dataEntrada | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="eq-det-row" *ngIf="equipment?.dataAquisicao">
+            <span class="lbl">Data de Aquisição</span>
+            <span class="val">{{ equipment?.dataAquisicao | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Coluna da Direita: Atributos Técnicos e Observações -->
+      <div class="eq-det-col">
+        
+        <!-- Bloco 3: Atributos Técnicos -->
+        <div class="eq-det-card full-height">
+          <h3 class="eq-det-card__title"><i class="pi pi-sliders-h"></i> Atributos Técnicos</h3>
+          
+          <div class="eq-det-specs" *ngIf="chavesEspecificacoes.length > 0">
+            <div class="spec-bubble" *ngFor="let key of chavesEspecificacoes">
+              <span class="spec-lbl">{{ formatarChave(key) }}</span>
+              <span class="spec-val">{{ equipment.especificacoes[key] || '—' }}</span>
+            </div>
+          </div>
+
+          <div class="empty-specs" *ngIf="chavesEspecificacoes.length === 0">
+            <i class="pi pi-sliders-h"></i>
+            <p>Nenhuma especificação técnica detalhada registrada para este item.</p>
+          </div>
+        </div>
+
+      </div>
     </div>
+
+    <!-- Bloco 4: Observações Gerais (Largura Total) -->
+    <div class="eq-det-card obs-card" *ngIf="equipment?.observacao">
+      <h3 class="eq-det-card__title"><i class="pi pi-align-left"></i> Observações / Histórico Geral</h3>
+      <p class="obs-text">{{ equipment?.observacao }}</p>
+    </div>
+
   </div>
 </p-dialog>

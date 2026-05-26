@@ -176,10 +176,10 @@
       </div>
     </div>
 
-    <!-- Barra de Seleção Coletiva -->
-    <div class="eq-basket-bar" *ngIf="selecionados.length > 0">
+    <!-- Barra Unificada de Seleção e Ações em Lote (só aparece com 2+ itens) -->
+    <div class="eq-basket-bar" *ngIf="selecionados.length > 1">
       <div class="eq-basket-bar__left">
-        <i class="pi pi-shopping-cart"></i>
+        <i class="pi pi-objects-column"></i>
         <span class="eq-basket-bubble">{{ selecionados.length }}</span>
         <span>equipamento(s) selecionado(s)</span>
         <button class="eq-basket-preview-btn" (click)="cestaAberta = !cestaAberta">
@@ -188,37 +188,25 @@
         </button>
       </div>
       <div class="eq-basket-bar__actions">
+        <button class="eq-basket-action-btn update" (click)="abrirModalEdicaoMassa()" pTooltip="Editar campos de todos os selecionados">
+          <i class="pi pi-file-edit"></i> Editar em Lote
+        </button>
+        <button class="eq-basket-action-btn labels" (click)="imprimirEtiquetasMassa()" pTooltip="Gerar etiquetas PDF dos selecionados">
+          <i class="pi pi-tags"></i> Etiquetas em Lote
+        </button>
+        <button class="eq-basket-action-btn maintenance" (click)="abrirModalManutencao()" pTooltip="Abrir OS para todos os selecionados">
+          <i class="pi pi-wrench"></i> Manutenção em Lote
+        </button>
+        <button class="eq-basket-action-btn move" (click)="abrirTransferenciaMassa()" pTooltip="Transferir todos os selecionados">
+          <i class="pi pi-truck"></i> Mover Carga em Lote ({{ selecionados.length }})
+        </button>
         <button class="eq-btn-ghost-sm" (click)="limparSelecao()">
           <i class="pi pi-times"></i> Limpar
-        </button>
-        <button class="eq-btn-primary transfer" (click)="abrirTransferenciaMassa()">
-          <i class="pi pi-send"></i> Transferir ({{ selecionados.length }})
         </button>
       </div>
     </div>
 
     <div class="eq-card__content no-padding">
-      <!-- Toolbar de Ações em Massa -->
-      <div class="eq-bulk-actions" *ngIf="selecionados.length > 0">
-        <div class="eq-bulk-actions__info">
-          <i class="pi pi-check-circle"></i>
-          <span><strong>{{ selecionados.length }}</strong> equipamentos selecionados</span>
-        </div>
-        <div class="eq-bulk-actions__btns">
-          <button class="eq-btn-bulk-update" (click)="abrirModalEdicaoMassa()" style="background: #2563eb; color: white;">
-            <i class="pi pi-pencil"></i> Atualizar em Lote
-          </button>
-          <button class="eq-btn-bulk-print" (click)="imprimirEtiquetasMassa()" style="background: #8b5cf6; color: white;">
-            <i class="pi pi-tags"></i> Gerar Etiquetas
-          </button>
-          <button class="eq-btn-primary transfer" (click)="abrirTransferenciaMassa()" style="background: #10b981; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s;">
-            <i class="pi pi-send"></i> Mover Carga
-          </button>
-          <button class="eq-btn-primary manutencao" (click)="abrirModalManutencao()" style="background: #f59e0b; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s;">
-            <i class="pi pi-wrench"></i> Manutenção
-          </button>
-        </div>
-      </div>
 
       <div class="eq-table-scroll-wrapper">
         <p-table 
@@ -232,7 +220,8 @@
           [totalRecords]="totalRecords"
           [loading]="carregando"
           dataKey="id"
-          [rowsPerPageOptions]="[10, 20, 50, 100]"
+          [rowsPerPageOptions]="rowsPerPage"
+          [paginatorDropdownAppendTo]="'body'"
           styleClass="p-datatable-sm p-datatable-gridlines"
           [scrollable]="true"
           scrollHeight="calc(100vh - 300px)"
@@ -266,6 +255,8 @@
                     <i class="pi pi-eye"></i>
                   </button>
                   <button class="eq-btn-icon time" (click)="verTimeline(eq)" pTooltip="Histórico"><i class="pi pi-history"></i></button>
+                  <button class="eq-btn-icon label" (click)="imprimirEtiquetaUnica(eq)" pTooltip="Gerar Etiqueta"><i class="pi pi-tag"></i></button>
+                  <button class="eq-btn-icon transfer" (click)="transferirEquipamento(eq)" pTooltip="Mover Carga"><i class="pi pi-truck"></i></button>
                   <button class="eq-btn-icon maint" (click)="enviarParaManutencao(eq)" pTooltip="Enviar para Manutenção" style="color: #f59e0b;"><i class="pi pi-wrench"></i></button>
                   <button class="eq-btn-icon edit" (click)="editar(eq)" pTooltip="Editar"><i class="pi pi-pencil"></i></button>
                   <button class="eq-btn-icon delete" (click)="removerEquipamento(eq)" pTooltip="Excluir"><i class="pi pi-trash"></i></button>
@@ -277,9 +268,14 @@
                 </span>
               </td>
               <td>
-                <div class="eq-sec-cell">
-                  <strong>{{ eq.secao?.sigla || '—' }}</strong>
-                  <small *ngIf="eq.secao?.batalhao">{{ eq.secao?.batalhao?.sigla }}</small>
+                <div class="eq-sec-cell" [pTooltip]="eq.secao?.nome + (eq.secao?.batalhao ? ' - ' + eq.secao?.batalhao?.nome : '')" tooltipPosition="top">
+                  <span class="eq-sec-badge">
+                    <i class="pi pi-building"></i>
+                    <span>{{ eq.secao?.sigla || '—' }}</span>
+                  </span>
+                  <span class="eq-bat-badge" *ngIf="eq.secao?.batalhao">
+                    {{ eq.secao?.batalhao?.sigla }}
+                  </span>
                 </div>
               </td>
               <td>{{ eq.tipoEquipamento?.nome || '—' }}</td>
@@ -322,9 +318,9 @@
 </app-equipment-form>
 
 <!-- Gaveta de Seleção (Cesta) -->
-<div class="eq-basket-drawer" [class.open]="cestaAberta && selecionados.length > 0">
+<div class="eq-basket-drawer" [class.open]="cestaAberta && selecionados.length > 1">
   <div class="eq-basket-drawer__header">
-    <div class="eq-basket-drawer__title"><i class="pi pi-shopping-cart"></i><span>Cesta de Seleção</span><span class="eq-basket-bubble">{{ selecionados.length }}</span></div>
+    <div class="eq-basket-drawer__title"><i class="pi pi-objects-column"></i><span>Itens Selecionados</span><span class="eq-basket-bubble">{{ selecionados.length }}</span></div>
     <button class="eq-basket-close" (click)="cestaAberta = false"><i class="pi pi-times"></i></button>
   </div>
   <div class="eq-basket-drawer__body">
@@ -335,7 +331,7 @@
   </div>
   <div class="eq-basket-drawer__footer">
     <button class="eq-btn-ghost" (click)="limparSelecao()">Limpar tudo</button>
-    <button class="eq-btn-primary" (click)="abrirTransferenciaMassa()">Transferir ({{ selecionados.length }})</button>
+    <button class="eq-btn-primary" (click)="abrirTransferenciaMassa()"><i class="pi pi-truck"></i> Mover Carga em Lote ({{ selecionados.length }})</button>
   </div>
 </div>
 
@@ -397,9 +393,46 @@
   [draggable]="false"
   [resizable]="false"
 >
-  <div class="eq-bulk-warning" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; font-size: 0.9rem;">
+  <div class="eq-bulk-warning" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; font-size: 0.9rem;">
     <i class="pi pi-send" style="font-size: 1.2rem;"></i>
-    <span>Você está prestes a transferir <strong>{{ selecionados.length }}</strong> equipamento(s). Preencha as informações de destino.</span>
+    <span>Preencha as informações abaixo para movimentar a carga.</span>
+  </div>
+
+  <div *ngIf="ehAdmin" style="background: #f0fdf4; border: 1px solid #86efac; color: #166534; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 10px; align-items: center; font-size: 0.9rem;">
+    <i class="pi pi-verified" style="font-size: 1.2rem;"></i>
+    <span>Acesso de Administrador: Esta movimentação é aplicada diretamente e as ações são registradas no log de auditoria.</span>
+  </div>
+
+  <!-- Fluxo de Transferência Unico -->
+  <div class="eq-transfer-flow" *ngIf="selecionados.length === 1">
+    <div class="eq-transfer-card-flow">
+      <div class="flow-step current">
+        <span class="flow-label">SEÇÃO ATUAL (ORIGEM)</span>
+        <span class="flow-val">{{ selecionados[0].secao?.sigla || '—' }}</span>
+        <small class="flow-sub" [pTooltip]="selecionados[0].secao?.nome">{{ selecionados[0].secao?.nome || '' }}</small>
+      </div>
+      <div class="flow-arrow">
+        <i class="pi pi-arrow-right"></i>
+      </div>
+      <div class="flow-step target">
+        <span class="flow-label">SEÇÃO DE DESTINO</span>
+        <span class="flow-val" *ngIf="!obterDestinoSigla()">A definir...</span>
+        <span class="flow-val highlighted" *ngIf="obterDestinoSigla()">{{ obterDestinoSigla() }}</span>
+        <small class="flow-sub" *ngIf="obterDestinoNome()" [pTooltip]="obterDestinoNome()">{{ obterDestinoNome() }}</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de Itens para Movimentação em Massa -->
+  <div class="eq-transfer-bulk-list" *ngIf="selecionados.length > 1">
+    <div class="bulk-list-title"><i class="pi pi-list"></i> Equipamentos a Mover ({{ selecionados.length }})</div>
+    <div class="bulk-list-items">
+      <div class="bulk-list-item" *ngFor="let item of selecionados">
+        <span class="pat">{{ item.patrimonio }}</span>
+        <span class="tipo">{{ item.tipoEquipamento?.nome }}</span>
+        <span class="origem">Seção Atual: <strong>{{ item.secao?.sigla }}</strong></span>
+      </div>
+    </div>
   </div>
 
   <form [formGroup]="transferenciaMassaForm" (ngSubmit)="confirmarTransferenciaMassa()" class="eq-form">
@@ -458,7 +491,7 @@
   header="Enviar para Manutenção ({{ selecionados.length }})" 
   [modal]="true" 
   [style]="{ width: '500px' }" 
-  styleClass="eq-dialog"
+  styleClass="eq-dialog glass-modal"
   [draggable]="false"
   [resizable]="false"
 >

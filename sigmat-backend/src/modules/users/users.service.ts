@@ -90,38 +90,38 @@ export class UsersService {
     return this.prisma.usuario.delete({ where: { id } });
   }
 
-  async upsertDoSei(dadosSei: any) {
+  async upsertUsuarioCorporativo(dadosUsuario: any) {
     let secaoId = null;
 
-    if (dadosSei.unidade) {
+    if (dadosUsuario.unidade) {
       let secao = await this.prisma.secao.findFirst({
-        where: { sigla: dadosSei.unidade }
+        where: { sigla: dadosUsuario.unidade }
       });
       if (!secao) {
         secao = await this.prisma.secao.create({
-          data: { sigla: dadosSei.unidade, nome: dadosSei.unidade }
+          data: { sigla: dadosUsuario.unidade, nome: dadosUsuario.unidade }
         });
       }
       secaoId = secao.id;
     }
 
     return this.prisma.usuario.upsert({
-      where: { login: dadosSei.login || dadosSei.matricula },
+      where: { login: dadosUsuario.login || dadosUsuario.matricula },
       update: {
-        nome: dadosSei.nome,
-        email: dadosSei.email,
-        postoGraduacao: dadosSei.postoGraduacao,
-        matricula: dadosSei.matricula || '',
+        nome: dadosUsuario.nome,
+        email: dadosUsuario.email,
+        postoGraduacao: dadosUsuario.postoGraduacao,
+        matricula: dadosUsuario.matricula || '',
         ...(secaoId && { secaoId }),
-        ...(dadosSei.perfil && { perfil: dadosSei.perfil })
+        ...(dadosUsuario.perfil && { perfil: dadosUsuario.perfil })
       },
       create: {
-        login: dadosSei.login || dadosSei.matricula,
-        matricula: dadosSei.matricula || '',
-        nome: dadosSei.nome,
-        email: dadosSei.email,
-        postoGraduacao: dadosSei.postoGraduacao,
-        perfil: dadosSei.perfil || PerfilUsuario.USUARIO_BATALHAO,
+        login: dadosUsuario.login || dadosUsuario.matricula,
+        matricula: dadosUsuario.matricula || '',
+        nome: dadosUsuario.nome,
+        email: dadosUsuario.email,
+        postoGraduacao: dadosUsuario.postoGraduacao,
+        perfil: dadosUsuario.perfil || PerfilUsuario.USUARIO_BATALHAO,
         secaoId: secaoId
       },
     });

@@ -15,8 +15,8 @@ describe('AppController', () => {
   });
 
   describe('raiz', () => {
-    it('deve retornar "Olá Mundo! - SIGMAT PMPE API rodando."', () => {
-      expect(appController.obterSaudacao()).toBe('Olá Mundo! - SIGMAT PMPE API rodando.');
+    it('deve retornar "Olá Mundo! - SIGMAT PMPE API rodando (v1.0.3)."', () => {
+      expect(appController.obterSaudacao()).toBe('Olá Mundo! - SIGMAT PMPE API rodando (v1.0.3).');
     });
   });
 });

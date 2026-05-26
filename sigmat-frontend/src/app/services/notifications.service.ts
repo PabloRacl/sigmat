@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ApprovalsService } from './approvals.service';
+import { TransfersService } from './transfers.service';
 import { AuthService } from './auth.service';
 import { io, Socket } from 'socket.io-client';
 import { environment } from '../environment';
@@ -8,6 +10,7 @@ import { environment } from '../environment';
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
   private approvalsService = inject(ApprovalsService);
+  private transfersService = inject(TransfersService);
   private authService = inject(AuthService);
   
   private pendentesSubject = new BehaviorSubject<number>(0);
@@ -38,8 +41,7 @@ export class NotificationsService {
       this.atualizarContagem();
     });
 
-    // Fallback: ainda mantém um polling de backup mais longo (a cada 5 min) 
-    // caso a conexão WS fique ociosa ou falhe silenciosamente
+    // Fallback
     setInterval(() => {
       this.atualizarContagem();
     }, 300000);
@@ -47,13 +49,24 @@ export class NotificationsService {
 
   atualizarContagem() {
     const user = this.authService.getUsuario();
-    if (!user) return; // Só busca se estiver logado
+    if (!user) return; 
 
-    this.approvalsService.obterContagem().subscribe({
-      next: (res: any) => this.pendentesSubject.next(res.total || 0),
-      error: () => {}
+    forkJoin({
+      aprovacoes: this.approvalsService.obterContagem().pipe(catchError(() => of({ total: 0 }))),
+      transferencias: this.transfersService.listarPendentes().pipe(catchError(() => of([])))
+    }).subscribe(({ aprovacoes, transferencias }) => {
+      let total = (aprovacoes as any).total || 0;
+      
+      const isAdmin = user.perfil === 'ADMIN_DTEC' || user.perfil === 'DIRETORIA';
+      const recebidas = isAdmin 
+        ? transferencias 
+        : (transferencias as any[]).filter(t => t.destinoId === user.secaoId);
+
+      total += recebidas.length;
+      this.pendentesSubject.next(total);
     });
   }
 }
+
 
 

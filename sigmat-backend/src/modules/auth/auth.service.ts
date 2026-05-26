@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { SeiService } from '../../integrations/sei/sei.service';
+import { LdapService } from '../../integrations/ldap/ldap.service';
+import { SgaService } from '../../integrations/sga/sga.service';
 import { UsersService } from '../users/users.service';
 import { AuditService } from '../../shared/services/audit.service';
 import { AcaoLog } from '@prisma/client';
@@ -11,7 +12,8 @@ import { v4 as uuidv4 } from 'uuid';
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
   constructor(
-    private readonly seiService: SeiService,
+    private readonly ldapService: LdapService,
+    private readonly sgaService: SgaService,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly auditService: AuditService,
@@ -19,21 +21,31 @@ export class AuthService {
   ) {}
 
   /**
-   * Realiza o login integrado com o SEI.
+   * Realiza o login corporativo integrado com o LDAP e o SGA (Portal de Segurança).
    */
-  async loginComSei(usuario: string, senha: string) {
+  async loginCorporativo(usuario: string, senha: string) {
     try {
-      // 1. Valida as credenciais no SEI
-      const resultadoSei = await this.seiService.autenticarComSei(usuario, senha);
+      // 1. Valida as credenciais na API LDAP corporativa
+      const dadosLdap = await this.ldapService.autenticar(usuario, senha);
 
-      if (!resultadoSei.sucesso) {
-        throw new UnauthorizedException('Falha na autenticação. Verifique suas credenciais.');
+      // 2. Consulta a liberação de acesso e o perfil do policial no SGA
+      const permissaoSga = await this.sgaService.obterPermissao(dadosLdap.matricula || usuario);
+
+      if (!permissaoSga.ativo) {
+        throw new UnauthorizedException('Sua conta não está ativa no Portal de Segurança (SGA).');
       }
 
-      // 2. Garante que o usuário existe no nosso banco (Upsert)
-      const usuarioBanco = await this.usersService.upsertDoSei(resultadoSei.dados);
+      // Mescla os dados cadastrais do LDAP com o perfil de acesso do SGA
+      const dadosCompletos = {
+        ...dadosLdap,
+        perfil: permissaoSga.perfil,
+        unidade: dadosLdap.unidade || 'DTEC' // default/fallback
+      };
 
-      // 3. Gera o token JWT
+      // 3. Garante que o usuário existe no banco local com os perfis corretos
+      const usuarioBanco = await this.usersService.upsertUsuarioCorporativo(dadosCompletos);
+
+      // 4. Gera o token JWT com as informações do banco
       const payload = {
         sub: usuarioBanco.id,
         login: usuarioBanco.login,
@@ -47,11 +59,11 @@ export class AuthService {
       const access_token = this.jwtService.sign(payload);
       const refresh_token = await this.gerarRefreshToken(usuarioBanco.id);
 
-      // 4. Log de auditoria
+      // 5. Log de auditoria
       await this.auditService.registrarLog({
         usuarioId: usuarioBanco.id,
         acao: AcaoLog.LOGIN,
-        descricao: `Usuário ${usuarioBanco.login} realizou login no sistema.`,
+        descricao: `Usuário ${usuarioBanco.login} realizou login corporativo (LDAP+SGA).`,
       });
 
       return {
@@ -68,11 +80,10 @@ export class AuthService {
       };
 
     } catch (error) {
-      this.logger.error(`Erro no loginComSei: ${error?.message}`, error?.stack);
-      // Temporariamente expõe a mensagem de erro real para debug em produção
+      this.logger.error(`Erro no loginCorporativo: ${error?.message}`, error?.stack);
       if (error instanceof UnauthorizedException) throw error;
       
-      throw new InternalServerErrorException(`Debug Error: ${error?.message || 'Sem mensagem'}`);
+      throw new InternalServerErrorException(`Erro no servidor de autenticação: ${error?.message || 'Sem resposta'}`);
     }
   }
 
