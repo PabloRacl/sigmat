@@ -101,6 +101,7 @@ export class MaintenanceListComponent implements OnInit {
 
   // ── Modal: Assistência Premium (3 Colunas) ───────────────────────
   exibirModalAssistencia = false;
+  modoEdicao = false;
   statusForm: FormGroup;
   osSelecionada: any = null;
   historicoOS: any[] = [];
@@ -244,8 +245,9 @@ export class MaintenanceListComponent implements OnInit {
   }
 
   // ── Central de Assistência Premium (Modal Único) ──────────────────
-  abrirAssistencia(os: any) {
+  abrirAssistencia(os: any, modoEdicao: boolean = false) {
     this.osSelecionada = os;
+    this.modoEdicao = modoEdicao;
     this.statusForm.reset({
       status:             os.status,
       tecnicoResponsavel: os.tecnicoResponsavel || '',

@@ -1013,6 +1013,12 @@ $bg-cancelada:    #fee2e2;
   i {
     font-size: 0.9rem;
   }
+
+  &.warning-message {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+  }
 }
 
 /* COLUNA 3: TIMELINE PANEL */

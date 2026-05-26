@@ -165,12 +165,12 @@
         <td style="text-align:center">
           <div class="mn-actions">
             <button class="mn-btn-icon view"
-              (click)="abrirAssistencia(os)"
+              (click)="abrirAssistencia(os, false)"
               pTooltip="Visualizar na Assistência" tooltipPosition="left">
               <i class="pi pi-eye"></i>
             </button>
             <button class="mn-btn-icon edit"
-              (click)="abrirAssistencia(os)"
+              (click)="abrirAssistencia(os, true)"
               [pTooltip]="ehAdmin ? 'Gerenciar Assistência' : 'Visualizar na Assistência'"
               tooltipPosition="left">
               <i class="pi pi-cog"></i>
@@ -364,7 +364,7 @@
               optionValue="value" 
               styleClass="w-full premium-dropdown" 
               appendTo="body"
-              [disabled]="!ehAdmin"
+              [disabled]="!ehAdmin || !modoEdicao"
             ></p-dropdown>
           </div>
 
@@ -380,7 +380,7 @@
                   formControlName="tecnicoResponsavel" 
                   class="w-full" 
                   placeholder="Nome do técnico..." 
-                  [readonly]="!ehAdmin"
+                  [readonly]="!ehAdmin || !modoEdicao"
                 />
               </div>
             </div>
@@ -394,7 +394,7 @@
                 appendTo="body" 
                 class="w-full" 
                 styleClass="w-full"
-                [disabled]="!ehAdmin"
+                [disabled]="!ehAdmin || !modoEdicao"
               ></p-datepicker>
             </div>
           </div>
@@ -414,7 +414,7 @@
                 rows="3" 
                 class="w-full" 
                 placeholder="Descreva detalhadamente..."
-                [readonly]="!ehAdmin"
+                [readonly]="!ehAdmin || !modoEdicao"
               ></textarea>
             </div>
 
@@ -427,19 +427,24 @@
                 locale="pt-BR" 
                 class="w-full" 
                 styleClass="w-full"
-                [disabled]="!ehAdmin"
+                [disabled]="!ehAdmin || !modoEdicao"
               ></p-inputNumber>
             </div>
           </div>
 
           <!-- Botões de Ação do Form -->
-          <div class="form-action-buttons" *ngIf="ehAdmin">
+          <div class="form-action-buttons" *ngIf="ehAdmin && modoEdicao">
             <button type="submit" class="save-changes-btn" [disabled]="statusForm.invalid">
               <i class="pi pi-save"></i> Atualizar Processo
             </button>
           </div>
+          
           <div class="unauthorized-message" *ngIf="!ehAdmin">
             <i class="pi pi-lock"></i> Apenas administradores podem atualizar processos de manutenção.
+          </div>
+
+          <div class="unauthorized-message warning-message" *ngIf="ehAdmin && !modoEdicao">
+            <i class="pi pi-eye"></i> Modo de Visualização. Clique no ícone de engrenagem para editar os dados.
           </div>
         </form>
       </div>

@@ -26,6 +26,14 @@ export class AtualizarStatusOsDto {
 
   @IsString()
   @IsOptional()
+  tecnicoResponsavel?: string;
+
+  @IsDateString()
+  @IsOptional()
+  dataPrevisao?: string;
+
+  @IsString()
+  @IsOptional()
   solucaoAplicada?: string;
 
   @IsNumber({}, { message: 'O valor deve ser um número' })
