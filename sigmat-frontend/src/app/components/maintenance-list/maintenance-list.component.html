@@ -164,16 +164,10 @@
         <!-- Ações -->
         <td style="text-align:center">
           <div class="mn-actions">
-            <button class="mn-btn-icon view"
-              (click)="abrirAssistencia(os, false)"
-              pTooltip="Visualizar na Assistência" tooltipPosition="left">
-              <i class="pi pi-eye"></i>
-            </button>
             <button class="mn-btn-icon edit"
-              (click)="abrirAssistencia(os, true)"
-              [pTooltip]="ehAdmin ? 'Gerenciar Assistência' : 'Visualizar na Assistência'"
-              tooltipPosition="left">
-              <i class="pi pi-cog"></i>
+              (click)="abrirAssistencia(os, ehAdmin)"
+              pTooltip="Abrir Assistência" tooltipPosition="left">
+              <i class="pi pi-briefcase"></i>
             </button>
           </div>
         </td>
