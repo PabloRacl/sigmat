@@ -16,6 +16,18 @@ export class LdapService {
    * Valida as credenciais (usuário e senha) na API LDAP do sistema corporativo PMPE.
    */
   async autenticar(usuario: string, senha: string): Promise<any> {
+    // Mock de desenvolvimento para não bloquear a equipe local
+    if (process.env.NODE_ENV !== 'production' && (usuario === 'testabatalhao' || usuario === 'pablo.ricardo' || senha === 'teste123' || senha === '123')) {
+      this.logger.log(`[MOCK DEV] Login aceito para fins de desenvolvimento: ${usuario}`);
+      return {
+        login: usuario,
+        matricula: usuario === 'pablo.ricardo' ? '123456' : '7654321',
+        nome: usuario === 'pablo.ricardo' ? 'Pablo Ricardo' : 'Usuário Policial de Teste',
+        email: `${usuario}@pm.pe.gov.br`,
+        postoGraduacao: usuario === 'pablo.ricardo' ? 'Capitão' : 'Soldado',
+      };
+    }
+
     const apiBase = this.configService.get<string>('API_LDAP');
     const endpoint = this.configService.get<string>('LDAP_AUTH_ENDPOINT') || 'auth';
     
@@ -28,18 +40,6 @@ export class LdapService {
     const url = `${apiBase.replace(/\/$/, '')}/${endpoint}`;
     
     this.logger.log(`Tentando autenticar usuário ${usuario} no LDAP...`);
-
-    // Mock de desenvolvimento para não bloquear a equipe local
-    if (process.env.NODE_ENV !== 'production' && (usuario === 'testabatalhao' || usuario === 'pablo.ricardo' || senha === 'teste123' || senha === '123')) {
-      this.logger.log(`[MOCK DEV] Login aceito para fins de desenvolvimento: ${usuario}`);
-      return {
-        login: usuario,
-        matricula: usuario === 'pablo.ricardo' ? '123456' : '7654321',
-        nome: usuario === 'pablo.ricardo' ? 'Pablo Ricardo' : 'Usuário Policial de Teste',
-        email: `${usuario}@pm.pe.gov.br`,
-        postoGraduacao: usuario === 'pablo.ricardo' ? 'Capitão' : 'Soldado',
-      };
-    }
 
     try {
       const response = await firstValueFrom(
