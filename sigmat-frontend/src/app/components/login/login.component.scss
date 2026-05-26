@@ -56,23 +56,19 @@
 
     .logo {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
       margin-bottom: 16px;
 
-      .shield-icon {
-        font-size: 40px;
-      }
-
-      span {
-        font-size: 28px;
-        font-weight: 800;
-        letter-spacing: 2px;
-        color: #fff;
-        background: linear-gradient(to right, #60a5fa, #1e40af);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+      .logo-img {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 30px rgba(30, 64, 175, 0.4), 0 0 60px rgba(30, 64, 175, 0.15);
+        margin-bottom: 8px;
       }
     }
 
