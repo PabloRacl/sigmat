@@ -228,6 +228,21 @@ export class MaintenanceService {
     this.notificationsService.notificarAtualizacaoGlobal();
     return resultado;
   }
+
+  async obterHistorico(id: number) {
+    const os = await this.prisma.ordemServico.findUnique({ where: { id } });
+    if (!os) throw new NotFoundException('Ordem de serviço não encontrada');
+
+    return this.prisma.logOperacao.findMany({
+      where: { equipamentoId: os.equipamentoId },
+      include: {
+        usuario: {
+          select: { nome: true, matricula: true, postoGraduacao: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
 }
 
 

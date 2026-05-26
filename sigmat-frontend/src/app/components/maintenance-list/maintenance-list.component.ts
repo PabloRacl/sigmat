@@ -99,14 +99,12 @@ export class MaintenanceListComponent implements OnInit {
   equipSugestoes: any[] = [];
   equipamentoNovaOs: any = null;
 
-  // ── Modal: Atualizar Status ───────────────────────────────────────
-  exibirModalStatus = false;
+  // ── Modal: Assistência Premium (3 Colunas) ───────────────────────
+  exibirModalAssistencia = false;
   statusForm: FormGroup;
   osSelecionada: any = null;
-
-  // ── Drawer: Detalhes da OS ────────────────────────────────────────
-  exibirDetalhes = false;
-  osDetalhes: any = null;
+  historicoOS: any[] = [];
+  carregandoHistorico = false;
 
   constructor() {
     this.novaOsForm = this.fb.group({
@@ -126,6 +124,26 @@ export class MaintenanceListComponent implements OnInit {
 
   ngOnInit() {
     this.carregarDados();
+
+    // Lógica inteligente de previsão de prazos automáticos baseado no status
+    this.statusForm.get('status')?.valueChanges.subscribe(status => {
+      if (!status || !this.osSelecionada) return;
+      const dataAbertura = new Date(this.osSelecionada.dataAbertura);
+      const dataAtual = new Date();
+      let diasAdicionais = 0;
+
+      if (status === 'EM_ANDAMENTO') {
+        diasAdicionais = 2;
+      } else if (status === 'AGUARDANDO_PECA') {
+        diasAdicionais = 7;
+      }
+
+      if (diasAdicionais > 0) {
+        const novaPrevisao = new Date();
+        novaPrevisao.setDate(dataAtual.getDate() + diasAdicionais);
+        this.statusForm.patchValue({ dataPrevisao: novaPrevisao }, { emitEvent: false });
+      }
+    });
   }
 
   // ── Carregamento ─────────────────────────────────────────────────
@@ -136,6 +154,14 @@ export class MaintenanceListComponent implements OnInit {
         this.todasOrdens = res;
         this.aplicarFiltros();
         this.carregando = false;
+
+        // Se o modal estiver aberto, atualiza a OS selecionada para manter os dados frescos
+        if (this.exibirModalAssistencia && this.osSelecionada) {
+          const osAtualizada = this.todasOrdens.find(o => o.id === this.osSelecionada.id);
+          if (osAtualizada) {
+            this.osSelecionada = osAtualizada;
+          }
+        }
       },
       error: () => {
         this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar ordens de serviço.' });
@@ -217,8 +243,8 @@ export class MaintenanceListComponent implements OnInit {
     });
   }
 
-  // ── Modal: Atualizar Status ───────────────────────────────────────
-  abrirAtualizacaoStatus(os: any) {
+  // ── Central de Assistência Premium (Modal Único) ──────────────────
+  abrirAssistencia(os: any) {
     this.osSelecionada = os;
     this.statusForm.reset({
       status:             os.status,
@@ -227,7 +253,23 @@ export class MaintenanceListComponent implements OnInit {
       solucaoAplicada:    os.solucaoAplicada || '',
       valorGasto:         os.valorGasto || null,
     });
-    this.exibirModalStatus = true;
+
+    this.exibirModalAssistencia = true;
+    this.carregarHistoricoOS(os.id);
+  }
+
+  carregarHistoricoOS(osId: number) {
+    this.carregandoHistorico = true;
+    this.maintenanceService.obterHistorico(osId).subscribe({
+      next: (res) => {
+        this.historicoOS = res || [];
+        this.carregandoHistorico = false;
+      },
+      error: () => {
+        this.historicoOS = [];
+        this.carregandoHistorico = false;
+      }
+    });
   }
 
   salvarStatus() {
@@ -238,25 +280,20 @@ export class MaintenanceListComponent implements OnInit {
       this.statusForm.value
     ).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Status atualizado.' });
-        this.exibirModalStatus = false;
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Status atualizado com sucesso na assistência.' });
+        this.carregarHistoricoOS(this.osSelecionada.id);
         this.carregarDados();
       },
       error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar status.' });
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar ordem de serviço.' });
       }
     });
   }
 
-  // ── Drawer: Detalhes ──────────────────────────────────────────────
-  verDetalhes(os: any) {
-    this.osDetalhes = os;
-    this.exibirDetalhes = true;
-  }
-
-  fecharDetalhes() {
-    this.exibirDetalhes = false;
-    this.osDetalhes = null;
+  fecharAssistencia() {
+    this.exibirModalAssistencia = false;
+    this.osSelecionada = null;
+    this.historicoOS = [];
   }
 
   // ── Helpers ──────────────────────────────────────────────────────

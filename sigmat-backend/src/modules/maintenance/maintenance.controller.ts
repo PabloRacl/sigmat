@@ -38,6 +38,11 @@ export class MaintenanceController {
   ) {
     return this.MaintenanceService.atualizarStatus(id, dados.status, dados, usuario.id);
   }
+
+  @Get(':id/historico')
+  obterHistorico(@Param('id', ParseIntPipe) id: number) {
+    return this.MaintenanceService.obterHistorico(id);
+  }
 }
 
 

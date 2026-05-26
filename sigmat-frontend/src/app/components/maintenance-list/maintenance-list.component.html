@@ -165,14 +165,13 @@
         <td style="text-align:center">
           <div class="mn-actions">
             <button class="mn-btn-icon view"
-              (click)="verDetalhes(os)"
-              pTooltip="Ver Detalhes" tooltipPosition="left">
+              (click)="abrirAssistencia(os)"
+              pTooltip="Visualizar na Assistência" tooltipPosition="left">
               <i class="pi pi-eye"></i>
             </button>
             <button class="mn-btn-icon edit"
-              (click)="abrirAtualizacaoStatus(os)"
-              [disabled]="!ehAdmin"
-              [pTooltip]="ehAdmin ? 'Atualizar Status' : 'Apenas Admins podem alterar'"
+              (click)="abrirAssistencia(os)"
+              [pTooltip]="ehAdmin ? 'Gerenciar Assistência' : 'Visualizar na Assistência'"
               tooltipPosition="left">
               <i class="pi pi-cog"></i>
             </button>
@@ -279,155 +278,221 @@
 </p-dialog>
 
 
-<!-- ══ MODAL: ATUALIZAR STATUS ═════════════════════════════════════════════ -->
+<!-- ══ MODAL: OFICINA DE ASSISTÊNCIA PREMIUM (3 COLUNAS) ═════════════════════ -->
 <p-dialog
-  [(visible)]="exibirModalStatus"
-  header="Atualizar OS #{{ osSelecionada?.id }}"
+  [(visible)]="exibirModalAssistencia"
+  [header]="'Oficina de Assistência — OS #' + osSelecionada?.id"
   [modal]="true"
-  [style]="{ width: '480px' }"
-  styleClass="mn-dialog glass-modal"
-  [draggable]="false"
-  id="modal-status-os"
->
-  <form [formGroup]="statusForm" (ngSubmit)="salvarStatus()" class="mn-form">
-
-    <div class="mn-form__field">
-      <label>Novo Status <span class="req">*</span></label>
-      <p-dropdown [options]="statusOpcoes" formControlName="status" optionLabel="label" optionValue="value" styleClass="w-full" appendTo="body"></p-dropdown>
-    </div>
-
-    <div class="mn-form__row">
-      <div class="mn-form__field flex-1">
-        <label>Técnico / Empresa Responsável</label>
-        <input type="text" pInputText formControlName="tecnicoResponsavel" class="w-full" placeholder="Nome ou empresa..." />
-      </div>
-      <div class="mn-form__field flex-1">
-        <label>Previsão de Retorno</label>
-        <p-datepicker formControlName="dataPrevisao" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body" class="w-full" styleClass="w-full"></p-datepicker>
-      </div>
-    </div>
-
-    <!-- Campos de conclusão/cancelamento -->
-    <div *ngIf="statusForm.get('status')?.value === 'CONCLUIDA' || statusForm.get('status')?.value === 'CANCELADA'" class="mn-conclusao-section">
-      <div class="mn-conclusao-section__title">
-        <i class="pi pi-info-circle"></i>
-        <span>{{ statusForm.get('status')?.value === 'CONCLUIDA' ? 'Detalhes da Conclusão' : 'Motivo do Cancelamento' }}</span>
-      </div>
-      <div class="mn-form__field">
-        <label>{{ statusForm.get('status')?.value === 'CONCLUIDA' ? 'Solução Aplicada' : 'Motivo do Cancelamento' }}</label>
-        <textarea pInputTextarea formControlName="solucaoAplicada" rows="3" class="w-full" placeholder="Descreva o que foi feito ou motivo do cancelamento..."></textarea>
-      </div>
-      <div class="mn-form__field" *ngIf="statusForm.get('status')?.value === 'CONCLUIDA'">
-        <label>Custo do Reparo (R$)</label>
-        <p-inputNumber formControlName="valorGasto" mode="currency" currency="BRL" locale="pt-BR" class="w-full" styleClass="w-full"></p-inputNumber>
-      </div>
-    </div>
-
-    <div class="mn-form__footer">
-      <button type="button" class="mn-btn-ghost" (click)="exibirModalStatus = false">Cancelar</button>
-      <button type="submit" class="mn-btn-primary" [disabled]="statusForm.invalid">
-        <i class="pi pi-save"></i> Salvar Alterações
-      </button>
-    </div>
-  </form>
-</p-dialog>
-
-
-<!-- ══ DIALOG: DETALHES DA OS ══════════════════════════════════════════════ -->
-<p-dialog
-  [(visible)]="exibirDetalhes"
-  [header]="'Detalhes — OS #' + osDetalhes?.id"
-  [modal]="true"
-  [style]="{ width: '600px' }"
-  styleClass="mn-dialog mn-dialog--detail"
+  [style]="{ width: '1100px' }"
+  styleClass="mn-dialog assistance-modal"
   [draggable]="false"
   [resizable]="false"
-  id="modal-detalhes-os"
+  id="modal-assistance-os"
+  (onHide)="fecharAssistencia()"
 >
-  <div *ngIf="osDetalhes" class="mn-detail">
+  <div *ngIf="osSelecionada" class="assistance-layout">
+    
+    <!-- GRID DE 3 COLUNAS -->
+    <div class="assistance-grid">
+      
+      <!-- COLUNA 1: TRIAGEM E DIAGNÓSTICO -->
+      <div class="assistance-col triage-panel">
+        <div class="panel-section-title">
+          <i class="pi pi-file-edit"></i> Triagem & Diagnóstico
+        </div>
+        
+        <div class="triage-card">
+          <div class="triage-card__header">
+            <span class="equipment-pat">{{ osSelecionada.equipamento?.patrimonio }}</span>
+            <span class="status-indicator" [ngClass]="osSelecionada.status | lowercase">
+              {{ formatarStatusLabel(osSelecionada.status) }}
+            </span>
+          </div>
+          
+          <div class="triage-details">
+            <div class="detail-row">
+              <span class="detail-label">Equipamento:</span>
+              <strong class="detail-value">{{ osSelecionada.equipamento?.tipoEquipamento?.nome }}</strong>
+            </div>
+            <div class="detail-row" *ngIf="osSelecionada.equipamento?.marca">
+              <span class="detail-label">Marca/Modelo:</span>
+              <span class="detail-value">{{ osSelecionada.equipamento?.marca?.nome }} · {{ osSelecionada.equipamento?.modelo?.nome || 'N/A' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Seção de Origem:</span>
+              <span class="detail-value">{{ osSelecionada.equipamento?.secao?.sigla }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Cadastrado por:</span>
+              <span class="detail-value">{{ osSelecionada.solicitante?.nome }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Data de Entrada:</span>
+              <span class="detail-value">{{ osSelecionada.dataAbertura | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="detail-row" *ngIf="!isStatusFinal(osSelecionada.status)">
+              <span class="detail-label">Tempo Decorrido:</span>
+              <span class="dias-decorridos-badge" [class.dias-decorridos-badge--warn]="diasAberta(osSelecionada.dataAbertura) > 7">
+                {{ diasAberta(osSelecionada.dataAbertura) }} dia(s) em manutenção
+              </span>
+            </div>
+          </div>
+        </div>
 
-    <!-- Status + Alerta de atraso -->
-    <div class="mn-detail__status-row">
-      <span class="mn-status-badge" [ngClass]="osDetalhes.status | lowercase">
-        {{ formatarStatusLabel(osDetalhes.status) }}
-      </span>
-      <span *ngIf="isAtrasada(osDetalhes)" class="mn-atrasada-tag">
-        <i class="pi pi-exclamation-triangle"></i> Atrasada
-      </span>
-      <span *ngIf="!isStatusFinal(osDetalhes.status)" class="mn-dias-badge" [class.mn-dias-badge--warn]="diasAberta(osDetalhes.dataAbertura) > 7" [class.mn-dias-badge--danger]="diasAberta(osDetalhes.dataAbertura) > 30">
-        {{ diasAberta(osDetalhes.dataAbertura) }} dia(s) aberta
-      </span>
-    </div>
+        <div class="triage-problem">
+          <label class="section-subtitle">Problema Relatado na Entrada</label>
+          <div class="problem-text-box">
+            {{ osSelecionada.descricaoProblema }}
+          </div>
+        </div>
+      </div>
 
-    <!-- Grid de informações -->
-    <div class="mn-detail__grid">
-      <div class="mn-detail__item">
-        <span class="mn-detail__key"><i class="pi pi-box"></i> Equipamento</span>
-        <strong class="mn-detail__val">{{ osDetalhes.equipamento?.patrimonio }}</strong>
-      </div>
-      <div class="mn-detail__item">
-        <span class="mn-detail__key"><i class="pi pi-tag"></i> Tipo</span>
-        <span class="mn-detail__val">{{ osDetalhes.equipamento?.tipoEquipamento?.nome || '—' }}</span>
-      </div>
-      <div class="mn-detail__item">
-        <span class="mn-detail__key"><i class="pi pi-map-marker"></i> Seção</span>
-        <span class="mn-detail__val">{{ osDetalhes.equipamento?.secao?.sigla || '—' }}</span>
-      </div>
-      <div class="mn-detail__item">
-        <span class="mn-detail__key"><i class="pi pi-user"></i> Solicitante</span>
-        <span class="mn-detail__val">{{ osDetalhes.solicitante?.nome || '—' }}</span>
-      </div>
-      <div class="mn-detail__item">
-        <span class="mn-detail__key"><i class="pi pi-wrench"></i> Técnico</span>
-        <span class="mn-detail__val">{{ osDetalhes.tecnicoResponsavel || '— não definido' }}</span>
-      </div>
-      <div class="mn-detail__item">
-        <span class="mn-detail__key"><i class="pi pi-calendar"></i> Data Abertura</span>
-        <span class="mn-detail__val">{{ osDetalhes.dataAbertura | date:'dd/MM/yyyy HH:mm' }}</span>
-      </div>
-      <div class="mn-detail__item">
-        <span class="mn-detail__key"><i class="pi pi-flag"></i> Previsão</span>
-        <span class="mn-detail__val" [style.color]="isAtrasada(osDetalhes) ? '#ef4444' : 'inherit'">
-          {{ osDetalhes.dataPrevisao ? (osDetalhes.dataPrevisao | date:'dd/MM/yyyy') : '— não estimada' }}
-        </span>
-      </div>
-      <div class="mn-detail__item" *ngIf="osDetalhes.dataConclusao">
-        <span class="mn-detail__key"><i class="pi pi-check-circle"></i> Conclusão</span>
-        <span class="mn-detail__val">{{ osDetalhes.dataConclusao | date:'dd/MM/yyyy HH:mm' }}</span>
-      </div>
-      <div class="mn-detail__item" *ngIf="osDetalhes.valorGasto">
-        <span class="mn-detail__key"><i class="pi pi-dollar-sign"></i> Custo</span>
-        <span class="mn-detail__val">{{ osDetalhes.valorGasto | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</span>
-      </div>
-    </div>
+      <!-- COLUNA 2: CONTROLE E PROCESSAMENTO (FORMULÁRIO) -->
+      <div class="assistance-col action-panel">
+        <div class="panel-section-title">
+          <i class="pi pi-cog"></i> Processamento & Ações
+        </div>
 
-    <!-- Problema -->
-    <div class="mn-detail__section">
-      <div class="mn-detail__section-title">
-        <i class="pi pi-exclamation-circle"></i> Descrição do Problema
-      </div>
-      <p class="mn-detail__text">{{ osDetalhes.descricaoProblema }}</p>
-    </div>
+        <form [formGroup]="statusForm" (ngSubmit)="salvarStatus()" class="action-form">
+          <!-- Campo Novo Status -->
+          <div class="form-group-field">
+            <label>Alterar Status <span class="req">*</span></label>
+            <p-dropdown 
+              [options]="statusOpcoes" 
+              formControlName="status" 
+              optionLabel="label" 
+              optionValue="value" 
+              styleClass="w-full premium-dropdown" 
+              appendTo="body"
+              [disabled]="!ehAdmin"
+            ></p-dropdown>
+          </div>
 
-    <!-- Solução (se houver) -->
-    <div class="mn-detail__section" *ngIf="osDetalhes.solucaoAplicada">
-      <div class="mn-detail__section-title">
-        <i class="pi pi-check"></i> Solução Aplicada / Motivo Cancelamento
+          <!-- Técnico e Previsão -->
+          <div class="form-row-group">
+            <div class="form-group-field flex-1">
+              <label>Técnico Encarregado</label>
+              <div class="input-with-icon">
+                <i class="pi pi-user"></i>
+                <input 
+                  type="text" 
+                  pInputText 
+                  formControlName="tecnicoResponsavel" 
+                  class="w-full" 
+                  placeholder="Nome do técnico..." 
+                  [readonly]="!ehAdmin"
+                />
+              </div>
+            </div>
+            
+            <div class="form-group-field flex-1">
+              <label>Previsão de Saída</label>
+              <p-datepicker 
+                formControlName="dataPrevisao" 
+                [showIcon]="true" 
+                dateFormat="dd/mm/yy" 
+                appendTo="body" 
+                class="w-full" 
+                styleClass="w-full"
+                [disabled]="!ehAdmin"
+              ></p-datepicker>
+            </div>
+          </div>
+
+          <!-- Campos Dinâmicos de Conclusão/Cancelamento -->
+          <div *ngIf="statusForm.get('status')?.value === 'CONCLUIDA' || statusForm.get('status')?.value === 'CANCELADA'" class="conclusao-details-box animated-fadeIn">
+            <div class="conclusao-details-box__header">
+              <i class="pi pi-check-circle"></i>
+              <span>{{ statusForm.get('status')?.value === 'CONCLUIDA' ? 'Finalização da Manutenção' : 'Motivo do Cancelamento' }}</span>
+            </div>
+            
+            <div class="form-group-field">
+              <label>{{ statusForm.get('status')?.value === 'CONCLUIDA' ? 'Solução Técnica Aplicada' : 'Justificativa do Cancelamento' }} <span class="req">*</span></label>
+              <textarea 
+                pInputTextarea 
+                formControlName="solucaoAplicada" 
+                rows="3" 
+                class="w-full" 
+                placeholder="Descreva detalhadamente..."
+                [readonly]="!ehAdmin"
+              ></textarea>
+            </div>
+
+            <div class="form-group-field" *ngIf="statusForm.get('status')?.value === 'CONCLUIDA'">
+              <label>Custo do Reparo (R$)</label>
+              <p-inputNumber 
+                formControlName="valorGasto" 
+                mode="currency" 
+                currency="BRL" 
+                locale="pt-BR" 
+                class="w-full" 
+                styleClass="w-full"
+                [disabled]="!ehAdmin"
+              ></p-inputNumber>
+            </div>
+          </div>
+
+          <!-- Botões de Ação do Form -->
+          <div class="form-action-buttons" *ngIf="ehAdmin">
+            <button type="submit" class="save-changes-btn" [disabled]="statusForm.invalid">
+              <i class="pi pi-save"></i> Atualizar Processo
+            </button>
+          </div>
+          <div class="unauthorized-message" *ngIf="!ehAdmin">
+            <i class="pi pi-lock"></i> Apenas administradores podem atualizar processos de manutenção.
+          </div>
+        </form>
       </div>
-      <p class="mn-detail__text">{{ osDetalhes.solucaoAplicada }}</p>
+
+      <!-- COLUNA 3: HISTÓRICO E MOVIMENTAÇÃO (LINHA DO TEMPO) -->
+      <div class="assistance-col history-panel">
+        <div class="panel-section-title">
+          <i class="pi pi-history"></i> Linha do Tempo da OS
+        </div>
+
+        <div class="timeline-wrapper">
+          <!-- Spinner de Carregamento -->
+          <div class="timeline-spinner" *ngIf="carregandoHistorico">
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>Carregando histórico...</span>
+          </div>
+
+          <!-- Timeline Real -->
+          <div class="timeline-flow" *ngIf="!carregandoHistorico && historicoOS.length > 0">
+            <div class="timeline-step" *ngFor="let log of historicoOS">
+              <div class="timeline-bullet" [ngClass]="log.acao | lowercase">
+                <i class="pi" [ngClass]="log.acao === 'ABERTURA_OS' ? 'pi-flag' : log.acao === 'ATUALIZACAO_OS' ? 'pi-refresh' : 'pi-info-circle'"></i>
+              </div>
+              <div class="timeline-content-card">
+                <span class="timeline-time">{{ log.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                <p class="timeline-desc">{{ log.descricao }}</p>
+                <div class="timeline-operator" *ngIf="log.usuario">
+                  <i class="pi pi-user-edit"></i>
+                  <span>{{ log.usuario.postoGraduacao }} {{ log.usuario.nome }} (Matrícula: {{ log.usuario.matricula }})</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Histórico Vazio -->
+          <div class="timeline-empty" *ngIf="!carregandoHistorico && historicoOS.length === 0">
+            <i class="pi pi-info-circle"></i>
+            <p>Nenhum registro de movimentação disponível para esta ordem de serviço.</p>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </div>
 
   <ng-template pTemplate="footer">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <button class="mn-btn-ghost" (click)="fecharDetalhes()">Fechar</button>
-      <button *ngIf="ehAdmin && !isStatusFinal(osDetalhes?.status)" class="mn-btn-primary" (click)="fecharDetalhes(); abrirAtualizacaoStatus(osDetalhes)">
-        <i class="pi pi-cog"></i> Atualizar Status
+    <div class="assistance-modal-footer">
+      <button type="button" class="close-assistance-btn" (click)="fecharAssistencia()">
+        <i class="pi pi-times"></i> Fechar Oficina
       </button>
     </div>
   </ng-template>
 </p-dialog>
-
 
 <p-toast position="bottom-right"></p-toast>
