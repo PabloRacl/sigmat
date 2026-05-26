@@ -140,7 +140,8 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
       descricaoProblema: ['', Validators.required],
       tecnicoResponsavel: [''],
       dataPrevisao: [null],
-      statusId: [null, Validators.required]    });
+      statusId: [null]
+    });
   }
 
   get isEmprestimo(): boolean {
@@ -157,7 +158,7 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    
+    this.carregarDadosAuxiliares();
     // Subscribe to status changes to set default forecast date
     this.manutencaoForm.get('statusId')?.valueChanges.subscribe(status => {
       // Example: set forecast 7 days from now for statuses involving 'PEÇA'

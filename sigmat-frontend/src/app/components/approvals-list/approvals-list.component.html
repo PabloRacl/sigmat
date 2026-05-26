@@ -66,9 +66,26 @@
             <td class="ap-date">{{ t.dataEnvio | date:'dd/MM/yyyy HH:mm' }}</td>
             <td>
               <div class="ap-actions">
-                <button *ngIf="podeAprovarRecebimento" class="ap-btn-approve" (click)="receberTransferencia(t.id)" pTooltip="Confirmar Recebimento de Carga" tooltipPosition="top">
-                  <i class="pi pi-check"></i> Receber
+                <!-- Se for recebimento na própria unidade -->
+                <button *ngIf="podeAprovarRecebimento && t.destinoId === usuarioLogado?.secaoId" 
+                  class="ap-btn-approve" 
+                  (click)="receberTransferencia(t.id)" 
+                  pTooltip="Confirmar Recebimento de Carga na Unidade" 
+                  tooltipPosition="top"
+                  style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white;">
+                  <i class="pi pi-download"></i> Receber
                 </button>
+
+                <!-- Se for aprovação de envio inter-unidades (Admin do DTEC aprovando o trâmite) -->
+                <button *ngIf="ehAdmin && t.destinoId !== usuarioLogado?.secaoId" 
+                  class="ap-btn-approve" 
+                  (click)="receberTransferencia(t.id)" 
+                  pTooltip="Aprovar trâmite e liberar envio definitivo" 
+                  tooltipPosition="top"
+                  style="background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; color: white;">
+                  <i class="pi pi-check"></i> Aprovar
+                </button>
+
                 <button *ngIf="ehAdmin" class="ap-btn-reject" (click)="cancelarTransferencia(t.id)" pTooltip="Cancelar Forçadamente" tooltipPosition="top">
                   <i class="pi pi-times"></i> Cancelar
                 </button>

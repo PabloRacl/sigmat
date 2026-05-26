@@ -39,73 +39,69 @@ export class DashboardHomeComponent implements OnInit {
     return this.charts[this.graficoSelecionado.value as GraficoKey];
   }
 
-  get opcoesPie() {
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: {
-        duration: 2000,
-        easing: 'easeOutQuart',
-        animateRotate: true,
-        animateScale: true
-      },
-      plugins: {
-        legend: { 
-          position: 'bottom' as const, 
-          labels: { 
-            padding: 10, // Reduzido
-            usePointStyle: true,
-            pointStyle: 'circle',
-            font: { size: 10, weight: '600' }, // Fonte menor
-            color: '#64748b'
-          } 
-        },
-        tooltip: { 
-          backgroundColor: 'rgba(15, 23, 42, 0.9)',
-          padding: 12,
-          cornerRadius: 8
-        },
-      },
-      cutout: '55%',
-    };
-  }
-
-  get opcoesPolar() {
-    return {
-      responsive: true,
-      maintainAspectRatio: true,
-      animation: {
-        duration: 2000,
-        easing: 'easeOutQuart',
-        animateRotate: true,
-        animateScale: true
-      },
-      plugins: {
-        legend: { 
-          position: 'bottom' as const, 
-          labels: { 
-            padding: 10, // Reduzido
-            usePointStyle: true,
-            pointStyle: 'circle',
-            font: { size: 9, weight: '600' }, // Fonte bem compacta
-            color: '#64748b'
-          } 
-        },
-        tooltip: { 
-          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+  opcoesPie = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: {
+      duration: 1200,
+      easing: 'easeOutQuart',
+      animateRotate: true,
+      animateScale: true
+    },
+    plugins: {
+      legend: { 
+        position: 'bottom' as const, 
+        labels: { 
           padding: 10,
-          cornerRadius: 8
-        },
+          usePointStyle: true,
+          pointStyle: 'circle',
+          font: { size: 10, weight: '600' },
+          color: '#64748b'
+        } 
       },
-      scales: {
-        r: {
-          grid: { color: 'rgba(226, 232, 240, 0.5)' },
-          angleLines: { display: false },
-          ticks: { display: false }
-        }
+      tooltip: { 
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        padding: 12,
+        cornerRadius: 8
+      },
+    },
+    cutout: '55%',
+  };
+
+  opcoesPolar = {
+    responsive: true,
+    maintainAspectRatio: true,
+    animation: {
+      duration: 1200,
+      easing: 'easeOutQuart',
+      animateRotate: true,
+      animateScale: true
+    },
+    plugins: {
+      legend: { 
+        position: 'bottom' as const, 
+        labels: { 
+          padding: 10,
+          usePointStyle: true,
+          pointStyle: 'circle',
+          font: { size: 9, weight: '600' },
+          color: '#64748b'
+        } 
+      },
+      tooltip: { 
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        padding: 10,
+        cornerRadius: 8
+      },
+    },
+    scales: {
+      r: {
+        grid: { color: 'rgba(226, 232, 240, 0.5)' },
+        angleLines: { display: false },
+        ticks: { display: false }
       }
-    };
-  }
+    }
+  };
 
   get opcoesBar() {
     const isHorizontal = this.graficoSelecionado.value === 'porMarca' || this.graficoSelecionado.value === 'porBatalhao';
@@ -114,9 +110,8 @@ export class DashboardHomeComponent implements OnInit {
       maintainAspectRatio: false,
       indexAxis: isHorizontal ? ('y' as const) : ('x' as const),
       animation: {
-        duration: 1500,
-        easing: 'easeOutElastic',
-        delay: (context: any) => context.dataIndex * 100
+        duration: 1000,
+        easing: 'easeOutQuart'
       },
       plugins: {
         legend: { display: false },

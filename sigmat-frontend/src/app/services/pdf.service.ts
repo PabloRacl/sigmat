@@ -272,12 +272,44 @@ export class PdfService {
       doc.setFontSize(6.2);
       doc.text('SIGMAT — GESTÃO DE PATRIMÔNIO', curX + 10.5, curY + 6.8);
 
-      // 2. QR Code (Lateral Direita - Compactado para 15x15mm para melhor espaço)
+      // 2. QR Code (Lateral Direita - Compactado para 15x15mm com nível de correção H para tolerância do brasão no centro)
       try {
         const baseUrl = window.location.origin;
         const equipUrl = `${baseUrl}/qrcode/${item.id}`;
-        const qrDataUrl = await QRCode.toDataURL(equipUrl, { margin: 1, width: 80 });
+        const qrDataUrl = await QRCode.toDataURL(equipUrl, { 
+          margin: 1, 
+          width: 80,
+          errorCorrectionLevel: 'H'
+        });
         doc.addImage(qrDataUrl, 'PNG', curX + 41, curY + 11.5, 15, 15);
+
+        // Desenho do mini-brasão PMPE vetorial no centro do QR Code
+        const qrCentX = curX + 48.5;
+        const qrCentY = curY + 19.0;
+
+        // Fundo circular dourado
+        doc.setFillColor(218, 165, 32);
+        doc.circle(qrCentX, qrCentY, 1.7, 'F');
+
+        // Círculo interno azul escuro
+        doc.setFillColor(15, 23, 42);
+        doc.circle(qrCentX, qrCentY, 1.4, 'F');
+
+        // Escudo dourado central (triângulo estilizado)
+        doc.setFillColor(218, 165, 32);
+        doc.triangle(
+          qrCentX, qrCentY + 1.0,
+          qrCentX - 0.8, qrCentY - 0.6,
+          qrCentX + 0.8, qrCentY - 0.6,
+          'F'
+        );
+
+        // Cruz interna azul do escudo
+        doc.setDrawColor(15, 23, 42);
+        doc.setLineWidth(0.15);
+        doc.line(qrCentX, qrCentY - 0.3, qrCentX, qrCentY + 0.6);
+        doc.line(qrCentX - 0.4, qrCentY + 0.1, qrCentX + 0.4, qrCentY + 0.1);
+
       } catch (err) {
         console.error('Erro ao gerar QR Code para etiqueta:', err);
       }
