@@ -651,11 +651,18 @@ $bg-cancelada:    #fee2e2;
 
 /* ══ OFICINA DE ASSISTÊNCIA PREMIUM ═════════════════════════════════════════ */
 ::ng-deep .assistance-modal {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+
   .p-dialog-header {
     background: #0f172a !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: #f8fafc !important;
     padding: 18px 24px !important;
+    border-top-left-radius: 20px !important;
+    border-top-right-radius: 20px !important;
     
     .p-dialog-title {
       font-weight: 700 !important;
@@ -681,6 +688,8 @@ $bg-cancelada:    #fee2e2;
     background: #0f172a !important;
     border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
     padding: 16px 24px !important;
+    border-bottom-left-radius: 20px !important;
+    border-bottom-right-radius: 20px !important;
   }
 }
 
@@ -946,10 +955,18 @@ $bg-cancelada:    #fee2e2;
 }
 
 /* Datepicker / Calendar premium dark theme */
+::ng-deep .assistance-modal p-datepicker {
+  display: block !important;
+  width: 100% !important;
+}
+
 ::ng-deep .premium-datepicker,
 ::ng-deep .assistance-modal .p-datepicker,
 ::ng-deep .assistance-modal p-datepicker {
+  width: 100% !important;
+
   .p-inputtext {
+    width: 100% !important;
     background: rgba(15, 23, 42, 0.5) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     border-radius: 8px !important;

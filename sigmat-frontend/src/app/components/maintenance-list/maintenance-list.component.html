@@ -383,11 +383,10 @@
               <label>Previsão de Saída</label>
               <p-datepicker 
                 formControlName="dataPrevisao" 
-                [showIcon]="true" 
                 dateFormat="dd/mm/yy" 
                 appendTo="body" 
-                class="w-full" 
                 styleClass="w-full"
+                placeholder="Selecione a data..."
                 [disabled]="!ehAdmin || !modoEdicao"
               ></p-datepicker>
             </div>
