@@ -20,6 +20,18 @@ export class SettingsService {
     });
   }
 
+  async criarTipo(dados: { nome: string }) {
+    return this.prisma.tipoEquipamento.create({ data: { nome: dados.nome } });
+  }
+
+  async criarMarca(dados: { nome: string }) {
+    return this.prisma.marca.create({ data: { nome: dados.nome } });
+  }
+
+  async criarModelo(dados: { nome: string; marcaId?: number }) {
+    return this.prisma.modelo.create({ data: { nome: dados.nome, marcaId: dados.marcaId } });
+  }
+
   async listarStatus() {
     return this.prisma.statusEquipamento.findMany({ orderBy: { nome: 'asc' } });
   }

@@ -1,6 +1,19 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+class CriarTipoDto {
+  nome: string;
+}
+
+class CriarMarcaDto {
+  nome: string;
+}
+
+class CriarModeloDto {
+  nome: string;
+  marcaId?: number;
+}
 
 @Controller('configuracoes')
 @UseGuards(JwtAuthGuard)
@@ -20,6 +33,21 @@ export class SettingsController {
   @Get('modelos')
   listarModelos(@Query('marcaId') marcaId?: string) {
     return this.SettingsService.listarModelos(marcaId ? +marcaId : undefined);
+  }
+
+  @Post('tipos')
+  criarTipo(@Body() dados: CriarTipoDto) {
+    return this.SettingsService.criarTipo(dados);
+  }
+
+  @Post('marcas')
+  criarMarca(@Body() dados: CriarMarcaDto) {
+    return this.SettingsService.criarMarca(dados);
+  }
+
+  @Post('modelos')
+  criarModelo(@Body() dados: CriarModeloDto) {
+    return this.SettingsService.criarModelo(dados);
   }
 
   @Get('status')

@@ -54,7 +54,7 @@ export class DashboardService {
       porStatus,
       porTipo,
       porDisponibilidade,
-      batalhoes,
+      secaoCounts,
       marcas,
     ] = await Promise.all([
       this.prisma.equipamento.count({ where: equipamentoWhere }),
@@ -67,14 +67,10 @@ export class DashboardService {
       this.prisma.disponibilidade.findMany({
         include: { _count: { select: { equipamentos: { where: equipamentoWhere } } } },
       }),
-      this.prisma.batalhao.findMany({
-        include: {
-          secoes: {
-            include: {
-              _count: { select: { equipamentos: { where: equipamentoWhere } } },
-            },
-          },
-        },
+      this.prisma.equipamento.groupBy({
+        by: ['secaoId'],
+        where: equipamentoWhere,
+        _count: { _all: true },
       }),
       this.prisma.marca.findMany({
         include: {
@@ -87,21 +83,20 @@ export class DashboardService {
       }),
     ]);
 
-    // Ordenar tipo pós-fetch já que o prisma não suporta order by count de relation com filtro
-    porTipo.sort((a: any, b: any) => b._count.equipamentos - a._count.equipamentos);
-    const top10Tipos = porTipo.slice(0, 10);
+    const secoes = await this.prisma.secao.findMany({
+      where: { id: { in: secaoCounts.map((c: any) => c.secaoId) } },
+      include: { batalhao: true, diretoria: true },
+    });
 
-    // Totais por status
-    const totalAtivos = porStatus.find((s: any) => s.nome === 'ATIVO')?._count?.equipamentos ?? 0;
-    const totalManutencao = porStatus.find((s: any) => s.nome === 'MANUTENÇÃO')?._count?.equipamentos ?? 0;
-    const totalInativos = porStatus.find((s: any) => s.nome === 'INATIVO')?._count?.equipamentos ?? 0;
-    const totalEmprestados = porDisponibilidade.find((d: any) => d.nome === 'EMPRESTIMO')?._count?.equipamentos ?? 0;
+    const totalsByBatalhao: Record<string, number> = {};
+    secaoCounts.forEach((count: any) => {
+      const secao = secoes.find(s => s.id === count.secaoId);
+      const sigla = secao?.batalhao?.sigla || secao?.diretoria?.sigla || 'Sem Unidade';
+      totalsByBatalhao[sigla] = (totalsByBatalhao[sigla] || 0) + count._count._all;
+    });
 
-    // Por Batalhão — Filtrar TOP 15 para não ficar ilegível
-    const dadosBatalhao = batalhoes.map((b: any) => ({
-      sigla: b.sigla,
-      total: b.secoes.reduce((acc: number, s: any) => acc + s._count.equipamentos, 0)
-    }))
+    const dadosBatalhao = Object.entries(totalsByBatalhao)
+      .map(([sigla, total]) => ({ sigla, total }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 15);
 
@@ -118,6 +113,16 @@ export class DashboardService {
         },
       ],
     };
+
+    // Ordenar tipo pós-fetch já que o prisma não suporta order by count de relation com filtro
+    porTipo.sort((a: any, b: any) => b._count.equipamentos - a._count.equipamentos);
+    const top10Tipos = porTipo.slice(0, 10);
+
+    // Totais por status
+    const totalAtivos = porStatus.find((s: any) => s.nome === 'ATIVO')?._count?.equipamentos ?? 0;
+    const totalManutencao = porStatus.find((s: any) => s.nome === 'MANUTENÇÃO')?._count?.equipamentos ?? 0;
+    const totalInativos = porStatus.find((s: any) => s.nome === 'INATIVO')?._count?.equipamentos ?? 0;
+    const totalEmprestados = porDisponibilidade.find((d: any) => d.nome === 'EMPRESTIMO')?._count?.equipamentos ?? 0;
 
     // Por Tipo
     const statsTipo = {

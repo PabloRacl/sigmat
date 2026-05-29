@@ -14,13 +14,19 @@ export class ReportsController {
   }
 
   @Get('resumo-unidades')
-  async resumoUnidades() {
-    return this.reportsService.resumoPorUnidade();
+  async resumoUnidades(@LoggedUser() usuario: any) {
+    return this.reportsService.resumoPorUnidade(usuario);
+  }
+
+  @Get('transferencias')
+  async transferencias(@Query() filtros: any, @LoggedUser() usuario: any) {
+    return this.reportsService.transferencias(filtros, usuario);
   }
 
   @Get('auditoria')
-  async auditoria(@Query('dias') dias: string) {
-    return this.reportsService.logsAuditoria(dias ? Number(dias) : 30);
+  async auditoria(@Query() query: any) {
+    // Accept query filters: dias, acao, usuario, patrimonio, descricao, startDate, endDate
+    return this.reportsService.logsAuditoria(query);
   }
 }
 

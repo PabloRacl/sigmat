@@ -32,6 +32,17 @@ export class ApprovalsService {
       },
     });
 
+    const diff = await this.auditService.gerarDiffComLabels(dadosAntigos, dadosNovos);
+    if (diff) {
+      await this.auditService.registrarLog({
+        usuarioId: solicitanteId,
+        equipamentoId,
+        acao: AcaoLog.UPDATE,
+        descricao: `Solicitação de alteração para o equipamento ${dadosAntigos?.patrimonio ?? equipamentoId}.`,
+        dadosAlterados: diff,
+      });
+    }
+
     this.notificationsService.notificarAtualizacaoGlobal();
 
     return pendencia;
@@ -102,17 +113,19 @@ export class ApprovalsService {
       }
 
       // Log direto no TX para evitar deadlock
+      const dadosAlteradosNormalizados = await this.auditService.normalizarDadosParaLog({
+        campos: solicitacao.camposAlterados,
+        dadosNovos: solicitacao.dadosNovos,
+        motivoNegacao: motivoNegacao || undefined
+      });
+
       await tx.logOperacao.create({
         data: {
           usuarioId: aprovadoPorId,
           equipamentoId: solicitacao.equipamentoId,
           acao: aprovado ? AcaoLog.APPROVE : AcaoLog.REJECT,
           descricao: `${aprovado ? 'Aprovada' : 'Negada'} alteração para o equipamento ${solicitacao.equipamento.patrimonio}.`,
-          dadosAlterados: {
-            campos: solicitacao.camposAlterados,
-            dadosNovos: solicitacao.dadosNovos,
-            motivoNegacao: motivoNegacao || undefined
-          },
+          dadosAlterados: dadosAlteradosNormalizados,
         }
       });
 

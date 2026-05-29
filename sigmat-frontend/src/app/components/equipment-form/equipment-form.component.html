@@ -23,15 +23,38 @@
     <div class="eq-form__row">
       <div class="eq-form__field flex-1">
         <label>Tipo <span class="req">*</span></label>
-        <p-dropdown [options]="tipos" formControlName="tipoEquipamentoId" optionLabel="nome" optionValue="id" 
-          [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
-        </p-dropdown>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <p-dropdown [options]="tipos" formControlName="tipoEquipamentoId" optionLabel="nome" optionValue="id"
+            [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+          </p-dropdown>
+          <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="solicitarNovoTipo()" pTooltip="Adicionar novo tipo" tooltipPosition="top"></button>
+        </div>
       </div>
       <div class="eq-form__field flex-1">
         <label>Marca</label>
-        <p-dropdown [options]="marcas" formControlName="marcaId" optionLabel="nome" optionValue="id" 
-          [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
-        </p-dropdown>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <p-dropdown [options]="marcas" formControlName="marcaId" optionLabel="nome" optionValue="id" 
+            [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+          </p-dropdown>
+          <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="solicitarNovaMarca()" pTooltip="Adicionar nova marca" tooltipPosition="top"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="eq-form__row">
+      <div class="eq-form__field flex-1">
+        <label>Modelo</label>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <p-dropdown [options]="modelosFiltrados" formControlName="modeloId" optionLabel="nome" optionValue="id"
+            [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+          </p-dropdown>
+          <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="solicitarNovoModelo()" pTooltip="Adicionar novo modelo" tooltipPosition="top"></button>
+        </div>
+      </div>
+      <div class="eq-form__field flex-1">
+        <label>Status <span class="req">*</span></label>
+        <p-dropdown [options]="status" formControlName="statusId" optionLabel="nome" optionValue="id" 
+          styleClass="w-full" appendTo="body"></p-dropdown>
       </div>
     </div>
 
@@ -77,24 +100,19 @@
 
     <div class="eq-form__row">
       <div class="eq-form__field flex-1">
-        <label>Status <span class="req">*</span></label>
-        <p-dropdown [options]="status" formControlName="statusId" optionLabel="nome" optionValue="id" 
-          styleClass="w-full" appendTo="body"></p-dropdown>
-      </div>
-      <div class="eq-form__field flex-1">
         <label>Disponibilidade <span class="req">*</span></label>
         <p-dropdown [options]="disponibilidades" formControlName="disponibilidadeId" optionLabel="nome" optionValue="id" 
           styleClass="w-full" appendTo="body"></p-dropdown>
       </div>
-    </div>
-
-    <div class="eq-form__row">
       <div class="eq-form__field flex-1">
         <label>Seção <span class="req">*</span></label>
         <p-dropdown [options]="secoes" formControlName="secaoId" optionLabel="sigla" optionValue="id" 
           [filter]="true" filterBy="sigla,nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
         </p-dropdown>
       </div>
+    </div>
+
+    <div class="eq-form__row">
       <div class="eq-form__field flex-1">
         <label>Data Aquisição</label>
         <p-datepicker formControlName="dataAquisicao" dateFormat="dd/mm/yy" appendTo="body" styleClass="w-full"></p-datepicker>

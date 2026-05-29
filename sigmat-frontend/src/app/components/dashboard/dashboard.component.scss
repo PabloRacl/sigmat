@@ -32,6 +32,13 @@
         font-size: 1.3rem;
       }
     }
+    .logo-area {
+      .logo-img {
+        width: 28px;
+        height: 28px;
+      }
+      .logo-text { display: none; }
+    }
   }
 
   .logo-area {
@@ -47,14 +54,18 @@
       font-size: 28px; 
       color: #60a5fa;
     }
+    .logo-img {
+      width: 36px;
+      height: 36px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
     .logo-text {
       font-size: 20px;
       font-weight: 800;
       letter-spacing: 1px;
-      background: linear-gradient(135deg, #60a5fa, #a855f7);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #ffffff; /* única cor sóbria apropriada para sistema policial */
       flex: 1;
     }
 

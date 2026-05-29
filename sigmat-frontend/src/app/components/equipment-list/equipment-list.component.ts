@@ -198,6 +198,14 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
     });
   }
 
+  filtrarPorStatusNome(nome: string) {
+    const status = this.status.find(s => s.nome?.toUpperCase() === nome.toUpperCase());
+    if (!status) return;
+    this.filtroStatus = status.id;
+    this.exibirFiltrosAvancados = true;
+    this.pesquisar();
+  }
+
   carregarEquipamentos(page: number, limit: number, search: string = '') {
     this.carregando = true;
 
@@ -447,9 +455,9 @@ abrirModalManutencao() {
   exportarExcelMassa() {
     if (this.selecionados.length === 0) return;
     // Exportação simples em CSV para satisfazer a função de Excel
-    const header = 'Patrimonio,Tipo,Marca,Serie,Status,Secao\n';
+    const header = 'Patrimonio,Tipo,Marca,Modelo,Serie,Status,Secao\n';
     const rows = this.selecionados.map(e => 
-      `${e.patrimonio},${e.tipoEquipamento?.nome},${e.marca?.nome},${e.numeroSerie},${e.status?.nome},${e.secao?.sigla}`
+      `${e.patrimonio},${e.tipoEquipamento?.nome},${e.marca?.nome},${e.modelo?.nome || ''},${e.numeroSerie},${e.status?.nome},${e.secao?.sigla}`
     ).join('\n');
     
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });

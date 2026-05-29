@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environment';
 
@@ -8,11 +8,24 @@ import { environment } from '../environment';
 })
 export class ReportsService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/reports`;
+  private apiUrl = `${environment.apiUrl}/relatorios`;
+
+  private buildParams(params: any): HttpParams {
+    let httpParams = new HttpParams();
+    if (!params) return httpParams;
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== '') {
+        httpParams = httpParams.set(key, String(value));
+      }
+    });
+
+    return httpParams;
+  }
 
   obterInventario(filtros: any): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/inventario`, {
-      params: filtros
+      params: this.buildParams(filtros)
     });
   }
 
@@ -20,8 +33,12 @@ export class ReportsService {
     return this.http.get<any[]>(`${this.apiUrl}/resumo-unidades`);
   }
 
-  obterAuditoria(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/auditoria`);
+  obterTransferencias(filtros: any): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/transferencias`, { params: this.buildParams(filtros) });
+  }
+
+  obterAuditoria(filtros?: any): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/auditoria`, { params: this.buildParams(filtros) });
   }
 
   registrarLog(acao: string, detalhes: any): Observable<any> {

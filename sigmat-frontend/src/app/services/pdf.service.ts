@@ -1,13 +1,26 @@
 import { Injectable } from '@angular/core';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import * as QRCode from 'qrcode';
-
 
 @Injectable({ providedIn: 'root' })
 export class PdfService {
+  private async loadJspdf() {
+    const [jspdfModule, autoTableModule] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable')
+    ]);
 
-  gerarCautela(item: any) {
+    return {
+      jsPDF: jspdfModule.jsPDF ?? jspdfModule.default ?? jspdfModule,
+      autoTable: autoTableModule.default ?? autoTableModule
+    };
+  }
+
+  private async loadQRCode() {
+    const qrcode = await import('qrcode');
+    return qrcode;
+  }
+
+  async gerarCautela(item: any) {
+    const { jsPDF, autoTable } = await this.loadJspdf();
     const doc = new jsPDF();
     const dataAtual = new Date().toLocaleDateString('pt-BR');
     const horaAtual = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -137,7 +150,8 @@ export class PdfService {
       .join(' ');
   }
 
-  gerarCautelaColetiva(itens: any[]) {
+  async gerarCautelaColetiva(itens: any[]) {
+    const { jsPDF, autoTable } = await this.loadJspdf();
     const doc = new jsPDF();
     const dataAtual = new Date().toLocaleDateString('pt-BR');
     const horaAtual = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -215,6 +229,9 @@ export class PdfService {
   }
 
   async gerarEtiquetas(itens: any[]) {
+    const { jsPDF } = await this.loadJspdf();
+    const QRCode = await this.loadQRCode();
+
     // Dimensões padrão para etiquetas térmicas (60mm x 40mm)
     const doc = new jsPDF({
       orientation: 'landscape',

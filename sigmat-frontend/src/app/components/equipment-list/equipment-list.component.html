@@ -47,7 +47,7 @@
         <span class="eq-stat-card__label">Emprestados</span>
       </div>
     </div>
-    <div class="eq-stat-card">
+    <div class="eq-stat-card" (click)="filtrarPorStatusNome('MANUTENÇÃO')" style="cursor:pointer;" pTooltip="Filtrar equipamentos em manutenção" tooltipPosition="top">
       <div class="eq-stat-card__icon orange"><i class="pi pi-cog"></i></div>
       <div class="eq-stat-card__info">
         <span class="eq-stat-card__val">{{ stats.manutencao }}</span>
@@ -239,6 +239,7 @@
               <th style="min-width: 140px">SEI</th>
               <th style="min-width: 140px">N.SÉRIE</th>
               <th style="min-width: 130px">MARCA</th>
+              <th style="min-width: 130px">MODELO</th>
               <th style="min-width: 110px; text-align:center">STATUS</th>
               <th style="min-width: 130px">DATA AQUISIÇÃO</th>
               <th style="min-width: 200px">OBSERVAÇÃO</th>
@@ -283,6 +284,7 @@
               <td>{{ eq.sei || '—' }}</td>
               <td>{{ eq.numeroSerie || '—' }}</td>
               <td>{{ eq.marca?.nome || '—' }}</td>
+              <td>{{ eq.modelo?.nome || '—' }}</td>
               <td style="text-align:center">
                 <span class="eq-status-badge" [ngClass]="obterCorStatus(eq.status?.nome)">
                   {{ eq.status?.nome || '—' }}
@@ -293,7 +295,7 @@
             </tr>
           </ng-template>
           <ng-template pTemplate="emptymessage">
-            <tr><td colspan="12"><div class="eq-empty"><i class="pi pi-search"></i><p>Nenhum equipamento encontrado.</p></div></td></tr>
+            <tr><td colspan="13"><div class="eq-empty"><i class="pi pi-search"></i><p>Nenhum equipamento encontrado.</p></div></td></tr>
           </ng-template>
         </p-table>
       </div>

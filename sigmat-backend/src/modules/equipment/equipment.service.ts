@@ -263,7 +263,7 @@ export class EquipmentService {
   private async aplicarAtualizacaoDireta(id: number, dados: any, userId: number, atual: any, perfilLabel: string) {
     const { dataAquisicao, dataSolicitacao, dataRetornoEmprestimo, id: _id, ...outrosDados } = dados;
 
-    const atualizado = await this.prisma.equipamento.update({
+    await this.prisma.equipamento.update({
       where: { id },
       data: {
         ...outrosDados,
@@ -273,7 +273,8 @@ export class EquipmentService {
       },
     });
 
-    const diff = this.auditService.gerarDiff(atual, atualizado);
+    const atualizado = await this.buscarPorId(id);
+    const diff = await this.auditService.gerarDiffComLabels(atual, atualizado);
     if (diff) {
       await this.auditService.registrarLog({
         usuarioId: userId,

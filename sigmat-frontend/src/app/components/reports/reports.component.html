@@ -22,15 +22,9 @@
         </span>
       </span>
       <div class="re-export-actions">
-        <button class="re-btn-export" (click)="exportarCSV()" [disabled]="inventario.length === 0" pTooltip="Exportar CSV" tooltipPosition="bottom">
-          <i class="pi pi-file-excel"></i> CSV
-        </button>
-        <button class="re-btn-export" (click)="exportarPDF()" [disabled]="inventario.length === 0" pTooltip="Exportar PDF" tooltipPosition="bottom">
-          <i class="pi pi-file-pdf"></i> PDF
-        </button>
-        <button class="re-btn-export" (click)="exportarWord()" [disabled]="inventario.length === 0" pTooltip="Exportar Word" tooltipPosition="bottom">
-          <i class="pi pi-file-word"></i> Word
-        </button>
+        <button pButton type="button" icon="pi pi-file-excel" label="CSV" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarCSV()" [disabled]="inventario.length === 0" pTooltip="Exportar CSV" tooltipPosition="bottom"></button>
+        <button pButton type="button" icon="pi pi-file-pdf" label="PDF" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarPDF()" [disabled]="inventario.length === 0" pTooltip="Exportar PDF" tooltipPosition="bottom"></button>
+        <button pButton type="button" icon="pi pi-file-word" label="Word" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarWord()" [disabled]="inventario.length === 0" pTooltip="Exportar Word" tooltipPosition="bottom"></button>
       </div>
     </div>
 
@@ -68,9 +62,7 @@
           placeholder="Disponibilidade" appendTo="body" (onChange)="aplicarFiltros()">
         </p-dropdown>
 
-        <button class="re-btn-ghost" (click)="limparFiltros()">
-          <i class="pi pi-times"></i> Limpar
-        </button>
+        <button pButton type="button" icon="pi pi-times" label="Limpar" class="p-button-text re-btn-ghost" (click)="limparFiltros()"></button>
       </div>
     </div>
 
@@ -162,8 +154,138 @@
 
   </p-tabPanel>
 
+  <!-- Aba 2: Transferências -->
+  <p-tabPanel header="Transferências">
+    <div class="re-green-head">
+      <span>
+        <i class="pi pi-exchange"></i>
+        Total de Transferências: <strong>{{ transferencias.length | number }}</strong>
+      </span>
+      <div class="re-export-actions">
+        <button pButton type="button" icon="pi pi-print" label="Imprimir" class="p-button-outlined p-button-sm re-btn-export" (click)="imprimirTransferencias()" [disabled]="transferencias.length === 0" pTooltip="Imprimir transferências" tooltipPosition="bottom"></button>
+        <button pButton type="button" icon="pi pi-file-excel" label="CSV" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarTransferCSV()" [disabled]="transferencias.length === 0" pTooltip="Exportar transferências" tooltipPosition="bottom"></button>
+        <button pButton type="button" icon="pi pi-file-pdf" label="PDF" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarTransferPDF()" [disabled]="transferencias.length === 0" pTooltip="Exportar como PDF" tooltipPosition="bottom"></button>
+      </div>
+    </div>
+
+    <div class="re-toolbar">
+      <div class="re-search-box" style="width: 100%;">
+        <i class="pi pi-search"></i>
+        <input
+          type="text"
+          pInputText
+          placeholder="Buscar por patrimônio, solicitante, recebedor..."
+          [(ngModel)]="filtroTransferPatrimonio"
+          (input)="aplicarFiltrosTransferencias()"
+        />
+      </div>
+
+      <div class="re-filter-row">
+        <p-dropdown [options]="statusTransferencias" [(ngModel)]="filtroTransferStatus"
+          optionLabel="label" optionValue="value" [showClear]="true"
+          placeholder="Status" appendTo="body" (onChange)="aplicarFiltrosTransferencias()">
+        </p-dropdown>
+
+        <p-dropdown [options]="secoes" [(ngModel)]="filtroTransferOrigemId"
+          optionLabel="sigla" optionValue="id" [showClear]="true"
+          placeholder="Origem" appendTo="body" (onChange)="aplicarFiltrosTransferencias()">
+        </p-dropdown>
+
+        <p-dropdown [options]="secoes" [(ngModel)]="filtroTransferDestinoId"
+          optionLabel="sigla" optionValue="id" [showClear]="true"
+          placeholder="Destino" appendTo="body" (onChange)="aplicarFiltrosTransferencias()">
+        </p-dropdown>
+
+        <input type="text" pInputText [(ngModel)]="filtroTransferLote" (input)="aplicarFiltrosTransferencias()" placeholder="Lote / ID" />
+        <input type="date" pInputText [(ngModel)]="filtroTransferEnvioInicio" (change)="aplicarFiltrosTransferencias()" placeholder="Envio início" />
+        <input type="date" pInputText [(ngModel)]="filtroTransferEnvioFim" (change)="aplicarFiltrosTransferencias()" placeholder="Envio fim" />
+        <input type="date" pInputText [(ngModel)]="filtroTransferRecebimentoInicio" (change)="aplicarFiltrosTransferencias()" placeholder="Recebimento início" />
+        <input type="date" pInputText [(ngModel)]="filtroTransferRecebimentoFim" (change)="aplicarFiltrosTransferencias()" placeholder="Recebimento fim" />
+
+        <button pButton type="button" icon="pi pi-times" label="Limpar" class="p-button-text re-btn-ghost" (click)="limparFiltrosTransferencias()"></button>
+      </div>
+    </div>
+
+    <div class="re-table-wrap">
+      <p-table
+        [value]="transferencias"
+        [loading]="false"
+        [rows]="50"
+        [paginator]="true"
+        [rowHover]="true"
+        styleClass="p-datatable-sm p-datatable-gridlines"
+        [scrollable]="true"
+        scrollHeight="calc(100vh - 420px)"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="min-width: 130px">DATA ENVIO</th>
+            <th style="min-width: 120px">ORIGEM</th>
+            <th style="min-width: 120px">DESTINO</th>
+            <th style="min-width: 130px">PATRIMÔNIO</th>
+            <th style="min-width: 150px">SOLICITANTE</th>
+            <th style="min-width: 150px">RECEBEDOR</th>
+            <th style="min-width: 110px; text-align: center">STATUS</th>
+            <th style="min-width: 140px">DATA RECEBIMENTO</th>
+            <th style="min-width: 220px">OBSERVAÇÃO</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-t>
+          <tr>
+            <td>{{ formatarData(t.dataEnvio) || '—' }}</td>
+            <td>{{ t.origem?.sigla || '—' }}</td>
+            <td>{{ t.destino?.sigla || '—' }}</td>
+            <td>{{ t.equipamento?.patrimonio || '—' }}</td>
+            <td>{{ t.solicitante?.nome || '—' }}</td>
+            <td>{{ t.recebedor?.nome || '—' }}</td>
+            <td style="text-align: center">
+              <span class="re-badge" [ngClass]="{
+                'verde': t.status === 'CONCLUIDA',
+                'amarelo': t.status === 'PENDENTE',
+                'vermelho': t.status === 'CANCELADA'
+              }">{{ t.status }}</span>
+            </td>
+            <td>{{ formatarData(t.dataRecebimento) || '—' }}</td>
+            <td>
+              <span class="re-obs" [pTooltip]="t.observacao" tooltipPosition="top">
+                {{ t.observacao || '—' }}
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="9">
+              <div class="re-empty">
+                <i class="pi pi-box"></i>
+                <p>Nenhuma transferência encontrada com os filtros atuais.</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </p-tabPanel>
+
   <!-- Aba 2: Consolidado por Unidade -->
   <p-tabPanel header="Resumo por Unidade">
+    <div class="re-green-head">
+      <span>
+        <i class="pi pi-chart-bar"></i>
+        Total de Unidades: <strong>{{ resumoUnidades.length | number }}</strong>
+        <span *ngIf="inventarioOriginal.length > 0" class="re-filter-note">
+          (base de {{ inventarioOriginal.length | number }} equipamentos)
+        </span>
+      </span>
+      <div class="re-export-actions">
+        <button pButton type="button" icon="pi pi-file-excel" label="CSV" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarResumoCSV()" [disabled]="resumoUnidades.length === 0" pTooltip="Exportar resumo" tooltipPosition="bottom"></button>
+        <button pButton type="button" icon="pi pi-file-pdf" label="PDF" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarResumoPDF()" [disabled]="resumoUnidades.length === 0" pTooltip="Exportar resumo" tooltipPosition="bottom"></button>
+        <button pButton type="button" icon="pi pi-print" label="Imprimir" class="p-button-outlined p-button-sm re-btn-export" (click)="imprimirResumoUnidades()" [disabled]="resumoUnidades.length === 0" pTooltip="Imprimir resumo" tooltipPosition="bottom"></button>
+      </div>
+    </div>
+
     <div class="re-resumo-grid">
       <div class="re-resumo-card" *ngFor="let u of resumoUnidades">
         <div class="re-resumo-card__sigla">{{ u.sigla }}</div>
@@ -171,7 +293,7 @@
         <div class="re-resumo-card__label">equipamentos</div>
         <div class="re-resumo-card__bar">
           <div class="re-resumo-card__fill"
-            [style.width.%]="(u.total / inventarioOriginal.length) * 100">
+            [style.width.%]="inventarioOriginal.length ? (u.total / inventarioOriginal.length) * 100 : 0">
           </div>
         </div>
       </div>

@@ -22,6 +22,18 @@ export class SettingsService {
     return this.http.get<any[]>(`${this.API_URL}/modelos`);
   }
 
+  criarTipo(dados: { nome: string }): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/tipos`, dados);
+  }
+
+  criarMarca(dados: { nome: string }): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/marcas`, dados);
+  }
+
+  criarModelo(dados: { nome: string; marcaId?: number }): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/modelos`, dados);
+  }
+
   listarStatus(): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URL}/status`);
   }

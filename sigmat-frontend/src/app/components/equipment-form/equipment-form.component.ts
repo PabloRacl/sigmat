@@ -49,6 +49,8 @@ export class EquipmentFormComponent implements OnInit {
   // Auxiliares
   tipos: any[] = [];
   marcas: any[] = [];
+  modelos: any[] = [];
+  modelosFiltrados: any[] = [];
   status: any[] = [];
   disponibilidades: any[] = [];
   secoes: any[] = [];
@@ -110,6 +112,10 @@ export class EquipmentFormComponent implements OnInit {
     this.form.get('tipoEquipamentoId')?.valueChanges.subscribe(id => {
       this.atualizarCamposDinamicos(id);
     });
+
+    this.form.get('marcaId')?.valueChanges.subscribe(id => {
+      this.atualizarModelosPorMarca(id);
+    });
   }
 
   ngOnInit() {
@@ -129,13 +135,79 @@ export class EquipmentFormComponent implements OnInit {
   carregarAuxiliares() {
     this.configService.listarTipos().subscribe(res => this.tipos = res);
     this.configService.listarMarcas().subscribe(res => this.marcas = res);
+    this.configService.listarModelos().subscribe(res => {
+      this.modelos = res;
+      this.modelosFiltrados = [...res];
+      this.atualizarModelosPorMarca(this.form.get('marcaId')?.value);
+    });
     this.configService.listarStatus().subscribe(res => {
-      // Remove o status 'MANUTENÇÃO' para forçar o uso da Ordem de Serviço
-      this.status = res.filter((s: any) => s.nome?.toUpperCase() !== 'MANUTENÇÃO');
+      this.status = res;
     });
     this.configService.listarDisponibilidades().subscribe(res => this.disponibilidades = res);
     this.configService.listarSecoes().subscribe(res => this.secoes = res);
     this.carregarChips();
+  }
+
+  refreshTipos() {
+    this.configService.listarTipos().subscribe(res => this.tipos = res);
+  }
+
+  refreshMarcas() {
+    this.configService.listarMarcas().subscribe(res => this.marcas = res);
+  }
+
+  refreshModelos() {
+    this.configService.listarModelos().subscribe(res => {
+      this.modelos = res;
+      this.atualizarModelosPorMarca(this.form.get('marcaId')?.value);
+    });
+  }
+
+  solicitarNovoTipo() {
+    const nome = prompt('Informe o nome do novo tipo de equipamento:');
+    if (!nome?.trim()) return;
+    const payload = { nome: nome.trim() };
+    this.configService.criarTipo(payload).subscribe({
+      next: (res: any) => {
+        this.messageService.add({ severity: 'success', summary: 'Tipo criado', detail: 'Tipo de equipamento cadastrado com sucesso.' });
+        this.refreshTipos();
+        this.form.patchValue({ tipoEquipamentoId: res.id });
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível criar o tipo.' })
+    });
+  }
+
+  solicitarNovaMarca() {
+    const nome = prompt('Informe o nome da nova marca:');
+    if (!nome?.trim()) return;
+    const payload = { nome: nome.trim() };
+    this.configService.criarMarca(payload).subscribe({
+      next: (res: any) => {
+        this.messageService.add({ severity: 'success', summary: 'Marca criada', detail: 'Marca cadastrada com sucesso.' });
+        this.refreshMarcas();
+        this.form.patchValue({ marcaId: res.id });
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível criar a marca.' })
+    });
+  }
+
+  solicitarNovoModelo() {
+    const marcaId = this.form.get('marcaId')?.value;
+    if (!marcaId) {
+      this.messageService.add({ severity: 'warn', summary: 'Escolha a marca', detail: 'Selecione a marca antes de cadastrar um novo modelo.' });
+      return;
+    }
+    const nome = prompt('Informe o nome do novo modelo:');
+    if (!nome?.trim()) return;
+    const payload = { nome: nome.trim(), marcaId };
+    this.configService.criarModelo(payload).subscribe({
+      next: (res: any) => {
+        this.messageService.add({ severity: 'success', summary: 'Modelo criado', detail: 'Modelo cadastrado com sucesso.' });
+        this.refreshModelos();
+        this.form.patchValue({ modeloId: res.id });
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível criar o modelo.' })
+    });
   }
 
   carregarChips() {
@@ -162,6 +234,7 @@ export class EquipmentFormComponent implements OnInit {
     this.chipSelecionado = specs.chip_vinculado_pat ? { patrimonio: specs.chip_vinculado_pat } : null;
     this.valoresDinamicos = { ...specs };
     this.atualizarCamposDinamicos(eq.tipoEquipamentoId);
+    this.atualizarModelosPorMarca(eq.marcaId);
 
     this.form.patchValue({
       ...eq,
@@ -178,6 +251,20 @@ export class EquipmentFormComponent implements OnInit {
     const nome = tipo.nome.toUpperCase();
     const chaveEncontrada = Object.keys(this.mapaCampos).find(k => nome.includes(k));
     this.camposDinamicos = chaveEncontrada ? this.mapaCampos[chaveEncontrada] : [];
+  }
+
+  atualizarModelosPorMarca(marcaId: number | null) {
+    if (!marcaId) {
+      this.modelosFiltrados = [...this.modelos];
+      return;
+    }
+
+    this.modelosFiltrados = this.modelos.filter(modelo => modelo.marcaId === marcaId);
+
+    const modeloAtual = this.form.get('modeloId')?.value;
+    if (modeloAtual && !this.modelosFiltrados.some(modelo => modelo.id === modeloAtual)) {
+      this.form.patchValue({ modeloId: null });
+    }
   }
 
   get exibirCamposCelular(): boolean {
