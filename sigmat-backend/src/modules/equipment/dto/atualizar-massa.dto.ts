@@ -3,7 +3,7 @@ import { IsArray, IsInt, IsObject, IsOptional, IsString } from 'class-validator'
 export class AtualizarMassaDto {
   @IsArray()
   @IsInt({ each: true })
-  ids: number[];
+  ids: number[] = [];
 
   @IsObject()
   dados: {
@@ -12,7 +12,7 @@ export class AtualizarMassaDto {
     disponibilidadeId?: number;
     tipoAquisicaoId?: number;
     observacao?: string;
-  };
+  } = {};
 }
 
 

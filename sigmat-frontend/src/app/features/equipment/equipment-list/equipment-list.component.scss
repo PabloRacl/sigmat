@@ -68,48 +68,72 @@
   margin-bottom: 0.75rem;
   @media (max-width: 1024px) { grid-template-columns: repeat(2, 1fr); }
   @media (max-width: 600px) { grid-template-columns: 1fr; }
+
+  .eq-stat-card:nth-child(1) { animation-delay: 0.1s; }
+  .eq-stat-card:nth-child(2) { animation-delay: 0.2s; }
+  .eq-stat-card:nth-child(3) { animation-delay: 0.3s; }
+  .eq-stat-card:nth-child(4) { animation-delay: 0.4s; }
 }
 
 .eq-stat-card {
-  background: #ffffff;
-  padding: 0.5rem 0.85rem;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  padding: 0.65rem 0.95rem;
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  position: relative;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: legoAssemble 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  will-change: transform, opacity;
+
+  &:hover {
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 12px 22px -7px rgba(59, 130, 246, 0.18);
+    background: rgba(255, 255, 255, 1);
+  }
 
   &__icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.95rem;
     flex-shrink: 0;
-    &.blue   { background: #eff6ff; color: #2563eb; }
-    &.green  { background: #f0fdf4; color: #16a34a; }
-    &.orange { background: #fff7ed; color: #f97316; }
-    &.gray   { background: #f8fafc; color: #64748b; }
-    &.indigo { background: #eef2ff; color: #6366f1; }
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+    &.blue   { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); color: #2563eb; }
+    &.green  { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); color: #16a34a; }
+    &.orange { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); color: #f97316; }
+    &.gray   { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); color: #64748b; }
+    &.indigo { background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); color: #6366f1; }
   }
 
   &__info { display: flex; flex-direction: column; }
   &__val {
-    font-size: 1.2rem; font-weight: 800; color: #1e293b;
-    line-height: 1.1; margin-bottom: 2px;
-    display: flex; align-items: center; min-height: 1.2rem;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1.1;
+    margin-bottom: 2px;
   }
-  &__label { font-size: 0.65rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.03em; }
+  &__label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
 
-  // Estado: filtro activo — card gets a subtle indigo glow
   &--filtered {
-    border-color: #c7d2fe;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.05), 0 1px 3px rgba(0,0,0,0.02);
-    background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%);
-    transition: all 0.3s ease;
+    border-color: rgba(99, 102, 241, 0.35);
+    box-shadow: 0 10px 22px -12px rgba(59, 130, 246, 0.2);
+    background: rgba(255, 255, 255, 1);
 
     .eq-stat-card__label { color: #6366f1; }
     .eq-stat-card__val   { color: #4338ca; }
@@ -118,18 +142,61 @@
 
 // ── Main Card ──────────────────────────────────────────────────
 .eq-card {
-  background: #ffffff;
+  background: white;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
-  overflow: visible; // Alterado de hidden para permitir toolbar flutuante se necessário
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: visible;
   position: relative;
+
+  &:hover {
+    box-shadow: 0 12px 26px -10px rgba(15, 23, 42, 0.15);
+  }
   
-  &__content { 
-    padding: 1.5rem; 
-    &.no-padding { padding: 0; } 
+  &__content {
+    padding: 1.5rem;
+    &.no-padding { padding: 0; }
     position: relative;
   }
+}
+
+.eq-card,
+.eq-card .eq-card__content {
+  animation: none !important;
+  will-change: auto !important;
+}
+
+.p-datatable-tbody > tr {
+  opacity: 1 !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+.eq-stat-card:nth-child(1) { animation-delay: 0.05s; }
+.eq-stat-card:nth-child(2) { animation-delay: 0.1s; }
+.eq-stat-card:nth-child(3) { animation-delay: 0.15s; }
+.eq-stat-card:nth-child(4) { animation-delay: 0.2s; }
+
+@keyframes legoAssemble {
+  0% {
+    opacity: 0;
+    transform: translateY(100px) scale(0.5) rotateX(45deg);
+    filter: blur(10px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.05) rotateX(0deg);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .eq-bulk-actions {
@@ -146,7 +213,7 @@
   gap: 24px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
   border: 1px solid rgba(255,255,255,0.1);
-  animation: slideUpEq 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: none !important;
 
   &__info {
     color: #94a3b8;
@@ -426,6 +493,29 @@
   &.transfer:hover { color: #059669; border-color: #059669; background: #ecfdf5; }
 }
 
+/* Remover movimentos extras do corpo da tela de equipamentos; manter animação apenas nos cards de estatísticas superiores. */
+.eq-search__btn:hover,
+.eq-search-action-btn:hover,
+.eq-btn-search-advanced:hover,
+.eq-btn-primary:hover,
+.eq-btn-bulk-update:hover,
+.eq-btn-bulk-print:hover,
+.eq-btn-icon:hover,
+.eq-card:hover {
+  transform: none !important;
+}
+
+.eq-search__btn,
+.eq-search-action-btn,
+.eq-btn-search-advanced,
+.eq-btn-primary,
+.eq-btn-bulk-update,
+.eq-btn-bulk-print,
+.eq-btn-icon,
+.eq-card {
+  transition: none !important;
+}
+
 .eq-table-scroll-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -491,7 +581,7 @@
   padding: 1rem 1.5rem;
   background: #eff6ff;
   border-bottom: 1px solid #dbeafe;
-  animation: slideDown 0.3s ease-out;
+  animation: none !important;
 
   &__info {
     display: flex;
@@ -541,7 +631,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  animation: slideDown 0.25s ease-out;
+  animation: none !important;
 }
 
 .eq-emprestimo-label {
@@ -579,7 +669,7 @@
   padding: 0.85rem 1.5rem;
   background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
   color: #fff;
-  animation: slideDown 0.25s ease-out;
+  animation: none !important;
   flex-wrap: wrap;
   gap: 0.75rem;
 

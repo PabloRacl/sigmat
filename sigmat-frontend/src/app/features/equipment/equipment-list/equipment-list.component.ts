@@ -66,7 +66,7 @@ import { EquipmentDetailsComponent } from '../equipment-details/equipment-detail
   ],
   providers: [MessageService],
   templateUrl: './equipment-list.component.html',
-  styleUrl: './equipment-list.component.scss'
+  styleUrls: ['./equipment-list.component.scss']
 })
 export class EquipmentListComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

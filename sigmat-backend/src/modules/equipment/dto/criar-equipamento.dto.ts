@@ -7,7 +7,7 @@ import { IsString, IsOptional, IsInt, IsDateString, IsNotEmpty, IsObject, IsNumb
 export class CriarEquipamentoDto {
   @IsString()
   @IsNotEmpty({ message: 'O patrimônio é obrigatório' })
-  patrimonio: string;
+  patrimonio: string = '';
 
   @IsString()
   @IsOptional()
@@ -31,7 +31,7 @@ export class CriarEquipamentoDto {
 
   @IsInt({ message: 'ID do tipo de equipamento deve ser um número inteiro' })
   @IsNotEmpty({ message: 'O tipo de equipamento é obrigatório' })
-  tipoEquipamentoId: number;
+  tipoEquipamentoId: number = 0;
 
   @IsInt()
   @IsOptional()
@@ -43,7 +43,7 @@ export class CriarEquipamentoDto {
 
   @IsInt({ message: 'ID do status deve ser um número inteiro' })
   @IsNotEmpty({ message: 'O status do equipamento é obrigatório' })
-  statusId: number;
+  statusId: number = 0;
 
   @IsInt()
   @IsOptional()
@@ -51,11 +51,11 @@ export class CriarEquipamentoDto {
 
   @IsInt({ message: 'ID da disponibilidade deve ser um número inteiro' })
   @IsNotEmpty({ message: 'A disponibilidade do equipamento é obrigatória' })
-  disponibilidadeId: number;
+  disponibilidadeId: number = 0;
 
   @IsInt({ message: 'ID da seção deve ser um número inteiro' })
   @IsNotEmpty({ message: 'A seção do equipamento é obrigatória' })
-  secaoId: number;
+  secaoId: number = 0;
 
   @IsInt()
   @IsOptional()

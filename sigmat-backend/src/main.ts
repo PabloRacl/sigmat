@@ -17,7 +17,7 @@ async function bootstrap() {
   // Habilita CORS para o frontend local e produção
   app.enableCors();
 
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT || 3000;
   await app.listen(port);
   
   console.log(`\n🚀 Servidor Backend SIGMAT rodando localmente!`);

@@ -3,15 +3,15 @@ import { SettingsService } from './settings.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 class CriarTipoDto {
-  nome: string;
+  nome: string = '';
 }
 
 class CriarMarcaDto {
-  nome: string;
+  nome: string = '';
 }
 
 class CriarModeloDto {
-  nome: string;
+  nome: string = '';
   marcaId?: number;
 }
 

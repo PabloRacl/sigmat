@@ -4,11 +4,11 @@ import { StatusManutencao } from '@prisma/client';
 export class CriarOrdemServicoDto {
   @IsInt()
   @IsNotEmpty({ message: 'O ID do equipamento é obrigatório' })
-  equipamentoId: number;
+  equipamentoId: number = 0;
 
   @IsString()
   @IsNotEmpty({ message: 'A descrição do problema é obrigatória' })
-  descricaoProblema: string;
+  descricaoProblema: string = '';
 
   @IsString()
   @IsOptional()
@@ -22,7 +22,7 @@ export class CriarOrdemServicoDto {
 export class AtualizarStatusOsDto {
   @IsEnum(StatusManutencao, { message: 'Status de manutenção inválido' })
   @IsNotEmpty()
-  status: StatusManutencao;
+  status: StatusManutencao = StatusManutencao.ABERTA;
 
   @IsString()
   @IsOptional()

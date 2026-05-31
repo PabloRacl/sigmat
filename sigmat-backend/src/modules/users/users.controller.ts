@@ -21,12 +21,12 @@ import { LoggedUser } from '../../common/decorators/logged-user.decorator';
 import { PerfilUsuario } from '@prisma/client';
 
 class CriarUsuarioDto {
-  login: string;
-  matricula: string;
-  nome: string;
+  login: string = '';
+  matricula: string = '';
+  nome: string = '';
   email?: string;
   postoGraduacao?: string;
-  perfil: PerfilUsuario;
+  perfil: PerfilUsuario = PerfilUsuario.USUARIO_BATALHAO;
   secaoId?: number;
   batalhaoId?: number;
 }
