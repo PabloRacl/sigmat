@@ -24,9 +24,9 @@ export class ReportsController {
   }
 
   @Get('auditoria')
-  async auditoria(@Query() query: any) {
+  async auditoria(@Query() query: any, @LoggedUser() usuario: any) {
     // Accept query filters: dias, acao, usuario, patrimonio, descricao, startDate, endDate
-    return this.reportsService.logsAuditoria(query);
+    return this.reportsService.logsAuditoria(query, usuario);
   }
 }
 

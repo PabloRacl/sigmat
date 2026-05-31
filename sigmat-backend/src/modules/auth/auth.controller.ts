@@ -1,3 +1,15 @@
+/**
+ * [Estado Atual]: Controlador REST para autenticação corporativa (login, logout, rotação de refresh token).
+ * [Dependências Técnicas]:
+ *   - AuthService
+ *   - LoginDto, JwtAuthGuard, Throttle
+ * [Histórico de Modificações]:
+ *   - Adicionado cabeçalho de contexto arquitetural de alta eficiência de tokens.
+ * [Regras de Negócio Imutáveis]:
+ *   - Rate limiting (Throttle) para proteção contra brute force na rota de login.
+ *   - Logout e refresh de token devem invalidar as credenciais ativas correspondentes.
+ */
+
 import { Controller, Post, Body, HttpCode, HttpStatus, Req, UseGuards, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';

@@ -1,5 +1,11 @@
+/**
+ * [Estado Atual]: Serviço de negócios principal para gestão do ciclo de vida de Equipamentos.
+ * [Dependências Técnicas]: Consome EquipmentRepository, ApprovalsService, AuditService.
+ * [Histórico de Modificações]: Isolamento do Prisma no EquipmentRepository; Atualização de lógica de auditoria (gerarDiffComLabels).
+ * [Regras de Negócio Imutáveis]: Validações rigorosas de permissão por PerfilUsuario para criação/edição.
+ */
 import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { EquipmentRepository } from './equipment.repository';
 import { CriarEquipamentoDto } from './dto/criar-equipamento.dto';
 import { AtualizarEquipamentoDto } from './dto/atualizar-equipamento.dto';
 import { ApprovalsService } from '../approvals/approvals.service';
@@ -12,7 +18,7 @@ export class EquipmentService {
   private readonly logger = new Logger(EquipmentService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly repository: EquipmentRepository,
     private readonly approvalsService: ApprovalsService,
     private readonly auditService: AuditService,
   ) {}
@@ -37,21 +43,16 @@ export class EquipmentService {
     const skip = (page - 1) * limit;
     const search = params.search?.trim();
 
-    const userFull = await this.prisma.usuario.findUnique({
-      where: { id: usuario.id },
-      include: { secao: true, batalhao: true, secoesPermitidas: true },
-    });
+    const userFull = await this.repository.findUsuarioCompleto(usuario.id);
 
     if (!userFull) throw new NotFoundException('Usuário não encontrado');
 
     const where: any = {};
     const and: any[] = [];
 
-    // 1. Controle de Acesso por Perfil e Novas Permissões Multilocais
     if (userFull.perfil === PerfilUsuario.ADMIN_DTEC) {
       // Vê tudo
     } else {
-      // Pega todos os IDs de seções que o usuário tem acesso
       const secoesIds = [
         userFull.secaoId,
         ...userFull.secoesPermitidas.map(s => s.secaoId)
@@ -59,13 +60,24 @@ export class EquipmentService {
 
       if (userFull.perfil === PerfilUsuario.DIRETORIA) {
         const diretoriaId = userFull.secao?.diretoriaId || userFull.batalhao?.diretoriaId;
-        and.push({
-          OR: [
-            { secaoId: { in: secoesIds } },
-            { secao: { diretoriaId } },
-            { secao: { batalhao: { diretoriaId } } },
-          ]
-        });
+        const diretoriasOr: any[] = [];
+
+        // Diretoria deve ver equipamentos diretamente ligados à sua seção/diretoria
+        // e também equipamentos dos batalhões subordinados àquela diretoria.
+        if (secoesIds.length > 0) {
+          diretoriasOr.push({ secaoId: { in: secoesIds } });
+        }
+
+        if (diretoriaId) {
+          diretoriasOr.push({ secao: { diretoriaId } });
+          diretoriasOr.push({ secao: { batalhao: { diretoriaId } } });
+        }
+
+        if (diretoriasOr.length === 0) {
+          and.push({ secaoId: -1 });
+        } else {
+          and.push({ OR: diretoriasOr });
+        }
       } else if (userFull.batalhaoId) {
         and.push({
           OR: [
@@ -77,13 +89,11 @@ export class EquipmentService {
         if (secoesIds.length > 0) {
           and.push({ secaoId: { in: secoesIds } });
         } else {
-          // Se não tem seção, não vê nada
           and.push({ secaoId: -1 });
         }
       }
     }
 
-    // 2. Filtro de Busca (Patrimônio, Série, SEI, Tipo, Marca, Seção)
     if (search) {
       and.push({
         OR: [
@@ -100,20 +110,17 @@ export class EquipmentService {
       });
     }
 
-    // 3. Filtros Avançados (Unificados no AND para permitir busca por coluna específica)
     if (params.tipoId) and.push({ tipoEquipamentoId: Number(params.tipoId) });
     if (params.statusId) and.push({ statusId: Number(params.statusId) });
     if (params.disponibilidadeId) and.push({ disponibilidadeId: Number(params.disponibilidadeId) });
     if (params.secaoId) and.push({ secaoId: Number(params.secaoId) });
     if (params.marcaId) and.push({ marcaId: Number(params.marcaId) });
 
-    // Filtros de Texto Específicos
     if (params.patrimonio) and.push({ patrimonio: { contains: params.patrimonio, mode: 'insensitive' } });
     if (params.sei) and.push({ sei: { contains: params.sei, mode: 'insensitive' } });
     if (params.numeroSerie) and.push({ numeroSerie: { contains: params.numeroSerie, mode: 'insensitive' } });
     if (params.observacao) and.push({ observacao: { contains: params.observacao, mode: 'insensitive' } });
     
-    // Filtro de Data de Aquisição
     if (params.dataAquisicao) {
       const data = new Date(params.dataAquisicao);
       if (!isNaN(data.getTime())) {
@@ -130,22 +137,8 @@ export class EquipmentService {
     this.logger.log(`Listando equipamentos para usuário: ${userFull.login}`);
 
     const [total, itens] = await Promise.all([
-      this.prisma.equipamento.count({ where }),
-      this.prisma.equipamento.findMany({
-        where,
-        include: {
-          tipoEquipamento: true,
-          status: true,
-          secao: { include: { batalhao: true, diretoria: true } },
-          marca: true,
-          modelo: true,
-          tipoAquisicao: true,
-          disponibilidade: true,
-        },
-        orderBy: { patrimonio: 'asc' },
-        skip,
-        take: limit,
-      })
+      this.repository.countEquipamentos(where),
+      this.repository.findEquipamentos(where, skip, limit)
     ]);
 
     return {
@@ -158,18 +151,7 @@ export class EquipmentService {
   }
 
   async buscarPorId(id: number) {
-    const equipamento = await this.prisma.equipamento.findUnique({
-      where: { id },
-      include: {
-        tipoEquipamento: true,
-        status: true,
-        secao: { include: { batalhao: true, diretoria: true } },
-        marca: true,
-        modelo: true,
-        tipoAquisicao: true,
-        disponibilidade: true,
-      },
-    });
+    const equipamento = await this.repository.findEquipamentoById(id);
 
     if (!equipamento) {
       throw new NotFoundException(`Equipamento com ID ${id} não encontrado`);
@@ -181,28 +163,32 @@ export class EquipmentService {
   async criar(dados: CriarEquipamentoDto, usuario: any) {
     this.logger.log(`Iniciando criação de equipamento: ${dados.patrimonio}`);
     
-    // Apenas ADMIN ou usuários da SEÇÃO do equipamento podem criar
-    // (Ou simplificando: usuários criam para sua própria seção)
-    const userFull = await this.prisma.usuario.findUnique({
-      where: { id: usuario.id }
-    });
+    const userFull = await this.repository.findUsuarioCompleto(usuario.id);
 
     if (!userFull) throw new NotFoundException('Usuário não encontrado');
 
-    if (userFull.perfil !== PerfilUsuario.ADMIN_DTEC && userFull.secaoId !== dados.secaoId) {
-      throw new ForbiddenException('Você só pode cadastrar equipamentos para sua própria seção.');
+    if (userFull.perfil === PerfilUsuario.DIRETORIA) {
+      throw new ForbiddenException('Usuários de Diretoria não podem cadastrar equipamentos.');
+    }
+
+    if (userFull.perfil !== PerfilUsuario.ADMIN_DTEC) {
+      const secao = await this.repository.findSecaoById(dados.secaoId);
+      if (!secao) throw new NotFoundException('Seção de destino não encontrada.');
+
+      const userBatalhaoId = userFull.batalhaoId || userFull.secao?.batalhaoId;
+      if (!userBatalhaoId || secao.batalhaoId !== userBatalhaoId) {
+        throw new ForbiddenException('Você só pode cadastrar equipamentos para sua unidade.');
+      }
     }
 
     try {
       const { dataAquisicao, dataSolicitacao, dataRetornoEmprestimo, ...outrosDados } = dados;
 
-      const novoEquipamento = await this.prisma.equipamento.create({
-        data: {
-          ...outrosDados,
-          dataAquisicao: dataAquisicao ? new Date(dataAquisicao) : null,
-          dataSolicitacao: dataSolicitacao ? new Date(dataSolicitacao) : null,
-          dataRetornoEmprestimo: dataRetornoEmprestimo ? new Date(dataRetornoEmprestimo) : null,
-        },
+      const novoEquipamento = await this.repository.createEquipamento({
+        ...outrosDados,
+        dataAquisicao: dataAquisicao ? new Date(dataAquisicao) : null,
+        dataSolicitacao: dataSolicitacao ? new Date(dataSolicitacao) : null,
+        dataRetornoEmprestimo: dataRetornoEmprestimo ? new Date(dataRetornoEmprestimo) : null,
       });
 
       await this.auditService.registrarLog({
@@ -224,34 +210,26 @@ export class EquipmentService {
     const equipamentoAtual = await this.buscarPorId(id);
     const userId = usuario.id;
 
-    // 1. Regra de Edição por Perfil
+    const userFull = await this.repository.findUsuarioCompleto(userId);
+    if (!userFull) throw new NotFoundException('Usuário não encontrado');
+
     if (usuario.perfil === PerfilUsuario.ADMIN_DTEC) {
-      // ADMIN: Edita tudo direto
       return this.aplicarAtualizacaoDireta(id, dados, userId, equipamentoAtual, 'ADMIN');
     }
 
     if (usuario.perfil === PerfilUsuario.DIRETORIA) {
-      // DIRETORIA: Só edita se for da sua própria SEÇÃO
-      const userFull = await this.prisma.usuario.findUnique({ where: { id: userId } });
-      if (!userFull) throw new NotFoundException('Usuário não encontrado');
-
-      if (equipamentoAtual.secaoId === userFull.secaoId) {
-        return this.aplicarAtualizacaoDireta(id, dados, userId, equipamentoAtual, 'DIRETORIA');
-      } else {
-        throw new ForbiddenException('Usuários de Diretoria podem visualizar batalhões, mas só editam equipamentos de sua própria seção.');
-      }
+      throw new ForbiddenException('Usuários de Diretoria não podem modificar equipamentos.');
     }
 
-    // 2. COMANDANTE e USUARIO_BATALHAO
-    // Só podem editar se for do seu batalhão
-    const userFull = await this.prisma.usuario.findUnique({ where: { id: userId } });
-    if (!userFull) throw new NotFoundException('Usuário não encontrado');
-
-    if (equipamentoAtual.secao?.batalhaoId !== userFull.batalhaoId) {
-      throw new ForbiddenException('Você não tem permissão para editar equipamentos de outra unidade.');
+    const userBatalhaoId = userFull.batalhaoId || userFull.secao?.batalhaoId;
+    if (!userBatalhaoId || equipamentoAtual.secao?.batalhaoId !== userBatalhaoId) {
+      throw new ForbiddenException('Você não tem permissão para alterar equipamentos de outra unidade.');
     }
 
-    // Se for do batalhão, entra no fluxo de aprovação
+    if (usuario.perfil === PerfilUsuario.COMANDANTE) {
+      return this.aplicarAtualizacaoDireta(id, dados, userId, equipamentoAtual, 'COMANDANTE');
+    }
+
     return this.approvalsService.criarSolicitacao(
       id,
       userId,
@@ -263,14 +241,11 @@ export class EquipmentService {
   private async aplicarAtualizacaoDireta(id: number, dados: any, userId: number, atual: any, perfilLabel: string) {
     const { dataAquisicao, dataSolicitacao, dataRetornoEmprestimo, id: _id, ...outrosDados } = dados;
 
-    await this.prisma.equipamento.update({
-      where: { id },
-      data: {
-        ...outrosDados,
-        dataAquisicao: dataAquisicao ? new Date(dataAquisicao) : undefined,
-        dataSolicitacao: dataSolicitacao ? new Date(dataSolicitacao) : undefined,
-        dataRetornoEmprestimo: dataRetornoEmprestimo ? new Date(dataRetornoEmprestimo) : undefined,
-      },
+    await this.repository.updateEquipamento(id, {
+      ...outrosDados,
+      dataAquisicao: dataAquisicao ? new Date(dataAquisicao) : undefined,
+      dataSolicitacao: dataSolicitacao ? new Date(dataSolicitacao) : undefined,
+      dataRetornoEmprestimo: dataRetornoEmprestimo ? new Date(dataRetornoEmprestimo) : undefined,
     });
 
     const atualizado = await this.buscarPorId(id);
@@ -291,7 +266,6 @@ export class EquipmentService {
     const equipamento = await this.buscarPorId(id);
 
     if (usuario.perfil !== PerfilUsuario.ADMIN_DTEC) {
-      // Se não for admin, envia para aprovação
       return this.approvalsService.criarSolicitacao(
         id, 
         usuario.id, 
@@ -308,33 +282,20 @@ export class EquipmentService {
       dadosAlterados: { patrimonio: equipamento.patrimonio },
     });
 
-    return this.prisma.equipamento.delete({
-      where: { id },
-    });
+    return this.repository.deleteEquipamento(id);
   }
 
   async obterHistorico(id: number) {
-    return this.prisma.logOperacao.findMany({
-      where: { equipamentoId: id },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        usuario: {
-          select: { nome: true, matricula: true, postoGraduacao: true }
-        }
-      }
-    });
+    return this.repository.findLogsByEquipamento(id);
   }
 
   async atualizarEmMassa(ids: number[], dados: any, usuario: any) {
     if (!ids || ids.length === 0) return;
 
-    const userFull = await this.prisma.usuario.findUnique({
-      where: { id: usuario.id }
-    });
+    const userFull = await this.repository.findUsuarioCompleto(usuario.id);
 
     if (!userFull) throw new NotFoundException('Usuário não encontrado');
 
-    // Filtra campos permitidos para atualização em massa para segurança
     const { statusId, secaoId, disponibilidadeId, tipoAquisicaoId, observacao } = dados;
     const updateData: any = {};
     if (statusId) updateData.statusId = statusId;
@@ -343,30 +304,21 @@ export class EquipmentService {
     if (tipoAquisicaoId) updateData.tipoAquisicaoId = tipoAquisicaoId;
     if (observacao) updateData.observacao = observacao;
 
-    // 1. Verifica se o usuário tem permissão sobre TODOS os IDs
-    const equipamentos = await this.prisma.equipamento.findMany({
-      where: { id: { in: ids } },
-      include: { secao: true }
-    });
+    const equipamentos = await this.repository.findEquipamentosByIds(ids);
 
     if (userFull.perfil !== PerfilUsuario.ADMIN_DTEC) {
+      if (userFull.perfil === PerfilUsuario.DIRETORIA || userFull.perfil === PerfilUsuario.USUARIO_BATALHAO) {
+        throw new ForbiddenException('Somente administradores e comandantes podem efetuar atualizações em massa.');
+      }
+
       const idsInvalidos = equipamentos.filter(e => e.secao?.batalhaoId !== userFull.batalhaoId);
       if (idsInvalidos.length > 0) {
         throw new ForbiddenException('Você não tem permissão para editar equipamentos de outra unidade em lote.');
       }
     }
 
-    // 2. Executa a atualização e registra logs
-    const results = await this.prisma.$transaction(
-      equipamentos.map(eq => {
-        return this.prisma.equipamento.update({
-          where: { id: eq.id },
-          data: updateData
-        });
-      })
-    );
+    const results = await this.repository.updateManyEquipamentosTransaction(equipamentos, updateData);
 
-    // 3. Registra logs de auditoria
     for (const eq of equipamentos) {
       await this.auditService.registrarLog({
         usuarioId: userFull.id,
@@ -380,8 +332,3 @@ export class EquipmentService {
     return results;
   }
 }
-
-
-
-
-

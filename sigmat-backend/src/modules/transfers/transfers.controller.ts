@@ -1,3 +1,14 @@
+/**
+ * [Estado Atual]: Controlador REST para gerenciamento de solicitações e movimentações de carga (transferências).
+ * [Dependências Técnicas]:
+ *   - TransfersService
+ * [Histórico de Modificações]:
+ *   - Adicionado cabeçalho de contexto arquitetural de alta eficiência de tokens.
+ * [Regras de Negócio Imutáveis]:
+ *   - Rotas protegidas por JwtAuthGuard.
+ *   - Controle estrito de acesso e delegação de lógica ao TransfersService.
+ */
+
 import { Controller, Post, Get, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { TransfersService } from './transfers.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -18,6 +29,7 @@ export class TransfersController {
       body.equipamentoId,
       body.destinoId,
       usuario.id,
+      usuario,
       body.observacao,
     );
   }
@@ -39,6 +51,7 @@ export class TransfersController {
       body.equipamentoIds,
       body.destinoId,
       usuario.id,
+      usuario,
       body.observacao,
       body.disponibilidadeId,
       body.solicitante,

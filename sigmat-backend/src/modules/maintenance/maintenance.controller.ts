@@ -1,3 +1,9 @@
+/**
+ * [Estado Atual]: Controlador REST para gerenciamento de Ordens de Serviço (Manutenção).
+ * [Dependências Técnicas]: Consome MaintenanceService; Interage via JWT Auth.
+ * [Histórico de Modificações]: Refatoração para Clean Code - Isolamento do banco de dados concluído.
+ * [Regras de Negócio Imutáveis]: Não importar PrismaClient; Validar DTOs rigorosamente.
+ */
 import { Controller, Get, Post, Patch, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { MaintenanceService } from './maintenance.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,12 +28,12 @@ export class MaintenanceController {
 
   @Post()
   criar(@Body() dados: CriarOrdemServicoDto, @LoggedUser() usuario: any) {
-    return this.MaintenanceService.criar(dados, usuario.id);
+    return this.MaintenanceService.criar(dados, usuario);
   }
 
   @Post('massa')
   criarMassa(@Body() dados: any, @LoggedUser() usuario: any) {
-    return this.MaintenanceService.criarMassa(dados, usuario.id);
+    return this.MaintenanceService.criarMassa(dados, usuario);
   }
 
   @Patch(':id/status')
@@ -36,7 +42,7 @@ export class MaintenanceController {
     @Body() dados: AtualizarStatusOsDto,
     @LoggedUser() usuario: any
   ) {
-    return this.MaintenanceService.atualizarStatus(id, dados.status, dados, usuario.id);
+    return this.MaintenanceService.atualizarStatus(id, dados.status, dados, usuario);
   }
 
   @Get(':id/historico')

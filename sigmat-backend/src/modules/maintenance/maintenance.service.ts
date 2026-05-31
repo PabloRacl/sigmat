@@ -1,5 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+/**
+ * [Estado Atual]: Serviço de negócios para gestão de Manutenção.
+ * [Dependências Técnicas]: Consome MaintenanceRepository e NotificationsService.
+ * [Histórico de Modificações]: Isolamento da camada de banco de dados (Repository Pattern).
+ * [Regras de Negócio Imutáveis]: Validar permissões detalhadas de visualização por Perfil/Seção.
+ */
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { MaintenanceRepository } from './maintenance.repository';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CriarOrdemServicoDto } from './dto/maintenance.dto';
 import { StatusManutencao, AcaoLog, PerfilUsuario } from '@prisma/client';
@@ -7,21 +13,17 @@ import { StatusManutencao, AcaoLog, PerfilUsuario } from '@prisma/client';
 @Injectable()
 export class MaintenanceService {
   constructor(
-    private prisma: PrismaService,
+    private repository: MaintenanceRepository,
     private notificationsService: NotificationsService
   ) {}
 
   async listarTodos(usuario: any) {
-    const userFull = await this.prisma.usuario.findUnique({
-      where: { id: usuario.id },
-      include: { secao: true, batalhao: true, secoesPermitidas: true },
-    });
+    const userFull = await this.repository.findUsuarioCompleto(usuario.id);
 
     if (!userFull) throw new NotFoundException('Usuário não encontrado');
 
     const and: any[] = [];
 
-    // Lógica de Permissões
     if (userFull.perfil === PerfilUsuario.ADMIN_DTEC) {
       // Vê tudo, nenhum filtro necessário
     } else {
@@ -32,12 +34,17 @@ export class MaintenanceService {
 
       if (userFull.perfil === PerfilUsuario.DIRETORIA) {
         const diretoriaId = userFull.secao?.diretoriaId || userFull.batalhao?.diretoriaId;
-        and.push({
-          OR: [
-            { equipamento: { secaoId: { in: secoesIds } } },
-            { equipamento: { secao: { diretoriaId } } }
-          ]
-        });
+        const or: any[] = [];
+
+        if (secoesIds.length > 0) {
+          or.push({ equipamento: { secaoId: { in: secoesIds } } });
+        }
+        if (diretoriaId) {
+          or.push({ equipamento: { secao: { diretoriaId } } });
+          or.push({ equipamento: { secao: { batalhao: { diretoriaId } } } });
+        }
+
+        and.push(or.length > 0 ? { OR: or } : { equipamento: { secaoId: -1 } });
       } else if (userFull.perfil === PerfilUsuario.COMANDANTE) {
         const batalhaoId = userFull.secao?.batalhaoId || userFull.batalhaoId;
         and.push({
@@ -47,7 +54,6 @@ export class MaintenanceService {
           ]
         });
       } else {
-        // Usuário Batalhão
         and.push({
           equipamento: { secaoId: { in: secoesIds } }
         });
@@ -55,50 +61,42 @@ export class MaintenanceService {
     }
 
     const where = and.length > 0 ? { AND: and } : {};
-
-    return this.prisma.ordemServico.findMany({
-      where,
-      include: {
-        equipamento: {
-          include: { tipoEquipamento: true, marca: true }
-        },
-        solicitante: true
-      },
-      orderBy: { dataAbertura: 'desc' }
-    });
+    return this.repository.findOrdensServico(where);
   }
 
   async buscarPorId(id: number) {
-    const os = await this.prisma.ordemServico.findUnique({
-      where: { id },
-      include: {
-        equipamento: true,
-        solicitante: true
-      }
-    });
-
+    const os = await this.repository.findOrdemById(id);
     if (!os) throw new NotFoundException('Ordem de serviço não encontrada');
     return os;
   }
 
-  async criar(dados: CriarOrdemServicoDto, usuarioId: number) {
+  async criar(dados: CriarOrdemServicoDto, usuario: any) {
     const { equipamentoId, descricaoProblema, tecnicoResponsavel, dataPrevisao } = dados;
 
-    const equipamento = await this.prisma.equipamento.findUnique({
-      where: { id: equipamentoId }
-    });
-
+    const equipamento = await this.repository.findEquipamentoById(equipamentoId);
     if (!equipamento) throw new NotFoundException('Equipamento não encontrado');
 
-    const statusManutencao = await this.prisma.statusEquipamento.findFirst({
-      where: { nome: 'MANUTENÇÃO' }
-    });
+    const userFull = await this.repository.findUsuarioCompleto(usuario.id);
+    if (!userFull) throw new NotFoundException('Usuário não encontrado');
 
-    const resultado = await this.prisma.$transaction(async (tx: any) => {
+    if (userFull.perfil === PerfilUsuario.DIRETORIA) {
+      throw new ForbiddenException('Usuários de Diretoria não podem abrir ordens de serviço.');
+    }
+
+    if (userFull.perfil !== PerfilUsuario.ADMIN_DTEC) {
+      const userBatalhaoId = userFull.batalhaoId || userFull.secao?.batalhaoId;
+      if (!userBatalhaoId || equipamento.secao?.batalhaoId !== userBatalhaoId) {
+        throw new ForbiddenException('Você só pode abrir ordens de serviço para equipamentos da sua unidade.');
+      }
+    }
+
+    const statusManutencao = await this.repository.getStatusManutencao();
+
+    const resultado = await this.repository.transaction(async (tx: any) => {
       const os = await tx.ordemServico.create({
         data: {
           equipamentoId,
-          solicitanteId: usuarioId,
+          solicitanteId: usuario.id,
           descricaoProblema,
           tecnicoResponsavel,
           dataPrevisao: dataPrevisao ? new Date(dataPrevisao) : null,
@@ -116,7 +114,7 @@ export class MaintenanceService {
       await tx.logOperacao.create({
         data: {
           equipamentoId,
-          usuarioId,
+          usuarioId: usuario.id,
           acao: AcaoLog.ABERTURA_OS,
           descricao: `Ordem de Serviço #${os.id} aberta. Problema: ${descricaoProblema}`
         }
@@ -129,11 +127,26 @@ export class MaintenanceService {
     return resultado;
   }
 
-  async atualizarStatus(id: number, status: StatusManutencao, dadosAdicionais: any = {}, usuarioId: number) {
-    const os = await this.prisma.ordemServico.findUnique({ where: { id } });
+  async atualizarStatus(id: number, status: StatusManutencao, dadosAdicionais: any = {}, usuario: any) {
+    const os = await this.repository.findOrdemById(id);
     if (!os) throw new NotFoundException('Ordem de Serviço não encontrada');
 
-    const resultado = await this.prisma.$transaction(async (tx: any) => {
+    const userFull = await this.repository.findUsuarioCompleto(usuario.id);
+    if (!userFull) throw new NotFoundException('Usuário não encontrado');
+
+    if (userFull.perfil !== PerfilUsuario.ADMIN_DTEC) {
+      if (userFull.perfil !== PerfilUsuario.COMANDANTE) {
+        throw new ForbiddenException('Apenas Comandantes ou Administradores podem atualizar o status de manutenção.');
+      }
+
+      const equipamento = await this.repository.findEquipamentoById(os.equipamentoId);
+      const userBatalhaoId = userFull.batalhaoId || userFull.secao?.batalhaoId;
+      if (!userBatalhaoId || equipamento?.secao?.batalhaoId !== userBatalhaoId) {
+        throw new ForbiddenException('Você só pode atualizar status para ordens da sua unidade.');
+      }
+    }
+
+    const resultado = await this.repository.transaction(async (tx: any) => {
       const updateData: any = { status };
 
       if (dadosAdicionais.tecnicoResponsavel !== undefined) {
@@ -168,7 +181,7 @@ export class MaintenanceService {
       await tx.logOperacao.create({
         data: {
           equipamentoId: os.equipamentoId,
-          usuarioId,
+          usuarioId: usuario.id,
           acao: AcaoLog.ATUALIZACAO_OS,
           descricao: `OS #${os.id} alterada para ${status}.`
         }
@@ -181,21 +194,36 @@ export class MaintenanceService {
     return resultado;
   }
 
-  async criarMassa(dados: any, usuarioId: number) {
+  async criarMassa(dados: any, usuario: any) {
+    const userFull = await this.repository.findUsuarioCompleto(usuario.id);
+    if (!userFull) throw new NotFoundException('Usuário não encontrado');
+
+    if (userFull.perfil === PerfilUsuario.DIRETORIA) {
+      throw new ForbiddenException('Usuários de Diretoria não podem abrir ordens de serviço em massa.');
+    }
+
+    const userBatalhaoId = userFull.batalhaoId || userFull.secao?.batalhaoId;
+    if (!userBatalhaoId && userFull.perfil !== PerfilUsuario.ADMIN_DTEC) {
+      throw new ForbiddenException('Usuário sem batalhão válido.');
+    }
+
     const { ids, descricaoProblema, tecnicoResponsavel, dataPrevisao } = dados;
+    const statusManutencao = await this.repository.getStatusManutencao();
 
-    const statusManutencao = await this.prisma.statusEquipamento.findFirst({
-      where: { nome: 'MANUTENÇÃO' }
-    });
-
-    const resultado = await this.prisma.$transaction(async (tx: any) => {
+    const resultado = await this.repository.transaction(async (tx: any) => {
       const ordens = [];
-
       for (const equipamentoId of ids) {
+        const equipamento = await tx.equipamento.findUnique({ where: { id: equipamentoId }, include: { secao: true } });
+        if (!equipamento) throw new NotFoundException(`Equipamento ID ${equipamentoId} não encontrado`);
+
+        if (userFull.perfil !== PerfilUsuario.ADMIN_DTEC && equipamento.secao?.batalhaoId !== userBatalhaoId) {
+          throw new ForbiddenException('Você só pode abrir ordens de serviço em massa para equipamentos da sua unidade.');
+        }
+
         const os = await tx.ordemServico.create({
           data: {
             equipamentoId,
-            solicitanteId: usuarioId,
+            solicitanteId: usuario.id,
             descricaoProblema,
             tecnicoResponsavel,
             dataPrevisao: dataPrevisao ? new Date(dataPrevisao) : null,
@@ -213,7 +241,7 @@ export class MaintenanceService {
         await tx.logOperacao.create({
           data: {
             equipamentoId,
-            usuarioId,
+            usuarioId: usuario.id,
             acao: AcaoLog.ABERTURA_OS,
             descricao: `Ordem de Serviço #${os.id} aberta via ação em massa. Problema: ${descricaoProblema}`
           }
@@ -221,7 +249,6 @@ export class MaintenanceService {
 
         ordens.push(os);
       }
-
       return ordens;
     });
 
@@ -230,18 +257,9 @@ export class MaintenanceService {
   }
 
   async obterHistorico(id: number) {
-    const os = await this.prisma.ordemServico.findUnique({ where: { id } });
+    const os = await this.repository.findOrdemById(id);
     if (!os) throw new NotFoundException('Ordem de serviço não encontrada');
-
-    return this.prisma.logOperacao.findMany({
-      where: { equipamentoId: os.equipamentoId },
-      include: {
-        usuario: {
-          select: { nome: true, matricula: true, postoGraduacao: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    return this.repository.getLogsByEquipamento(os.equipamentoId);
   }
 }
 

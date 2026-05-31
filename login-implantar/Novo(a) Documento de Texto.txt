@@ -1,0 +1,152 @@
+API_LDAP='https://ldap.api.pm.pe.gov.br/api/'
+RESPOSTA LDAP
+
+{
+    "status": "success",
+    "data": [
+        [
+            "Login: 09823683484",
+            "Perfil: ADMINISTRADOR",
+            "Sistema: PORTAL",
+            "Status: ATIVO",
+            "Cargo: SD",
+            "Matricula: 1258427",
+            "Nome de Guerra: RICHARD",
+            "Ome Disposição: DTEC",
+            "Id Ome Disposição: 29",
+            "Secao: null"
+        ],
+        [
+            "Login: 09823683484",
+            "Perfil: ADMIN",
+            "Sistema: ECOP",
+            "Status: ATIVO",
+            "Cargo: SD",
+            "Matricula: 1258427",
+            "Nome de Guerra: RICHARD",
+            "Ome Disposição: DTEC",
+            "Id Ome Disposição: 29",
+            "Secao: null"
+        ],
+        [
+            "Login: 09823683484",
+            "Perfil: OPERADOR",
+            "Sistema: SGC",
+            "Status: ATIVO",
+            "Cargo: SD",
+            "Matricula: 1258427",
+            "Nome de Guerra: RICHARD",
+            "Ome Disposição: DTEC",
+            "Id Ome Disposição: 29",
+            "Secao: null"
+        ],
+        [
+            "Login: 09823683484",
+            "Perfil: USUARIO INTERMEDIARIO",
+            "Sistema: CSM/MB",
+            "Status: ATIVO",
+            "Cargo: SD",
+            "Matricula: 1258427",
+            "Nome de Guerra: RICHARD",
+            "Ome Disposição: DTEC",
+            "Id Ome Disposição: 29",
+            "Secao: null"
+        ],
+        [
+            "Login: 09823683484",
+            "Perfil: DIRETOR",
+            "Sistema: ESCOLA",
+            "Status: ATIVO",
+            "Cargo: SD",
+            "Matricula: 1258427",
+            "Nome de Guerra: RICHARD",
+            "Ome Disposição: DTEC",
+            "Id Ome Disposição: 29",
+            "Secao: null"
+        ],
+        [
+            "Login: 09823683484",
+            "Perfil: ADMINISTRADOR",
+            "Sistema: OPEL",
+            "Status: ATIVO",
+            "Cargo: SD",
+            "Matricula: 1258427",
+            "Nome de Guerra: RICHARD",
+            "Ome Disposição: DTEC",
+            "Id Ome Disposição: 29",
+            "Secao: null"
+        ],
+        [
+            "Login: 09823683484",
+            "Perfil: admin",
+            "Sistema: MGAF",
+            "Status: ATIVO",
+            "Cargo: SD",
+            "Matricula: 1258427",
+            "Nome de Guerra: RICHARD",
+            "Ome Disposição: DTEC",
+            "Id Ome Disposição: 29",
+            "Secao: null"
+        ],
+        [
+            "Login: 09823683484",
+            "Perfil: ADMINISTRADOR ESCALAS",
+            "Sistema: SE",
+            "Status: ATIVO",
+            "Cargo: SD",
+            "Matricula: 1258427",
+            "Nome de Guerra: RICHARD",
+            "Ome Disposição: DTEC",
+            "Id Ome Disposição: 29",
+            "Secao: null"
+        ],
+        [
+            "Login: 09823683484",
+            "Perfil: ADMINISTRADOR",
+            "Sistema: PMC",
+            "Status: ATIVO",
+            "Cargo: SD",
+            "Matricula: 1258427",
+            "Nome de Guerra: RICHARD",
+            "Ome Disposição: DTEC",
+            "Id Ome Disposição: 29",
+            "Secao: null"
+        ],
+        [
+            "Login: 09823683484",
+            "Perfil: ADMINISTRADOR",
+            "Sistema: PBI",
+            "Status: ATIVO",
+            "Cargo: SD",
+            "Matricula: 1258427",
+            "Nome de Guerra: RICHARD",
+            "Ome Disposição: DTEC",
+            "Id Ome Disposição: 29",
+            "Secao: null"
+        ],
+        [
+            "Login: 09823683484",
+            "Perfil: USUÁRIO COMUM",
+            "Sistema: SGMed",
+            "Status: ATIVO",
+            "Cargo: SD",
+            "Matricula: 1258427",
+            "Nome de Guerra: RICHARD",
+            "Ome Disposição: DTEC",
+            "Id Ome Disposição: 29",
+            "Secao: null"
+        ]
+    ]
+}
+
+
+CONECTAR NO SGA e procurar pelo CPF retornado do ldap a tabela de usuarios
+SGA_DB_DATABASE=ambiente
+SGA_DB_USER=postgres
+SGA_DB_PASSWORD=qgJIpL1Y7>BLW_<P}J#xJH8E+Poe|H")
+SGA_DB_HOST=10.3.0.198
+
+SGPM_DB_DATABASE=teste
+SGPM_DB_USER=postgres
+SGPM_DB_PASSWORD=123
+SGPM_DB_HOST=10.3.0.11

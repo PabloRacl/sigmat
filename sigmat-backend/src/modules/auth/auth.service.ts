@@ -1,3 +1,17 @@
+/**
+ * [Estado Atual]: Serviço de negócios para autenticação, controle de sessões e revogação de tokens.
+ * [Dependências Técnicas]:
+ *   - AuthRepository
+ *   - LdapService, SgaService, UsersService, JwtService, AuditService
+ * [Histórico de Modificações]:
+ *   - Refatorado para o padrão Repository/Service, eliminando acoplamento com o PrismaClient.
+ *   - Totalmente integrado com o fluxo corporativo real (LDAP, SGPM e SGA).
+ * [Regras de Negócio Imutáveis]:
+ *   - Validação corporativa baseada no LDAP local + permissão de perfil via SGA + dados cadastrais via SGPM.
+ *   - Rotação estrita de Refresh Tokens de 7 dias de validade.
+ *   - Lista negra (blacklist) para invalidação imediata de JWTs expirados ou revogados.
+ */
+
 import { Injectable, UnauthorizedException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LdapService } from '../../integrations/ldap/ldap.service';
@@ -5,7 +19,7 @@ import { SgaService } from '../../integrations/sga/sga.service';
 import { UsersService } from '../users/users.service';
 import { AuditService } from '../../shared/services/audit.service';
 import { AcaoLog } from '@prisma/client';
-import { PrismaService } from '../../database/prisma.service';
+import { AuthRepository } from './auth.repository';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -17,35 +31,34 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly auditService: AuditService,
-    private readonly prisma: PrismaService,
+    private readonly repository: AuthRepository,
   ) {}
 
-  /**
-   * Realiza o login corporativo integrado com o LDAP e o SGA (Portal de Segurança).
-   */
   async loginCorporativo(usuario: string, senha: string) {
     try {
-      // 1. Valida as credenciais na API LDAP corporativa
-      const dadosLdap = await this.ldapService.autenticar(usuario, senha);
+      // 1. Valida o usuário e a senha e retorna o CPF verificado no LDAP corporativo
+      const cpfLdap = await this.ldapService.autenticar(usuario, senha);
 
-      // 2. Consulta a liberação de acesso e o perfil do policial no SGA
-      const permissaoSga = await this.sgaService.obterPermissao(dadosLdap.matricula || usuario);
+      // 2. Consulta os dados funcionais adicionais do militar no SGPM
+      const sgpmData = await this.sgaService.obterDadosSgpm(cpfLdap);
 
-      if (!permissaoSga.ativo) {
-        throw new UnauthorizedException('Sua conta não está ativa no Portal de Segurança (SGA).');
-      }
+      // 3. Consulta as permissões ativas e perfis do militar no SGA
+      const sgaPermissao = await this.sgaService.obterPermissao(cpfLdap);
 
-      // Mescla os dados cadastrais do LDAP com o perfil de acesso do SGA
       const dadosCompletos = {
-        ...dadosLdap,
-        perfil: permissaoSga.perfil,
-        unidade: dadosLdap.unidade || 'DTEC' // default/fallback
+        login: cpfLdap, // o CPF é usado como login único
+        matricula: sgpmData.matricula || '',
+        nome: sgpmData.nome_completo || sgpmData.nome_guerra || 'Policial Militar',
+        email: `${sgpmData.nome_guerra?.toLowerCase() || 'policial'}@pm.pe.gov.br`,
+        postoGraduacao: sgpmData.sigla || '',
+        perfil: sgaPermissao.perfil,
+        organizacaoDisp: sgpmData.organizacao_disp || 'DTEC',
+        secaoSigla: sgpmData.secao || sgpmData.organizacao_disp || 'DTEC',
       };
 
-      // 3. Garante que o usuário existe no banco local com os perfis corretos
+      // 4. Sincroniza o usuário localmente na base do SIGMAT
       const usuarioBanco = await this.usersService.upsertUsuarioCorporativo(dadosCompletos);
 
-      // 4. Gera o token JWT com as informações do banco
       const payload = {
         sub: usuarioBanco.id,
         login: usuarioBanco.login,
@@ -59,11 +72,10 @@ export class AuthService {
       const access_token = this.jwtService.sign(payload);
       const refresh_token = await this.gerarRefreshToken(usuarioBanco.id);
 
-      // 5. Log de auditoria
       await this.auditService.registrarLog({
         usuarioId: usuarioBanco.id,
         acao: AcaoLog.LOGIN,
-        descricao: `Usuário ${usuarioBanco.login} realizou login corporativo (LDAP+SGA).`,
+        descricao: `Usuário ${usuarioBanco.login} realizou login corporativo real (LDAP+SGPM+SGA).`,
       });
 
       return {
@@ -83,18 +95,18 @@ export class AuthService {
       this.logger.error(`Erro no loginCorporativo: ${error?.message}`, error?.stack);
       if (error instanceof UnauthorizedException) throw error;
       
-      throw new InternalServerErrorException(`Erro no servidor de autenticação: ${error?.message || 'Sem resposta'}`);
+      throw new UnauthorizedException(`Falha na autenticação corporativa: ${error?.message || 'Dados inválidos'}`);
     }
   }
 
   async refresh(refreshToken: string) {
-    const tokenBanco = await this.prisma.refreshToken.findUnique({
+    const tokenBanco = await this.repository.findRefreshToken({
       where: { token: refreshToken },
       include: { usuario: true }
     });
 
     if (!tokenBanco || tokenBanco.expiresAt < new Date()) {
-      if (tokenBanco) await this.prisma.refreshToken.delete({ where: { id: tokenBanco.id } });
+      if (tokenBanco) await this.repository.deleteRefreshToken({ where: { id: tokenBanco.id } });
       throw new UnauthorizedException('Refresh token inválido ou expirado.');
     }
 
@@ -112,8 +124,7 @@ export class AuthService {
     const access_token = this.jwtService.sign(payload);
     const novo_refresh_token = await this.gerarRefreshToken(usuario.id);
 
-    // Remove o token antigo (Rotação de Refresh Token)
-    await this.prisma.refreshToken.delete({ where: { id: tokenBanco.id } });
+    await this.repository.deleteRefreshToken({ where: { id: tokenBanco.id } });
 
     return {
       access_token,
@@ -122,25 +133,21 @@ export class AuthService {
   }
 
   async logout(usuarioId: number, accessToken: string) {
-    // 1. Invalida os Refresh Tokens do usuário
-    await this.prisma.refreshToken.deleteMany({
+    await this.repository.deleteManyRefreshTokens({
       where: { usuarioId }
     });
 
-    // 2. Opcional: Adicionar o access_token atual à lista negra
     try {
       const decoded: any = this.jwtService.decode(accessToken);
       if (decoded && decoded.exp) {
-        await this.prisma.tokenBlacklist.create({
+        await this.repository.createBlacklistToken({
           data: {
-            jti: decoded.jti || uuidv4(), // Se não houver JTI, usamos o token como identificador único ou geramos um
+            jti: decoded.jti || uuidv4(),
             expiresAt: new Date(decoded.exp * 1000)
           }
         });
       }
-    } catch (e) {
-      // Ignora erro se não conseguir decodificar
-    }
+    } catch (e) {}
 
     await this.auditService.registrarLog({
       usuarioId,
@@ -152,9 +159,9 @@ export class AuthService {
   private async gerarRefreshToken(usuarioId: number) {
     const token = uuidv4();
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // Expira em 7 dias
+    expiresAt.setDate(expiresAt.getDate() + 7);
 
-    await this.prisma.refreshToken.create({
+    await this.repository.createRefreshToken({
       data: {
         token,
         usuarioId,
@@ -172,7 +179,7 @@ export class AuthService {
       const jti = decoded.jti;
       if (!jti) return false;
 
-      const blacklisted = await this.prisma.tokenBlacklist.findUnique({
+      const blacklisted = await this.repository.findBlacklistToken({
         where: { jti }
       });
       return !!blacklisted;
@@ -181,8 +188,3 @@ export class AuthService {
     }
   }
 }
-
-
-
-
-

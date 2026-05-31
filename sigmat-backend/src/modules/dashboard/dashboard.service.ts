@@ -22,13 +22,18 @@ export class DashboardService {
 
       if (userFull.perfil === 'DIRETORIA') {
         const diretoriaId = userFull.secao?.diretoriaId || userFull.batalhao?.diretoriaId;
-        and.push({
-          OR: [
-            { secaoId: { in: secoesIds } },
-            { secao: { diretoriaId } },
-            { secao: { batalhao: { diretoriaId } } },
-          ]
-        });
+        const or: any[] = [];
+
+        // Diretoria vê equipamentos de suas seções próprias e de batalhões subordinados.
+        if (secoesIds.length > 0) {
+          or.push({ secaoId: { in: secoesIds } });
+        }
+        if (diretoriaId) {
+          or.push({ secao: { diretoriaId } });
+          or.push({ secao: { batalhao: { diretoriaId } } });
+        }
+
+        and.push(or.length > 0 ? { OR: or } : { secaoId: -1 });
       } else if (userFull.batalhaoId) {
         and.push({
           OR: [
@@ -244,13 +249,17 @@ export class DashboardService {
 
         if (userFull.perfil === 'DIRETORIA') {
           const diretoriaId = userFull.secao?.diretoriaId || userFull.batalhao?.diretoriaId;
-          and.push({
-            OR: [
-              { secaoId: { in: secoesIds } },
-              { secao: { diretoriaId } },
-              { secao: { batalhao: { diretoriaId } } },
-            ]
-          });
+          const or: any[] = [];
+
+          if (secoesIds.length > 0) {
+            or.push({ secaoId: { in: secoesIds } });
+          }
+          if (diretoriaId) {
+            or.push({ secao: { diretoriaId } });
+            or.push({ secao: { batalhao: { diretoriaId } } });
+          }
+
+          and.push(or.length > 0 ? { OR: or } : { secaoId: -1 });
         } else if (userFull.batalhaoId) {
           and.push({
             OR: [

@@ -33,7 +33,7 @@ export class ApprovalsController {
     return this.ApprovalsService.processarDecisao(
       id,
       dados.aprovado,
-      usuario.id,
+      usuario,
       dados.justificativa
     );
   }

@@ -1,3 +1,9 @@
+/**
+ * [Estado Atual]: Controlador REST principal para CRUD e buscas avançadas de Equipamentos.
+ * [Dependências Técnicas]: Consome EquipmentService; Protegido por JwtAuthGuard.
+ * [Histórico de Modificações]: Padronização de Clean Code; Validação por DTOs.
+ * [Regras de Negócio Imutáveis]: Não importar PrismaClient.
+ */
 import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe, UseGuards, Query } from '@nestjs/common';
 import { EquipmentService } from './equipment.service';
 import { CriarEquipamentoDto } from './dto/criar-equipamento.dto';

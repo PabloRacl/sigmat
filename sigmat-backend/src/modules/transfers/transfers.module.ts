@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TransfersController } from './transfers.controller';
 import { TransfersService } from './transfers.service';
+import { TransfersRepository } from './transfers.repository';
 import { DatabaseModule } from '../../database/database.module';
 import { SharedModule } from '../../shared/shared.module';
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -8,8 +9,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
 @Module({
   imports: [DatabaseModule, SharedModule, NotificationsModule],
   controllers: [TransfersController],
-  providers: [TransfersService],
-  exports: [TransfersService],
+  providers: [TransfersService, TransfersRepository],
+  exports: [TransfersService, TransfersRepository],
 })
 export class TransfersModule {}
 

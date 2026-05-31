@@ -1,3 +1,14 @@
+/**
+ * [Estado Atual]: Serviço para geração de relatórios consolidados e detalhados de inventário, transferências e auditoria.
+ * [Dependências Técnicas]:
+ *   - PrismaService (Banco de Dados)
+ * [Histórico de Modificações]:
+ *   - Totalmente otimizado para alta performance (Ultra Fast Queries) substituindo os 'include' genéricos por 'select' estritos e projetivos.
+ * [Regras de Negócio Imutáveis]:
+ *   - Respeitar a visibilidade de dados de acordo com o perfil e OME/batalhão do usuário logado (buildVisibilityConditions).
+ *   - Manter compatibilidade exata de nomes de campos com o frontend para não quebrar exportações de PDF/CSV/Word.
+ */
+
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
@@ -22,13 +33,18 @@ export class ReportsService {
 
       if (userFull.perfil === 'DIRETORIA') {
         const diretoriaId = userFull.secao?.diretoriaId || userFull.batalhao?.diretoriaId;
-        and.push({
-          OR: [
-            { secaoId: { in: secoesIds } },
-            { secao: { diretoriaId } },
-            { secao: { batalhao: { diretoriaId } } },
-          ]
-        });
+        const or: any[] = [];
+
+        // Diretoria vê equipamentos ligados diretamente a ela e também aos batalhões subordinados.
+        if (secoesIds.length > 0) {
+          or.push({ secaoId: { in: secoesIds } });
+        }
+        if (diretoriaId) {
+          or.push({ secao: { diretoriaId } });
+          or.push({ secao: { batalhao: { diretoriaId } } });
+        }
+
+        and.push(or.length > 0 ? { OR: or } : { secaoId: -1 });
       } else if (userFull.batalhaoId) {
         and.push({
           OR: [
@@ -67,21 +83,34 @@ export class ReportsService {
 
     const where: any = and.length > 0 ? { AND: and } : {};
 
+    // OTIMIZAÇÃO: Select estrito projetado para eliminar download de campos JSON pesados (especificacoes, fotos)
     return this.prisma.equipamento.findMany({
       where,
-      include: {
-        tipoEquipamento: true,
-        marca: true,
-        modelo: true,
-        status: true,
-        tipoAquisicao: true,
-        disponibilidade: true,
+      select: {
+        id: true,
+        patrimonio: true,
+        numeroSerie: true,
+        sei: true,
+        dataAquisicao: true,
+        observacao: true,
+        solicitante: true,
+        dataSolicitacao: true,
+        dataRetornoEmprestimo: true,
+        tipoEquipamento: { select: { id: true, nome: true } },
+        marca: { select: { id: true, nome: true } },
+        modelo: { select: { id: true, nome: true } },
+        status: { select: { id: true, nome: true } },
+        tipoAquisicao: { select: { id: true, nome: true } },
+        disponibilidade: { select: { id: true, nome: true } },
         secao: {
-          include: {
-            diretoria: true,
-            batalhao: true,
+          select: {
+            id: true,
+            sigla: true,
+            nome: true,
+            batalhao: { select: { id: true, sigla: true, nome: true } },
+            diretoria: { select: { id: true, sigla: true, nome: true } }
           }
-        },
+        }
       },
       orderBy: { patrimonio: 'asc' },
     });
@@ -134,13 +163,19 @@ export class ReportsService {
 
     if (userFull.perfil === 'DIRETORIA') {
       const diretoriaId = userFull.secao?.diretoriaId || userFull.batalhao?.diretoriaId;
-      or.push({ origem: { diretoriaId } });
-      or.push({ destino: { diretoriaId } });
-      or.push({ origem: { batalhao: { diretoriaId } } });
-      or.push({ destino: { batalhao: { diretoriaId } } });
+      if (diretoriaId) {
+        or.push({ origem: { diretoriaId } });
+        or.push({ destino: { diretoriaId } });
+        or.push({ origem: { batalhao: { diretoriaId } } });
+        or.push({ destino: { batalhao: { diretoriaId } } });
+      }
     } else if (userFull.batalhaoId) {
       or.push({ origem: { batalhaoId: userFull.batalhaoId } });
       or.push({ destino: { batalhaoId: userFull.batalhaoId } });
+    }
+
+    if (or.length === 0) {
+      return { OR: [{ origemId: -1 }] };
     }
 
     return { OR: or };
@@ -218,24 +253,67 @@ export class ReportsService {
       }
     }
 
+    // OTIMIZAÇÃO: Select estrito em substituição a include com junções de tabelas gigantes
     return this.prisma.transferencia.findMany({
       where,
-      include: {
-        equipamento: true,
-        origem: true,
-        destino: true,
-        solicitante: true,
-        recebedor: true,
+      select: {
+        id: true,
+        status: true,
+        observacao: true,
+        dataEnvio: true,
+        dataRecebimento: true,
+        equipamento: { select: { id: true, patrimonio: true } },
+        origem: { select: { id: true, sigla: true, nome: true } },
+        destino: { select: { id: true, sigla: true, nome: true } },
+        solicitante: { select: { id: true, nome: true, matricula: true } },
+        recebedor: { select: { id: true, nome: true, matricula: true } }
       },
       orderBy: { dataEnvio: 'desc' }
     });
   }
 
-  async logsAuditoria(filters: any = {}) {
-    // filters may contain: dias, acao, usuario, patrimonio, descricao, startDate, endDate
+  async logsAuditoria(filters: any = {}, usuario?: any) {
     const where: any = {};
 
-    // Date filtering
+    // Filtro de visibilidade por perfil/unidade
+    if (usuario) {
+      const userFull = await this.prisma.usuario.findUnique({
+        where: { id: usuario.sub || usuario.id },
+        include: { secao: true, batalhao: true, secoesPermitidas: true },
+      });
+
+      if (userFull && userFull.perfil !== 'ADMIN_DTEC') {
+        const secoesIds = [
+          userFull.secaoId,
+          ...userFull.secoesPermitidas.map(s => s.secaoId)
+        ].filter(Boolean);
+
+        if (userFull.perfil === 'DIRETORIA') {
+          const diretoriaId = userFull.secao?.diretoriaId || userFull.batalhao?.diretoriaId;
+          const or: any[] = [];
+
+          if (secoesIds.length > 0) {
+            or.push({ secaoId: { in: secoesIds } });
+          }
+          if (diretoriaId) {
+            or.push({ secao: { diretoriaId } });
+            or.push({ secao: { batalhao: { diretoriaId } } });
+          }
+
+          where.equipamento = or.length > 0 ? { OR: or } : { secaoId: -1 };
+        } else if (userFull.batalhaoId) {
+          where.equipamento = {
+            OR: [
+              { secaoId: { in: secoesIds } },
+              { secao: { batalhaoId: userFull.batalhaoId } }
+            ]
+          };
+        } else {
+          where.equipamento = { secaoId: { in: secoesIds.length > 0 ? secoesIds : [-1] } };
+        }
+      }
+    }
+
     if (filters.startDate || filters.endDate) {
       const gte = filters.startDate ? new Date(filters.startDate) : undefined;
       const lte = filters.endDate ? new Date(filters.endDate) : undefined;
@@ -251,14 +329,12 @@ export class ReportsService {
       }
     }
 
-    // Action filter (single or comma-separated)
     if (filters.acao) {
       const acoes = String(filters.acao).split(',').map((s: string) => s.trim().toUpperCase());
       if (acoes.length === 1) where.acao = acoes[0];
       else where.acao = { in: acoes };
     }
 
-    // User filter (name or matricula)
     if (filters.usuario) {
       where.usuario = {
         OR: [
@@ -268,19 +344,28 @@ export class ReportsService {
       };
     }
 
-    // Equipment patrimony
     if (filters.patrimonio) {
-      where.equipamento = { patrimonio: { contains: String(filters.patrimonio), mode: 'insensitive' } };
+      // Merge com filtro de visibilidade se existir
+      const patrimonioFilter = { patrimonio: { contains: String(filters.patrimonio), mode: 'insensitive' } };
+      if (where.equipamento) {
+        where.equipamento = { AND: [where.equipamento, patrimonioFilter] };
+      } else {
+        where.equipamento = patrimonioFilter;
+      }
     }
 
-    // Description contains
     if (filters.descricao) {
       where.descricao = { contains: String(filters.descricao), mode: 'insensitive' };
     }
 
+    // OTIMIZAÇÃO: Select cirúrgico de propriedades
     return this.prisma.logOperacao.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        acao: true,
+        descricao: true,
+        createdAt: true,
         usuario: { select: { nome: true, matricula: true } },
         equipamento: { select: { patrimonio: true } }
       },
@@ -288,8 +373,3 @@ export class ReportsService {
     });
   }
 }
-
-
-
-
-

@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { AcaoLog } from '@prisma/client';
+import { AcaoLog, PerfilUsuario } from '@prisma/client';
 
 import { AuditService } from '../../shared/services/audit.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -70,15 +70,28 @@ export class ApprovalsService {
     });
   }
 
-  async processarDecisao(id: number, aprovado: boolean, aprovadoPorId: number, motivoNegacao?: string) {
+  async processarDecisao(id: number, aprovado: boolean, usuario: any, motivoNegacao?: string) {
+    if (usuario.perfil !== PerfilUsuario.ADMIN_DTEC && usuario.perfil !== PerfilUsuario.COMANDANTE) {
+      throw new ForbiddenException('Apenas Comandantes ou Administradores podem processar aprovações.');
+    }
+
     const solicitacao = await this.prisma.alteracaoPendente.findUnique({
       where: { id },
-      include: { equipamento: true }
+      include: { equipamento: { include: { secao: true } } }
     });
 
     if (!solicitacao) {
       throw new NotFoundException('Solicitação não encontrada');
     }
+
+    if (usuario.perfil === PerfilUsuario.COMANDANTE) {
+      const userBatalhaoId = usuario.batalhaoId;
+      if (!userBatalhaoId || solicitacao.equipamento?.secao?.batalhaoId !== userBatalhaoId) {
+        throw new ForbiddenException('Você só pode processar aprovações de sua unidade.');
+      }
+    }
+
+    const aprovadoPorId = usuario.id;
 
     const resultado = await this.prisma.$transaction(async (tx) => {
       const pendencia = await tx.alteracaoPendente.update({

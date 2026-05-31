@@ -1,5 +1,20 @@
+/**
+ * [Estado Atual]: Serviço para gerenciamento de solicitações, cancelamentos e confirmações de transferências e empréstimos de equipamentos.
+ * [Dependências Técnicas]:
+ *   - TransfersRepository
+ *   - AuditService
+ *   - NotificationsService
+ * [Histórico de Modificações]:
+ *   - Refatorado para o padrão Service/Repository, delegando acesso ao Prisma para o TransfersRepository.
+ *   - Injetados os cabeçalhos de contexto arquitetural.
+ * [Regras de Negócio Imutáveis]:
+ *   - Apenas administradores e comandantes podem autorizar transferências.
+ *   - O Batalhão do comandante deve coincidir com a seção destino da transferência.
+ *   - A seção (secaoId) do equipamento só é alterada quando o destino confirma o recebimento.
+ */
+
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { TransfersRepository } from './transfers.repository';
 import { StatusTransferencia, PerfilUsuario, AcaoLog } from '@prisma/client';
 import { AuditService } from '../../shared/services/audit.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -7,19 +22,31 @@ import { NotificationsService } from '../notifications/notifications.service';
 @Injectable()
 export class TransfersService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly repository: TransfersRepository,
     private readonly auditService: AuditService,
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  async solicitar(equipamentoId: number, destinoId: number, solicitanteId: number, observacao?: string) {
-    const equipamento = await this.prisma.equipamento.findUnique({
+  async solicitar(equipamentoId: number, destinoId: number, solicitanteId: number, usuario: any, observacao?: string) {
+    const equipamento = await this.repository.findEquipamentoUnique({
       where: { id: equipamentoId },
+      include: { secao: true }
     });
 
     if (!equipamento) throw new NotFoundException('Equipamento não encontrado');
 
-    const pendencia = await this.prisma.transferencia.create({
+    if (usuario.perfil === PerfilUsuario.DIRETORIA) {
+      throw new ForbiddenException('Usuários de Diretoria não podem iniciar transferências.');
+    }
+
+    if (usuario.perfil !== PerfilUsuario.ADMIN_DTEC) {
+      const userBatalhaoId = usuario.batalhaoId;
+      if (!userBatalhaoId || equipamento.secao?.batalhaoId !== userBatalhaoId) {
+        throw new ForbiddenException('Você só pode solicitar transferências para equipamentos da sua unidade.');
+      }
+    }
+
+    const pendencia = await this.repository.create({
       data: {
         equipamentoId,
         origemId: equipamento.secaoId,
@@ -45,18 +72,30 @@ export class TransfersService {
     equipamentoIds: number[],
     destinoId: number,
     solicitanteId: number,
+    usuario: any,
     observacao?: string,
     disponibilidadeId?: number,
     solicitante?: string,
     dataSolicitacao?: string,
     dataRetornoEmprestimo?: string,
   ) {
-    return this.prisma.$transaction(async (tx: any) => {
+    if (usuario.perfil === PerfilUsuario.DIRETORIA) {
+      throw new ForbiddenException('Usuários de Diretoria não podem iniciar transferências.');
+    }
+
+    return this.repository.client.$transaction(async (tx: any) => {
       const transferencias = [];
 
       for (const id of equipamentoIds) {
-        const equipamento = await tx.equipamento.findUnique({ where: { id } });
+        const equipamento = await tx.equipamento.findUnique({ where: { id }, include: { secao: true } });
         if (!equipamento) throw new NotFoundException(`Equipamento ID ${id} não encontrado`);
+
+        if (usuario.perfil !== PerfilUsuario.ADMIN_DTEC) {
+          const userBatalhaoId = usuario.batalhaoId;
+          if (!userBatalhaoId || equipamento.secao?.batalhaoId !== userBatalhaoId) {
+            throw new ForbiddenException('Você só pode solicitar transferências para equipamentos da sua unidade.');
+          }
+        }
 
         const t = await tx.transferencia.create({
           data: {
@@ -69,8 +108,6 @@ export class TransfersService {
           },
         });
 
-        // Atualiza campos de disponibilidade e empréstimo no equipamento, mas NÃO a seção!
-        // A seção (secaoId) só muda quando o destino confirma o recebimento.
         const equipUpdate: any = {};
         if (disponibilidadeId) equipUpdate.disponibilidadeId = disponibilidadeId;
         if (solicitante) equipUpdate.solicitante = solicitante;
@@ -101,7 +138,7 @@ export class TransfersService {
       filtroDestino = { destinoId: usuario.secaoId };
     }
 
-    return this.prisma.transferencia.findMany({
+    return this.repository.findMany({
       where: {
         ...filtroDestino,
         status: 'PENDENTE',
@@ -119,7 +156,7 @@ export class TransfersService {
   }
 
   async confirmarRecebimento(transferenciaId: number, recebedor: any) {
-    const transferencia = await this.prisma.transferencia.findUnique({
+    const transferencia = await this.repository.findUnique({
       where: { id: transferenciaId },
     });
 
@@ -131,7 +168,7 @@ export class TransfersService {
     }
 
     if (recebedor.perfil === 'COMANDANTE' && recebedor.batalhaoId) {
-      const secaoDestino = await this.prisma.secao.findUnique({
+      const secaoDestino = await this.repository.findSecaoUnique({
         where: { id: transferencia.destinoId }
       });
       if (secaoDestino?.batalhaoId !== recebedor.batalhaoId) {
@@ -139,8 +176,7 @@ export class TransfersService {
       }
     }
 
-    return this.prisma.$transaction(async (tx: any) => {
-      // 1. Atualiza a transferência
+    return this.repository.client.$transaction(async (tx: any) => {
       const t = await tx.transferencia.update({
         where: { id: transferenciaId },
         data: {
@@ -150,13 +186,11 @@ export class TransfersService {
         },
       });
 
-      // 2. Atualiza a seção do equipamento
       await tx.equipamento.update({
         where: { id: transferencia.equipamentoId },
         data: { secaoId: transferencia.destinoId },
       });
 
-      // 3. Log de auditoria
       await tx.logOperacao.create({
         data: {
           equipamentoId: transferencia.equipamentoId,
@@ -171,19 +205,18 @@ export class TransfersService {
   }
 
   async cancelar(transferenciaId: number, usuario: any) {
-    const transferencia = await this.prisma.transferencia.findUnique({
+    const transferencia = await this.repository.findUnique({
       where: { id: transferenciaId },
     });
 
     if (!transferencia) throw new NotFoundException('Transferência não encontrada');
     if (transferencia.status !== 'PENDENTE') throw new BadRequestException('Apenas transferências pendentes podem ser canceladas');
 
-    // Segurança: Apenas o solicitante ou ADMIN_DTEC podem cancelar
     if (usuario.perfil !== PerfilUsuario.ADMIN_DTEC && transferencia.solicitanteId !== usuario.id) {
       throw new ForbiddenException('Você não tem permissão para cancelar esta transferência.');
     }
 
-    const t = await this.prisma.transferencia.update({
+    const t = await this.repository.update({
       where: { id: transferenciaId },
       data: { status: 'CANCELADA' },
     });
@@ -191,15 +224,10 @@ export class TransfersService {
     await this.auditService.registrarLog({
       usuarioId: usuario.id,
       equipamentoId: transferencia.equipamentoId,
-      acao: AcaoLog.DELETE, // Ou criar uma acao TRANSFER_CANCEL se preferir
+      acao: AcaoLog.DELETE,
       descricao: `Transferência #${transferenciaId} cancelada pelo usuário.`,
     });
 
     return t;
   }
 }
-
-
-
-
-
