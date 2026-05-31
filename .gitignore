@@ -14,3 +14,9 @@ Obsidian/
 *.docx
 *.csv
 *.pdf
+
+# Ignore TypeScript incremental build info
+*.tsbuildinfo
+
+# Angular cache
+.angular/
