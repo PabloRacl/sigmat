@@ -53,17 +53,13 @@ export class EquipmentService {
     if (userFull.perfil === PerfilUsuario.ADMIN_DTEC) {
       // Vê tudo
     } else {
-      const secoesIds = [
-        userFull.secaoId,
-        ...userFull.secoesPermitidas.map(s => s.secaoId)
-      ].filter(Boolean);
+      const secoesIds = [userFull.secaoId, ...userFull.secoesPermitidas.map(s => s.secaoId)].filter(Boolean);
+      const userBatalhaoId = userFull.batalhaoId || userFull.secao?.batalhaoId;
 
       if (userFull.perfil === PerfilUsuario.DIRETORIA) {
         const diretoriaId = userFull.secao?.diretoriaId || userFull.batalhao?.diretoriaId;
         const diretoriasOr: any[] = [];
 
-        // Diretoria deve ver equipamentos diretamente ligados à sua seção/diretoria
-        // e também equipamentos dos batalhões subordinados àquela diretoria.
         if (secoesIds.length > 0) {
           diretoriasOr.push({ secaoId: { in: secoesIds } });
         }
@@ -78,13 +74,14 @@ export class EquipmentService {
         } else {
           and.push({ OR: diretoriasOr });
         }
-      } else if (userFull.batalhaoId) {
-        and.push({
-          OR: [
-            { secaoId: { in: secoesIds } },
-            { secao: { batalhaoId: userFull.batalhaoId } }
-          ]
-        });
+      } else if (userBatalhaoId) {
+        const or: any[] = [];
+        if (secoesIds.length > 0) {
+          or.push({ secaoId: { in: secoesIds } });
+        }
+        // filtrar por batalhão do usuário (direto ou via seção)
+        or.push({ secao: { batalhaoId: userBatalhaoId } });
+        and.push({ OR: or });
       } else {
         if (secoesIds.length > 0) {
           and.push({ secaoId: { in: secoesIds } });
