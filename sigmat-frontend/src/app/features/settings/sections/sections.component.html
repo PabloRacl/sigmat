@@ -1,0 +1,53 @@
+<div class="settings-sections-page">
+  <div class="page-header">
+    <div>
+      <h2>Gestão de Seções</h2>
+      <p class="page-subtitle">Crie e edite seções do sistema para seu batalhão ou diretoria.</p>
+    </div>
+    <button pButton type="button" label="Nova Seção" icon="pi pi-plus" class="p-button-outlined" (click)="abrirDialog()"></button>
+  </div>
+
+  <p-table [value]="secoes" [loading]="carregando" [responsiveLayout]="'scroll'" [paginator]="true" [rows]="10">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Sigla</th>
+        <th>Nome</th>
+        <th>Batalhão</th>
+        <th style="width: 140px">Ações</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td>{{ item.sigla }}</td>
+        <td>{{ item.nome }}</td>
+        <td>{{ getBatalhaoNome(item.batalhaoId) }}</td>
+        <td>
+          <button pButton type="button" icon="pi pi-pencil" class="p-button-sm p-button-text" title="Editar" (click)="abrirDialog(item)"></button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-dialog header="{{ editando ? 'Editar Seção' : 'Nova Seção' }}" [(visible)]="dialogVisivel" modal="true" [style]="{ width: '540px' }" [closable]="false">
+    <form [formGroup]="form" class="section-form">
+      <div class="p-fluid">
+        <div class="p-field">
+          <label>Sigla</label>
+          <input pInputText formControlName="sigla" />
+        </div>
+        <div class="p-field">
+          <label>Nome</label>
+          <input pInputText formControlName="nome" />
+        </div>
+        <div class="p-field">
+          <label>Batalhão</label>
+          <p-select [options]="batalhoes" formControlName="batalhaoId" optionLabel="sigla" optionValue="id" [showClear]="true" placeholder="Selecione um batalhão"></p-select>
+        </div>
+      </div>
+    </form>
+    <p-footer>
+      <button pButton type="button" label="Cancelar" class="p-button-text" (click)="fecharDialog()"></button>
+      <button pButton type="button" label="Salvar" class="p-button-primary" (click)="salvar()"></button>
+    </p-footer>
+  </p-dialog>
+</div>

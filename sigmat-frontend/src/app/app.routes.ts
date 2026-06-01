@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { AdminGuard } from './core/guards/admin.guard';
+import { RoleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -24,7 +26,8 @@ export const routes: Routes = [
       },
       {
         path: 'users',
-        loadComponent: () => import('./features/users/users-list/users-list.component').then(m => m.UsersListComponent)
+        loadComponent: () => import('./features/users/users-list/users-list.component').then(m => m.UsersListComponent),
+        canActivate: [AdminGuard]
       },
       {
         path: 'loans',
@@ -37,6 +40,11 @@ export const routes: Routes = [
       {
         path: 'reports',
         loadComponent: () => import('./features/reports/reports/reports.component').then(m => m.ReportsComponent)
+      },
+      {
+        path: 'secoes',
+        loadComponent: () => import('./features/settings/sections/sections.component').then(m => m.SettingsSectionsComponent),
+        canActivate: [RoleGuard]
       },
       {
         path: 'transfers',

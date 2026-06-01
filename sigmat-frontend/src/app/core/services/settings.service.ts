@@ -50,6 +50,14 @@ export class SettingsService {
     return this.http.get<any[]>(`${this.API_URL}/secoes`);
   }
 
+  criarSecao(dados: { sigla: string; nome: string; batalhaoId?: number; diretoriaId?: number }): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/secoes`, dados);
+  }
+
+  atualizarSecao(id: number, dados: { sigla?: string; nome?: string; batalhaoId?: number; diretoriaId?: number }): Observable<any> {
+    return this.http.put<any>(`${this.API_URL}/secoes/${id}`, dados);
+  }
+
   listarBatalhoes(): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URL}/batalhoes`);
   }
