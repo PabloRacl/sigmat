@@ -43,8 +43,42 @@ export class DashboardComponent implements OnInit {
     return this.authService.getUsuario()?.perfil === 'USUARIO_BATALHAO';
   }
 
+  get isAdmin(): boolean {
+    return this.authService.getUsuario()?.perfil === 'ADMIN_DTEC';
+  }
+
+  get usuarioAfiliacao(): string {
+    const user = this.authService.getUsuario();
+    if (!user) return '';
+
+    const parts: string[] = [];
+    if (user.batalhaoSigla) {
+      parts.push(`Batalhão: ${user.batalhaoSigla}`);
+    }
+    if (user.secaoSigla && user.secaoSigla !== user.batalhaoSigla) {
+      parts.push(`Seção: ${user.secaoSigla}`);
+    }
+    if (parts.length > 0) {
+      return parts.join(' • ');
+    }
+
+    if (user.perfil === 'DIRETORIA' && user.diretoriaSigla) {
+      return `Diretoria: ${user.diretoriaSigla}`;
+    }
+    if (user.diretoriaSigla) {
+      return `Diretoria: ${user.diretoriaSigla}`;
+    }
+
+    return '';
+  }
+
   get podeVerUsuarios(): boolean {
-    return !this.isUsuarioBatalhao;
+    return this.isAdmin;
+  }
+
+  get podeVerSecoes(): boolean {
+    const perfil = this.authService.getUsuario()?.perfil;
+    return ['ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE', 'USUARIO_BATALHAO'].includes(perfil);
   }
 
   get podeVerAuditoria(): boolean {

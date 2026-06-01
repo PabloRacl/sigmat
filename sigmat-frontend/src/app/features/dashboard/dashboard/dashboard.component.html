@@ -25,9 +25,13 @@
         <i class="pi pi-sync icon"></i>
         <span class="text">Cautelas Diárias</span>
       </a>
-      <a routerLink="users" routerLinkActive="active" class="nav-item" title="Gestão de usuários e perfis">
+      <a *ngIf="podeVerUsuarios" routerLink="users" routerLinkActive="active" class="nav-item" title="Gestão de usuários e perfis">
         <i class="pi pi-users icon"></i>
         <span class="text">Usuários</span>
+      </a>
+      <a *ngIf="podeVerSecoes" routerLink="secoes" routerLinkActive="active" class="nav-item" title="Gerenciar seções do sistema">
+        <i class="pi pi-sitemap icon"></i>
+        <span class="text">Seções</span>
       </a>
 
       <a routerLink="maintenance" routerLinkActive="active" class="nav-item" title="Gerenciar ordens de serviço">
@@ -66,7 +70,8 @@
         <div class="user-profile" *ngIf="usuario$ | async as user">
           <div class="user-info">
             <span class="user-name">{{ user.nome }}</span>
-            <span class="user-role">{{ user.perfil === 'ADMIN_DTEC' ? 'Administrador' : 'Policial Militar' }}</span>
+            <span class="user-role">{{ user.perfil === 'ADMIN_DTEC' ? 'Administrador' : user.perfil === 'COMANDANTE' ? 'Comandante' : user.perfil === 'DIRETORIA' ? 'Diretoria' : 'Policial Militar' }}</span>
+            <span class="user-affiliation" *ngIf="usuarioAfiliacao">{{ usuarioAfiliacao }}</span>
           </div>
           <div class="user-avatar" pTooltip="Ver Perfil" tooltipPosition="bottom">
             {{ user.nome.charAt(0) }}

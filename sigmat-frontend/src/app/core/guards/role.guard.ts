@@ -12,7 +12,7 @@ export class RoleGuard implements CanActivate {
   canActivate(): boolean {
     const usuario = this.authService.getUsuario();
     const perfil = usuario?.perfil;
-    const podeAcessar = ['ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE'].includes(perfil);
+    const podeAcessar = ['ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE', 'USUARIO_BATALHAO'].includes(perfil);
 
     if (!podeAcessar) {
       this.router.navigate(['/dashboard/home']);
