@@ -26,10 +26,7 @@ export class ReportsService {
 
     const and: any[] = [];
     if (userFull.perfil !== 'ADMIN_DTEC') {
-      const secoesIds = [
-        userFull.secaoId,
-        ...userFull.secoesPermitidas.map(s => s.secaoId)
-      ].filter(Boolean);
+      const secoesIds = [userFull.secaoId, ...userFull.secoesPermitidas.map(s => s.secaoId)].filter(Boolean);
 
       if (userFull.perfil === 'DIRETORIA') {
         const diretoriaId = userFull.secao?.diretoriaId || userFull.batalhao?.diretoriaId;
@@ -44,16 +41,28 @@ export class ReportsService {
           or.push({ secao: { batalhao: { diretoriaId } } });
         }
 
-        and.push(or.length > 0 ? { OR: or } : { secaoId: -1 });
+        // Garante que não montemos um OR vazio que bloqueie o acesso por engano.
+        if (or.length > 0) {
+          and.push({ OR: or });
+        } else {
+          and.push({ secaoId: -1 });
+        }
       } else if (userFull.batalhaoId) {
-        and.push({
-          OR: [
-            { secaoId: { in: secoesIds } },
-            { secao: { batalhaoId: userFull.batalhaoId } }
-          ]
-        });
+        const or: any[] = [];
+        if (secoesIds.length > 0) {
+          or.push({ secaoId: { in: secoesIds } });
+        }
+        // Sempre incluir filtro por batalhão quando disponível
+        or.push({ secao: { batalhaoId: userFull.batalhaoId } });
+
+        and.push({ OR: or });
       } else {
-        and.push({ secaoId: { in: secoesIds.length > 0 ? secoesIds : [-1] } });
+        if (secoesIds.length > 0) {
+          and.push({ secaoId: { in: secoesIds } });
+        } else {
+          // Sem seções permitidas: negar acesso explicitamente
+          and.push({ secaoId: -1 });
+        }
       }
     }
 
