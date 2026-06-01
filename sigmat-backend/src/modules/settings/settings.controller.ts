@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 class CriarTipoDto {
   nome: string = '';
@@ -15,8 +17,22 @@ class CriarModeloDto {
   marcaId?: number;
 }
 
+class CriarSecaoDto {
+  sigla: string = '';
+  nome: string = '';
+  batalhaoId?: number;
+  diretoriaId?: number;
+}
+
+class AtualizarSecaoDto {
+  sigla?: string;
+  nome?: string;
+  batalhaoId?: number;
+  diretoriaId?: number;
+}
+
 @Controller('configuracoes')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class SettingsController {
   constructor(private readonly SettingsService: SettingsService) {}
 
@@ -66,8 +82,20 @@ export class SettingsController {
   }
 
   @Get('secoes')
-  listarSecoes() {
-    return this.SettingsService.listarSecoes();
+  listarSecoes(@Req() req: any) {
+    return this.SettingsService.listarSecoes(req.user);
+  }
+
+  @Post('secoes')
+  @Roles('ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE')
+  criarSecao(@Body() dados: CriarSecaoDto, @Req() req: any) {
+    return this.SettingsService.criarSecao(dados, req.user);
+  }
+
+  @Put('secoes/:id')
+  @Roles('ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE')
+  atualizarSecao(@Param('id') id: string, @Body() dados: AtualizarSecaoDto, @Req() req: any) {
+    return this.SettingsService.atualizarSecao(Number(id), dados, req.user);
   }
 
   @Get('batalhoes')
