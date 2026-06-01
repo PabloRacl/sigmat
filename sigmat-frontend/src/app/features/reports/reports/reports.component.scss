@@ -83,7 +83,7 @@
   min-width: 200px;
 }
 
-.re-filter-row p-dropdown,
+.re-filter-row p-select,
 .re-filter-row input {
   width: 100%;
 }
@@ -250,10 +250,11 @@
   }
 }
 
-// ── TabView override ─────────────────────────────────────────
+// ── Tabs override ─────────────────────────────────────────
 ::ng-deep .re-tabview {
-  .p-tabview-nav { border-bottom: 2px solid #e2e8f0 !important; background: transparent !important; }
-  .p-tabview-nav li .p-tabview-nav-link { border: none !important; background: transparent !important; font-weight: 600; color: #64748b; }
-  .p-tabview-nav li.p-highlight .p-tabview-nav-link { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; }
-  .p-tabview-panels { padding: 0 !important; background: transparent !important; }
+  .p-tablist { border-bottom: 2px solid #e2e8f0 !important; background: transparent !important; }
+  .p-tab { border: none !important; background: transparent !important; font-weight: 600; color: #64748b; }
+  .p-tab-active { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; }
+  .p-tabpanels { padding: 0 !important; background: transparent !important; }
 }
+

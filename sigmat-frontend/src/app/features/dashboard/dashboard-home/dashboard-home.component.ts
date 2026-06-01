@@ -1,19 +1,19 @@
-﻿import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DashboardService } from '../../../core/services/dashboard.service';
 import { ChartModule } from 'primeng/chart';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 
 type GraficoKey = 'porStatus' | 'porTipo' | 'porDisponibilidade' | 'porBatalhao' | 'porMarca';
 
 @Component({
   selector: 'app-dashboard-home',
   standalone: true,
-  imports: [CommonModule, ChartModule, DropdownModule, FormsModule],
+  imports: [CommonModule, ChartModule, SelectModule, FormsModule],
   templateUrl: './dashboard-home.component.html',
-  styleUrl: './dashboard-home.component.scss',
+  styleUrls: ['./dashboard-home.component.scss'],
 })
 export class DashboardHomeComponent implements OnInit {
   private dashboardService = inject(DashboardService);
@@ -24,12 +24,12 @@ export class DashboardHomeComponent implements OnInit {
   activities: any[] = [];
   loading = true;
 
-  // Seletor de gráfico principal
+  // Seletor de gr�fico principal
   opcoesGrafico = [
     { label: 'Por Status', value: 'porStatus', tipo: 'pie' },
     { label: 'Por Tipo de Equipamento', value: 'porTipo', tipo: 'bar' },
     { label: 'Por Disponibilidade', value: 'porDisponibilidade', tipo: 'doughnut' },
-    { label: 'Por Batalhão', value: 'porBatalhao', tipo: 'bar' },
+    { label: 'Por Batalh�o', value: 'porBatalhao', tipo: 'bar' },
     { label: 'Por Marca', value: 'porMarca', tipo: 'bar' },
   ];
   graficoSelecionado = this.opcoesGrafico[0];
@@ -170,4 +170,5 @@ export class DashboardHomeComponent implements OnInit {
     this.router.navigate(['/dashboard/equipment'], { queryParams: { q } });
   }
 }
+
 

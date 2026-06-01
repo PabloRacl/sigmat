@@ -1,10 +1,10 @@
-﻿import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UsersService } from '../../../core/services/users.service';
 import { SettingsService } from '../../../core/services/settings.service';
 import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
@@ -14,14 +14,14 @@ import { MessageService } from 'primeng/api';
 const PERFIS = [
   { label: 'Administrador DTEC', value: 'ADMIN_DTEC' },
   { label: 'Diretoria', value: 'DIRETORIA' },
-  { label: 'Comandante de BatalhÃ£o', value: 'COMANDANTE' },
-  { label: 'UsuÃ¡rio de BatalhÃ£o', value: 'USUARIO_BATALHAO' },
+  { label: 'Comandante de Batalhão', value: 'COMANDANTE' },
+  { label: 'Usuário de Batalhão', value: 'USUARIO_BATALHAO' },
 ];
 
 const POSTOS = [
   'Soldado', 'Cabo', 'Terceiro-Sargento', 'Segundo-Sargento',
   'Primeiro-Sargento', 'Subtenente', 'Aspirante', 'Segundo-Tenente',
-  'Primeiro-Tenente', 'CapitÃ£o', 'Major', 'Tenente-Coronel', 'Coronel',
+  'Primeiro-Tenente', 'Capitão', 'Major', 'Tenente-Coronel', 'Coronel',
 ];
 
 @Component({
@@ -29,11 +29,11 @@ const POSTOS = [
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule,
-    DialogModule, DropdownModule, ButtonModule, InputTextModule, ToastModule, TooltipModule
+    DialogModule, SelectModule, ButtonModule, InputTextModule, ToastModule, TooltipModule
   ],
   providers: [MessageService],
   templateUrl: './users-list.component.html',
-  styleUrl: './users-list.component.scss',
+  styleUrls: ['./users-list.component.scss'],
 })
 export class UsersListComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -122,26 +122,26 @@ export class UsersListComponent implements OnInit {
       next: () => {
         this.messageService.add({
           severity: 'success', summary: 'Sucesso',
-          detail: `UsuÃ¡rio ${this.editando ? 'atualizado' : 'cadastrado'}!`,
+          detail: `Usuário ${this.editando ? 'atualizado' : 'cadastrado'}!`,
         });
         this.exibirModal = false;
         this.carregar();
       },
       error: (err) => {
-        const msg = err?.error?.message || 'NÃ£o foi possÃ­vel salvar o usuÃ¡rio.';
+        const msg = err?.error?.message || 'Não foi possível salvar o usuário.';
         this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
       },
     });
   }
 
   remover(id: number, nome: string) {
-    if (!confirm(`Remover o usuÃ¡rio "${nome}"?`)) return;
+    if (!confirm(`Remover o usuário "${nome}"?`)) return;
     this.UsersService.remover(id).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Removido', detail: 'UsuÃ¡rio excluÃ­do.' });
+        this.messageService.add({ severity: 'success', summary: 'Removido', detail: 'Usuário excluído.' });
         this.carregar();
       },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'NÃ£o foi possÃ­vel remover.' }),
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível remover.' }),
     });
   }
 
@@ -162,5 +162,6 @@ export class UsersListComponent implements OnInit {
     return nome?.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() ?? '?';
   }
 }
+
 
 

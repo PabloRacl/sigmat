@@ -77,35 +77,35 @@ $glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 
 @keyframes ap-spin { to { transform: rotate(360deg); } }
 
-// ── Tab View Styles ────────────────────────────────────────────
+// ── Tabs Styles ────────────────────────────────────────────
 ::ng-deep .ap-tabview {
-  .p-tabview-nav {
+  .p-tablist {
     background: transparent;
     border-bottom: 2px solid #e2e8f0;
     padding: 0 1rem;
-
-    li {
-      margin-right: 1.5rem;
-      
-      .p-tabview-nav-link {
-        background: transparent;
-        border: none;
-        border-bottom: 2px solid transparent;
-        padding: 1rem 0.5rem;
-        color: #64748b;
-        font-weight: 600;
-        font-size: 0.95rem;
-        transition: all 0.2s;
-      }
-      
-      &.p-highlight .p-tabview-nav-link {
-        color: $primary-color;
-        border-bottom: 2px solid $primary-color;
-      }
-    }
+    display: flex;
+    align-items: center;
+    gap: 1rem;
   }
 
-  .p-tabview-panels {
+  .p-tab {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 1rem 0.5rem;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .p-tab-active {
+    color: $primary-color;
+    border-bottom: 2px solid $primary-color;
+  }
+
+  .p-tabpanels {
     background: transparent;
     padding: 1rem;
   }

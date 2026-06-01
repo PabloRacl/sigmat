@@ -17,20 +17,31 @@
     <p>Sincronizando central...</p>
   </div>
 
-  <p-tabView *ngIf="!carregando" styleClass="ap-tabview">
-    
-    <!-- ABA 1: TRANSFERÊNCIAS RECEBIDAS (DESTINO) -->
-    <p-tabPanel [header]="ehAdmin ? 'Todas Transferências' : 'Aguardando Recebimento'">
-      <ng-template pTemplate="header">
-        <i class="pi pi-download" style="margin-right: 8px;"></i>
+  <p-tabs *ngIf="!carregando" [(value)]="abaAtiva" styleClass="ap-tabview">
+    <p-tablist>
+      <p-tab [value]="0">
+        <i class="pi pi-download" style="margin-right: 8px"></i>
         <span>{{ ehAdmin ? 'Todas Transferências (Admin)' : 'Cargas a Caminho' }}</span>
         <span class="ap-tab-badge" *ngIf="transRecebidas.length">{{ transRecebidas.length }}</span>
-      </ng-template>
+      </p-tab>
+      <p-tab [value]="1" *ngIf="!ehAdmin">
+        <i class="pi pi-upload" style="margin-right: 8px"></i>
+        <span>Cargas Enviadas</span>
+        <span class="ap-tab-badge" *ngIf="transEnviadas.length">{{ transEnviadas.length }}</span>
+      </p-tab>
+      <p-tab [value]="2">
+        <i class="pi pi-pencil" style="margin-right: 8px"></i>
+        <span>Alterações Cadastrais</span>
+        <span class="ap-tab-badge" *ngIf="pendencias.length">{{ pendencias.length }}</span>
+      </p-tab>
+    </p-tablist>
 
-      <div class="ap-tab-desc">
-        <i class="pi pi-info-circle"></i>
-        Materiais que foram transferidos para sua Unidade. Confirme o recebimento para assumir a carga.
-      </div>
+    <p-tabpanels>
+      <p-tabpanel [value]="0">
+        <div class="ap-tab-desc">
+          <i class="pi pi-info-circle"></i>
+          Materiais que foram transferidos para sua Unidade. Confirme o recebimento para assumir a carga.
+        </div>
 
       <p-table [value]="transRecebidas" [rowHover]="true" styleClass="ap-table" responsiveLayout="scroll">
         <ng-template pTemplate="header">
@@ -97,16 +108,10 @@
           <tr><td colspan="5"><div class="ap-empty"><i class="pi pi-box"></i><p>Nenhuma carga a caminho no momento.</p></div></td></tr>
         </ng-template>
       </p-table>
-    </p-tabPanel>
+    </p-tabpanel>
 
     <!-- ABA 2: TRANSFERÊNCIAS ENVIADAS (ORIGEM) -->
-    <p-tabPanel header="Minhas Transferências" *ngIf="!ehAdmin">
-      <ng-template pTemplate="header">
-        <i class="pi pi-upload" style="margin-right: 8px;"></i>
-        <span>Cargas Enviadas</span>
-        <span class="ap-tab-badge" *ngIf="transEnviadas.length">{{ transEnviadas.length }}</span>
-      </ng-template>
-
+    <p-tabpanel [value]="1" *ngIf="!ehAdmin">
       <div class="ap-tab-desc">
         <i class="pi pi-info-circle"></i>
         Materiais que você transferiu para outras unidades, mas que ainda não foram aceitos pelo destino.
@@ -150,16 +155,10 @@
           <tr><td colspan="4"><div class="ap-empty"><i class="pi pi-check-circle"></i><p>Nenhuma transferência enviada pendente.</p></div></td></tr>
         </ng-template>
       </p-table>
-    </p-tabPanel>
+    </p-tabpanel>
 
     <!-- ABA 3: EDIÇÕES DE EQUIPAMENTO -->
-    <p-tabPanel header="Edições Cadastrais">
-      <ng-template pTemplate="header">
-        <i class="pi pi-pencil" style="margin-right: 8px;"></i>
-        <span>Alterações Cadastrais</span>
-        <span class="ap-tab-badge" *ngIf="pendencias.length">{{ pendencias.length }}</span>
-      </ng-template>
-
+    <p-tabpanel [value]="2">
       <div class="ap-tab-desc">
         <i class="pi pi-info-circle"></i>
         Solicitações de alteração nos dados do equipamento (Marca, Status, Modelo, Exclusão).
@@ -225,9 +224,10 @@
           <tr><td colspan="5"><div class="ap-empty"><i class="pi pi-check-circle"></i><p>Nenhuma alteração cadastral pendente.</p></div></td></tr>
         </ng-template>
       </p-table>
-    </p-tabPanel>
 
-  </p-tabView>
+    </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
 </div>
 
 <!-- ══ MODAIS (NEGAR E DETALHES DA EDIÇÃO) ══════════════════════════════════════════════ -->
@@ -248,7 +248,7 @@
       </p>
       <div class="ap-form__field">
         <label>Motivo da Rejeição <span class="req">*</span></label>
-        <textarea pInputTextarea [(ngModel)]="motivoNegacao" rows="4" style="width:100%" placeholder="Descreva o motivo da rejeição..."></textarea>
+        <textarea pTextarea [(ngModel)]="motivoNegacao" rows="4" style="width:100%" placeholder="Descreva o motivo da rejeição..."></textarea>
       </div>
     </div>
   </ng-template>

@@ -242,7 +242,7 @@
     <div class="mn-form__field">
       <label>Descrição do Problema / Defeito <span class="req">*</span></label>
       <textarea
-        pInputTextarea
+        pTextarea
         formControlName="descricaoProblema"
         rows="4"
         class="w-full"
@@ -351,7 +351,7 @@
           <!-- Campo Novo Status -->
           <div class="form-group-field">
             <label>Alterar Status <span class="req">*</span></label>
-            <p-dropdown 
+            <p-select 
               [options]="statusOpcoes" 
               formControlName="status" 
               optionLabel="label" 
@@ -359,7 +359,7 @@
               styleClass="w-full premium-dropdown" 
               appendTo="body"
               [disabled]="!ehAdmin || !modoEdicao"
-            ></p-dropdown>
+            ></p-select>
           </div>
 
           <!-- Técnico e Previsão -->
@@ -402,7 +402,7 @@
             <div class="form-group-field">
               <label>{{ statusForm.get('status')?.value === 'CONCLUIDA' ? 'Solução Técnica Aplicada' : 'Justificativa do Cancelamento' }} <span class="req">*</span></label>
               <textarea 
-                pInputTextarea 
+                pTextarea 
                 formControlName="solucaoAplicada" 
                 rows="3" 
                 class="w-full" 
@@ -494,3 +494,4 @@
 </p-dialog>
 
 <p-toast position="bottom-right"></p-toast>
+

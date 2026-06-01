@@ -7,10 +7,16 @@
 </div>
 
 <!-- Seção de Abas do Relatório -->
-<p-tabView styleClass="re-tabview">
+<p-tabs [(value)]="abaAtiva" styleClass="re-tabview">
+  <p-tablist>
+    <p-tab [value]="0">Inventário Completo</p-tab>
+    <p-tab [value]="1">Transferências</p-tab>
+    <p-tab [value]="2">Resumo por Unidade</p-tab>
+  </p-tablist>
+  <p-tabpanels>
 
     <!-- Aba 1: Inventário Geral -->
-  <p-tabPanel header="Inventário Completo">
+  <p-tabpanel [value]="0">
 
     <!-- Cabeçalho verde -->
     <div class="re-green-head">
@@ -42,25 +48,25 @@
       </div>
 
       <div class="re-filter-row">
-        <p-dropdown [options]="secoes" [(ngModel)]="filtroSecaoId"
+        <p-select [options]="secoes" [(ngModel)]="filtroSecaoId"
           optionLabel="sigla" optionValue="id" [showClear]="true"
           placeholder="Seção" appendTo="body" (onChange)="aplicarFiltros()">
-        </p-dropdown>
+        </p-select>
 
-        <p-dropdown [options]="tipos" [(ngModel)]="filtroTipoId"
+        <p-select [options]="tipos" [(ngModel)]="filtroTipoId"
           optionLabel="nome" optionValue="id" [showClear]="true"
           placeholder="Tipo" appendTo="body" (onChange)="aplicarFiltros()">
-        </p-dropdown>
+        </p-select>
 
-        <p-dropdown [options]="status" [(ngModel)]="filtroStatusId"
+        <p-select [options]="status" [(ngModel)]="filtroStatusId"
           optionLabel="nome" optionValue="id" [showClear]="true"
           placeholder="Status" appendTo="body" (onChange)="aplicarFiltros()">
-        </p-dropdown>
+        </p-select>
 
-        <p-dropdown [options]="disponibilidades" [(ngModel)]="filtroDisponibilidadeId"
+        <p-select [options]="disponibilidades" [(ngModel)]="filtroDisponibilidadeId"
           optionLabel="nome" optionValue="id" [showClear]="true"
           placeholder="Disponibilidade" appendTo="body" (onChange)="aplicarFiltros()">
-        </p-dropdown>
+        </p-select>
 
         <button pButton type="button" icon="pi pi-times" label="Limpar" class="p-button-text re-btn-ghost" (click)="limparFiltros()"></button>
       </div>
@@ -152,10 +158,10 @@
       </p-table>
     </div>
 
-  </p-tabPanel>
+  </p-tabpanel>
 
   <!-- Aba 2: Transferências -->
-  <p-tabPanel header="Transferências">
+  <p-tabpanel [value]="1">
     <div class="re-green-head">
       <span>
         <i class="pi pi-exchange"></i>
@@ -181,20 +187,20 @@
       </div>
 
       <div class="re-filter-row">
-        <p-dropdown [options]="statusTransferencias" [(ngModel)]="filtroTransferStatus"
+        <p-select [options]="statusTransferencias" [(ngModel)]="filtroTransferStatus"
           optionLabel="label" optionValue="value" [showClear]="true"
           placeholder="Status" appendTo="body" (onChange)="aplicarFiltrosTransferencias()">
-        </p-dropdown>
+        </p-select>
 
-        <p-dropdown [options]="secoes" [(ngModel)]="filtroTransferOrigemId"
+        <p-select [options]="secoes" [(ngModel)]="filtroTransferOrigemId"
           optionLabel="sigla" optionValue="id" [showClear]="true"
           placeholder="Origem" appendTo="body" (onChange)="aplicarFiltrosTransferencias()">
-        </p-dropdown>
+        </p-select>
 
-        <p-dropdown [options]="secoes" [(ngModel)]="filtroTransferDestinoId"
+        <p-select [options]="secoes" [(ngModel)]="filtroTransferDestinoId"
           optionLabel="sigla" optionValue="id" [showClear]="true"
           placeholder="Destino" appendTo="body" (onChange)="aplicarFiltrosTransferencias()">
-        </p-dropdown>
+        </p-select>
 
         <input type="text" pInputText [(ngModel)]="filtroTransferLote" (input)="aplicarFiltrosTransferencias()" placeholder="Lote / ID" />
         <input type="date" pInputText [(ngModel)]="filtroTransferEnvioInicio" (change)="aplicarFiltrosTransferencias()" placeholder="Envio início" />
@@ -267,10 +273,10 @@
         </ng-template>
       </p-table>
     </div>
-  </p-tabPanel>
+  </p-tabpanel>
 
   <!-- Aba 2: Consolidado por Unidade -->
-  <p-tabPanel header="Resumo por Unidade">
+  <p-tabpanel [value]="2">
     <div class="re-green-head">
       <span>
         <i class="pi pi-chart-bar"></i>
@@ -298,7 +304,5 @@
         </div>
       </div>
     </div>
-  </p-tabPanel>
 
-</p-tabView>
 

@@ -36,6 +36,20 @@ sequenceDiagram
 - Responsável Direto
 - Dados Críticos (IMEI, Patrimônio, Número de Série)
 
+## 4. Endpoints Principais
+- `GET /aprovacoes/pendentes` — lista pendências de aprovação da unidade.
+- `GET /aprovacoes/contagem` — retorna total de pendências ativas.
+- `GET /aprovacoes/:id` — obtém detalhes de uma pendência específica.
+- `POST /aprovacoes/:id/decisao` — aprova ou nega uma pendência.
+- `PATCH /equipamentos/:id` — atualiza equipamento; para usuários comuns cria pendência.
+- `DELETE /equipamentos/:id` — exclui equipamento; para não-admin cria pendência de exclusão.
+
+## 5. Regras atuais do workflow
+- `ADMIN_DTEC` pode atualizar ou excluir direto sem pendência.
+- `COMANDANTE` pode atualizar direto e processar aprovações apenas da sua unidade.
+- Outros perfis criam pendência para alterações sensíveis e aguardam decisão.
+- Uma pendência que já foi aprovada ou negada não pode ser processada novamente.
+
 ---
 > [!IMPORTANT]
 > Administradores da DTEC (`ADMIN_DTEC`) podem ignorar este fluxo e editar diretamente qualquer item.

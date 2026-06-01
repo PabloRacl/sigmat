@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TransfersService } from '../../../core/services/transfers.service';
@@ -7,9 +7,9 @@ import { SettingsService } from '../../../core/services/settings.service';
 import { EquipmentService } from '../../../core/services/equipment.service';
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
-import { InputTextarea } from 'primeng/inputtextarea';
+import { Textarea } from 'primeng/textarea';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
@@ -21,13 +21,13 @@ import { ConfirmationService } from 'primeng/api';
   selector: 'app-transfers-list',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, DialogModule, DropdownModule,
-    ButtonModule, InputTextarea, InputTextModule, ToastModule, TooltipModule, TableModule,
+    CommonModule, FormsModule, DialogModule, SelectModule,
+    ButtonModule, Textarea, InputTextModule, ToastModule, TooltipModule, TableModule,
     ConfirmDialogModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './transfers-list.component.html',
-  styleUrl: './transfers-list.component.scss',
+  styleUrls: ['./transfers-list.component.scss'],
 })
 export class TransfersListComponent implements OnInit {
   private transferService = inject(TransfersService);
@@ -76,7 +76,7 @@ export class TransfersListComponent implements OnInit {
   carregarAuxiliares() {
     this.configService.listarSecoes().subscribe(res => this.secoes = res);
     this.equipmentService.listarTodos(1, 1000).subscribe(res => {
-      // Apenas equipamentos da seÃ§Ã£o do usuÃ¡rio logado
+      // Apenas equipamentos da seção do usuário logado
       this.equipamentosDisponiveis = res.itens.filter((e: any) => e.secaoId === this.usuarioLogado.secaoId);
     });
   }
@@ -91,25 +91,25 @@ export class TransfersListComponent implements OnInit {
 
     this.transferService.solicitar(this.novaTransferencia as any).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'TransferÃªncia solicitada!' });
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Transferência solicitada!' });
         this.exibirModalSolicitar = false;
         this.carregarDados();
       },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao solicitar transferÃªncia.' })
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao solicitar transferência.' })
     });
   }
 
   receber(id: number) {
     this.confirmationService.confirm({
       message: 'Deseja confirmar o recebimento deste material?',
-      header: 'ConfirmaÃ§Ã£o de Recebimento',
+      header: 'Confirmação de Recebimento',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Sim, Receber',
       rejectLabel: 'Cancelar',
       accept: () => {
         this.transferService.confirmar(id).subscribe({
           next: () => {
-            this.messageService.add({ severity: 'success', summary: 'ConcluÃ­do', detail: 'Material recebido e carga atualizada!' });
+            this.messageService.add({ severity: 'success', summary: 'Concluído', detail: 'Material recebido e carga atualizada!' });
             this.carregarDados();
           },
           error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao confirmar recebimento.' })
@@ -119,15 +119,16 @@ export class TransfersListComponent implements OnInit {
   }
 
   cancelar(id: number) {
-    if (!confirm('Deseja cancelar esta solicitaÃ§Ã£o?')) return;
+    if (!confirm('Deseja cancelar esta solicitação?')) return;
     this.transferService.cancelar(id).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'warn', summary: 'Cancelado', detail: 'TransferÃªncia cancelada.' });
+        this.messageService.add({ severity: 'warn', summary: 'Cancelado', detail: 'Transferência cancelada.' });
         this.carregarDados();
       },
       error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao cancelar.' })
     });
   }
 }
+
 
 

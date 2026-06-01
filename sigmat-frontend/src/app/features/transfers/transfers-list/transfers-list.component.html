@@ -114,7 +114,7 @@
     <div class="tf-form">
       <div class="tf-form__field">
         <label>Material para Transferir (Seu Inventário) <span class="req">*</span></label>
-        <p-dropdown
+        <p-select
           [options]="equipamentosDisponiveis"
           [(ngModel)]="novaTransferencia.equipamentoId"
           optionLabel="patrimonio"
@@ -124,11 +124,11 @@
           placeholder="Selecione o patrimônio..."
           appendTo="body"
           styleClass="w-full">
-        </p-dropdown>
+        </p-select>
       </div>
       <div class="tf-form__field">
         <label>Unidade de Destino <span class="req">*</span></label>
-        <p-dropdown
+        <p-select
           [options]="secoes"
           [(ngModel)]="novaTransferencia.destinoId"
           optionLabel="sigla"
@@ -138,11 +138,11 @@
           placeholder="Selecione a unidade destino..."
           appendTo="body"
           styleClass="w-full">
-        </p-dropdown>
+        </p-select>
       </div>
       <div class="tf-form__field">
         <label>Observações / Justificativa</label>
-        <textarea pInputTextarea
+        <textarea pTextarea
           [(ngModel)]="novaTransferencia.observacao"
           rows="4"
           style="width:100%"
@@ -165,4 +165,5 @@
 
 <p-toast position="bottom-right"></p-toast>
 <p-confirmDialog></p-confirmDialog>
+
 

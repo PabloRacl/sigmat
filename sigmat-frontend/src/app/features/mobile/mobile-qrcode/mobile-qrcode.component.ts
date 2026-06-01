@@ -8,7 +8,7 @@ import { EquipmentService } from '../../../core/services/equipment.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './mobile-qrcode.component.html',
-  styleUrl: './mobile-qrcode.component.scss'
+  styleUrls: ['./mobile-qrcode.component.scss']
 })
 export class MobileQrcodeComponent implements OnInit {
   private route = inject(ActivatedRoute);

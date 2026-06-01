@@ -78,14 +78,14 @@
         <span class="dh-card__sub">Análise multidimensional do inventário atual</span>
       </div>
       <div class="dh-card__actions">
-        <p-dropdown
+        <p-select
           [options]="opcoesGrafico"
           [(ngModel)]="graficoSelecionado"
           optionLabel="label"
           [style]="{ minWidth: '220px' }"
           appendTo="body"
           styleClass="dh-dropdown"
-        ></p-dropdown>
+        ></p-select>
       </div>
     </div>
 
@@ -170,4 +170,5 @@
   </div>
 
 </div>
+
 

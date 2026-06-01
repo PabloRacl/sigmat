@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { AcaoLog, PerfilUsuario } from '@prisma/client';
 
@@ -70,6 +70,23 @@ export class ApprovalsService {
     });
   }
 
+  async obterPendencia(id: number) {
+    const pendencia = await this.prisma.alteracaoPendente.findUnique({
+      where: { id },
+      include: {
+        equipamento: true,
+        solicitante: true,
+        aprovadoPor: true,
+      },
+    });
+
+    if (!pendencia) {
+      throw new NotFoundException('Solicitação de aprovação não encontrada');
+    }
+
+    return pendencia;
+  }
+
   async processarDecisao(id: number, aprovado: boolean, usuario: any, motivoNegacao?: string) {
     if (usuario.perfil !== PerfilUsuario.ADMIN_DTEC && usuario.perfil !== PerfilUsuario.COMANDANTE) {
       throw new ForbiddenException('Apenas Comandantes ou Administradores podem processar aprovações.');
@@ -82,6 +99,10 @@ export class ApprovalsService {
 
     if (!solicitacao) {
       throw new NotFoundException('Solicitação não encontrada');
+    }
+
+    if (solicitacao.aprovado !== null) {
+      throw new BadRequestException('Solicitação já foi processada');
     }
 
     if (usuario.perfil === PerfilUsuario.COMANDANTE) {

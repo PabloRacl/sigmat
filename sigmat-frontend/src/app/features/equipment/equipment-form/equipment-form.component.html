@@ -24,18 +24,18 @@
       <div class="eq-form__field flex-1">
         <label>Tipo <span class="req">*</span></label>
         <div style="display:flex; gap:0.5rem; align-items:center;">
-          <p-dropdown [options]="tipos" formControlName="tipoEquipamentoId" optionLabel="nome" optionValue="id"
+          <p-select [options]="tipos" formControlName="tipoEquipamentoId" optionLabel="nome" optionValue="id"
             [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
-          </p-dropdown>
+          </p-select>
           <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="solicitarNovoTipo()" pTooltip="Adicionar novo tipo" tooltipPosition="top"></button>
         </div>
       </div>
       <div class="eq-form__field flex-1">
         <label>Marca</label>
         <div style="display:flex; gap:0.5rem; align-items:center;">
-          <p-dropdown [options]="marcas" formControlName="marcaId" optionLabel="nome" optionValue="id" 
+          <p-select [options]="marcas" formControlName="marcaId" optionLabel="nome" optionValue="id" 
             [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
-          </p-dropdown>
+          </p-select>
           <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="solicitarNovaMarca()" pTooltip="Adicionar nova marca" tooltipPosition="top"></button>
         </div>
       </div>
@@ -45,16 +45,16 @@
       <div class="eq-form__field flex-1">
         <label>Modelo</label>
         <div style="display:flex; gap:0.5rem; align-items:center;">
-          <p-dropdown [options]="modelosFiltrados" formControlName="modeloId" optionLabel="nome" optionValue="id"
+          <p-select [options]="modelosFiltrados" formControlName="modeloId" optionLabel="nome" optionValue="id"
             [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
-          </p-dropdown>
+          </p-select>
           <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="solicitarNovoModelo()" pTooltip="Adicionar novo modelo" tooltipPosition="top"></button>
         </div>
       </div>
       <div class="eq-form__field flex-1">
         <label>Status <span class="req">*</span></label>
-        <p-dropdown [options]="status" formControlName="statusId" optionLabel="nome" optionValue="id" 
-          styleClass="w-full" appendTo="body"></p-dropdown>
+        <p-select [options]="status" formControlName="statusId" optionLabel="nome" optionValue="id" 
+          styleClass="w-full" appendTo="body"></p-select>
       </div>
     </div>
 
@@ -73,7 +73,7 @@
       </div>
       <div class="eq-form__field">
         <label>Chip Vinculado (ICCID / Patrimônio)</label>
-        <p-dropdown [options]="chipsDisponiveis" [(ngModel)]="chipSelecionado" [ngModelOptions]="{standalone: true}" 
+        <p-select [options]="chipsDisponiveis" [(ngModel)]="chipSelecionado" [ngModelOptions]="{standalone: true}" 
           optionLabel="patrimonio" placeholder="Buscar chip para vincular..." [filter]="true" filterBy="patrimonio,numeroSerie" 
           [showClear]="true" styleClass="w-full" appendTo="body">
           <ng-template let-c pTemplate="item">
@@ -82,7 +82,7 @@
               <small>{{ c.numeroSerie }}</small>
             </div>
           </ng-template>
-        </p-dropdown>
+        </p-select>
       </div>
     </div>
 
@@ -101,14 +101,14 @@
     <div class="eq-form__row">
       <div class="eq-form__field flex-1">
         <label>Disponibilidade <span class="req">*</span></label>
-        <p-dropdown [options]="disponibilidades" formControlName="disponibilidadeId" optionLabel="nome" optionValue="id" 
-          styleClass="w-full" appendTo="body"></p-dropdown>
+        <p-select [options]="disponibilidades" formControlName="disponibilidadeId" optionLabel="nome" optionValue="id" 
+          styleClass="w-full" appendTo="body"></p-select>
       </div>
       <div class="eq-form__field flex-1">
         <label>Seção <span class="req">*</span></label>
-        <p-dropdown [options]="secoes" formControlName="secaoId" optionLabel="sigla" optionValue="id" 
+        <p-select [options]="secoes" formControlName="secaoId" optionLabel="sigla" optionValue="id" 
           [filter]="true" filterBy="sigla,nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
-        </p-dropdown>
+        </p-select>
       </div>
     </div>
 
@@ -121,7 +121,7 @@
 
     <div class="eq-form__field">
       <label>Observações</label>
-      <textarea pInputTextarea formControlName="observacao" rows="3" class="w-full" placeholder="Observações..."></textarea>
+      <textarea pTextarea formControlName="observacao" rows="3" class="w-full" placeholder="Observações..."></textarea>
     </div>
 
     <div class="eq-dialog-footer">
@@ -130,3 +130,4 @@
     </div>
   </form>
 </p-dialog>
+

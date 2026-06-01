@@ -21,7 +21,7 @@ import { DialogModule } from 'primeng/dialog';
   standalone: true,
   imports: [CommonModule, DialogModule],
   templateUrl: './equipment-timeline.component.html',
-  styleUrl: './equipment-timeline.component.scss'
+  styleUrls: ['./equipment-timeline.component.scss']
 })
 export class EquipmentTimelineComponent {
   private equipmentService = inject(EquipmentService);

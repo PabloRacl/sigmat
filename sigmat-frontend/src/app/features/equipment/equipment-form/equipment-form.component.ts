@@ -20,10 +20,10 @@ import { MessageService } from 'primeng/api';
 
 // PrimeNG
 import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { Textarea } from 'primeng/inputtextarea';
+import { Textarea } from 'primeng/textarea';
 import { DatePickerModule } from 'primeng/datepicker';
 
 @Component({
@@ -34,14 +34,14 @@ import { DatePickerModule } from 'primeng/datepicker';
     FormsModule, 
     ReactiveFormsModule,
     DialogModule,
-    DropdownModule,
+    SelectModule,
     ButtonModule,
     InputTextModule,
     Textarea,
     DatePickerModule
   ],
   templateUrl: './equipment-form.component.html',
-  styleUrl: './equipment-form.component.scss'
+  styleUrls: ['./equipment-form.component.scss']
 })
 export class EquipmentFormComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -330,4 +330,5 @@ export class EquipmentFormComponent implements OnInit {
     });
   }
 }
+
 

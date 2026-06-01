@@ -27,10 +27,10 @@ import { ReportsService } from '../../../core/services/reports.service';
 
 // PrimeNG 18 Modules
 import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { Textarea } from 'primeng/inputtextarea';
+import { Textarea } from 'primeng/textarea';
 import { DatePickerModule } from 'primeng/datepicker';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
@@ -52,7 +52,7 @@ import { EquipmentDetailsComponent } from '../equipment-details/equipment-detail
     FormsModule, 
     ReactiveFormsModule,
     DialogModule,
-    DropdownModule,
+    SelectModule,
     ButtonModule,
     InputTextModule,
     Textarea,
@@ -509,4 +509,5 @@ abrirModalManutencao() {
     return sec ? sec.nome : '';
   }
 }
+
 

@@ -281,7 +281,7 @@
   <form [formGroup]="formSaida" (ngSubmit)="confirmarSaida()" class="cd-form">
     <div class="cd-form__field">
       <label>Equipamento Disponível <span class="req">*</span></label>
-      <p-dropdown
+      <p-select
         [options]="equipamentos"
         formControlName="equipamentoId"
         optionLabel="patrimonio"
@@ -292,7 +292,7 @@
         placeholder="Selecione pelo patrimônio..."
         appendTo="body"
         styleClass="w-full"
-      ></p-dropdown>
+      ></p-select>
     </div>
     <div class="cd-form__field">
       <label>Nome do Solicitante <span class="req">*</span></label>
@@ -427,4 +427,5 @@
     </button>
   </div>
 </p-dialog>
+
 

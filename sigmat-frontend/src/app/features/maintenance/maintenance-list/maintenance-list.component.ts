@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MaintenanceService } from '../../../core/services/maintenance.service';
@@ -8,9 +8,9 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
-import { Textarea } from 'primeng/inputtextarea';
+import { Textarea } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -28,7 +28,7 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
     TableModule,
     ButtonModule,
     DialogModule,
-    DropdownModule,
+    SelectModule,
     InputTextModule,
     Textarea,
     ToastModule,
@@ -39,7 +39,7 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
   ],
   providers: [MessageService],
   templateUrl: './maintenance-list.component.html',
-  styleUrl: './maintenance-list.component.scss'
+  styleUrls: ['./maintenance-list.component.scss']
 })
 export class MaintenanceListComponent implements OnInit {
   private maintenanceService = inject(MaintenanceService);
@@ -53,33 +53,33 @@ export class MaintenanceListComponent implements OnInit {
     return perfil === 'ADMIN_DTEC' || perfil === 'DIRETORIA';
   }
 
-  // â”€â”€ Dados â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Dados ────────────────────────────────────────────────────────
   todasOrdens: any[] = [];
   ordensFiltradas: any[] = [];
   carregando = true;
   buscaTexto = '';
 
-  // â”€â”€ Filtro por Status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Filtro por Status ─────────────────────────────────────────────
   filtroStatus: string | null = null;
 
   statusChips = [
     { label: 'Todas',           value: null,              icon: 'pi-list',           cor: 'all' },
     { label: 'Abertas',         value: 'ABERTA',          icon: 'pi-flag',           cor: 'aberta' },
     { label: 'Em Andamento',    value: 'EM_ANDAMENTO',    icon: 'pi-spin pi-cog',    cor: 'em_andamento' },
-    { label: 'Aguardando PeÃ§a', value: 'AGUARDANDO_PECA', icon: 'pi-clock',          cor: 'aguardando_peca' },
-    { label: 'ConcluÃ­das',      value: 'CONCLUIDA',       icon: 'pi-check-circle',   cor: 'concluida' },
+    { label: 'Aguardando Peça', value: 'AGUARDANDO_PECA', icon: 'pi-clock',          cor: 'aguardando_peca' },
+    { label: 'Concluídas',      value: 'CONCLUIDA',       icon: 'pi-check-circle',   cor: 'concluida' },
     { label: 'Canceladas',      value: 'CANCELADA',       icon: 'pi-times-circle',   cor: 'cancelada' },
   ];
 
   statusOpcoes = [
     { label: 'Aberta',          value: 'ABERTA' },
     { label: 'Em Andamento',    value: 'EM_ANDAMENTO' },
-    { label: 'Aguardando PeÃ§a', value: 'AGUARDANDO_PECA' },
-    { label: 'ConcluÃ­da',       value: 'CONCLUIDA' },
+    { label: 'Aguardando Peça', value: 'AGUARDANDO_PECA' },
+    { label: 'Concluída',       value: 'CONCLUIDA' },
     { label: 'Cancelada',       value: 'CANCELADA' },
   ];
 
-  // â”€â”€ Summary cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Summary cards ─────────────────────────────────────────────────
   get contadorStatus() {
     return {
       total:          this.todasOrdens.length,
@@ -91,7 +91,7 @@ export class MaintenanceListComponent implements OnInit {
     };
   }
 
-  // â”€â”€ Modal: Nova OS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Modal: Nova OS ────────────────────────────────────────────────
   exibirModalNovaOS = false;
   novaOsForm: FormGroup;
 
@@ -99,7 +99,7 @@ export class MaintenanceListComponent implements OnInit {
   equipSugestoes: any[] = [];
   equipamentoNovaOs: any = null;
 
-  // â”€â”€ Modal: AssistÃªncia Premium (3 Colunas) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Modal: Assistência Premium (3 Colunas) ───────────────────────
   exibirModalAssistencia = false;
   modoEdicao = false;
   statusForm: FormGroup;
@@ -126,7 +126,7 @@ export class MaintenanceListComponent implements OnInit {
   ngOnInit() {
     this.carregarDados();
 
-    // LÃ³gica inteligente de previsÃ£o de prazos automÃ¡ticos baseado no status
+    // Lógica inteligente de previsão de prazos automáticos baseado no status
     this.statusForm.get('status')?.valueChanges.subscribe(status => {
       if (!status || !this.osSelecionada) return;
       const dataAbertura = new Date(this.osSelecionada.dataAbertura);
@@ -147,7 +147,7 @@ export class MaintenanceListComponent implements OnInit {
     });
   }
 
-  // â”€â”€ Carregamento â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Carregamento ─────────────────────────────────────────────────
   carregarDados() {
     this.carregando = true;
     this.maintenanceService.listarTodos().subscribe({
@@ -165,13 +165,13 @@ export class MaintenanceListComponent implements OnInit {
         }
       },
       error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar ordens de serviÃ§o.' });
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao carregar ordens de serviço.' });
         this.carregando = false;
       }
     });
   }
 
-  // â”€â”€ Filtros â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Filtros ──────────────────────────────────────────────────────
   aplicarFiltros() {
     const texto = this.buscaTexto.trim().toLowerCase();
     this.ordensFiltradas = this.todasOrdens.filter(os => {
@@ -201,7 +201,7 @@ export class MaintenanceListComponent implements OnInit {
     return this.todasOrdens.filter(o => o.status === valor).length;
   }
 
-  // â”€â”€ AutoComplete Equipamentos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── AutoComplete Equipamentos ─────────────────────────────────────
   buscarEquipamentos(event: any) {
     const q = event.query;
     this.equipmentService.listarTodos(1, 30, q).subscribe({
@@ -210,7 +210,7 @@ export class MaintenanceListComponent implements OnInit {
     });
   }
 
-  // â”€â”€ Modal: Nova OS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Modal: Nova OS ────────────────────────────────────────────────
   abrirNovaOS() {
     this.equipamentoNovaOs = null;
     this.novaOsForm.reset();
@@ -219,7 +219,7 @@ export class MaintenanceListComponent implements OnInit {
 
   confirmarNovaOS() {
     if (this.novaOsForm.invalid || !this.equipamentoNovaOs?.id) {
-      this.messageService.add({ severity: 'warn', summary: 'AtenÃ§Ã£o', detail: 'Selecione um equipamento e descreva o problema.' });
+      this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Selecione um equipamento e descreva o problema.' });
       return;
     }
 
@@ -233,18 +233,18 @@ export class MaintenanceListComponent implements OnInit {
 
     this.maintenanceService.criar(payload).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'OS Aberta', detail: 'Ordem de serviÃ§o criada com sucesso.' });
+        this.messageService.add({ severity: 'success', summary: 'OS Aberta', detail: 'Ordem de serviço criada com sucesso.' });
         this.exibirModalNovaOS = false;
         this.carregarDados();
       },
       error: (err) => {
-        const msg = err?.error?.message || 'Erro ao criar ordem de serviÃ§o.';
+        const msg = err?.error?.message || 'Erro ao criar ordem de serviço.';
         this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
       }
     });
   }
 
-  // â”€â”€ Central de AssistÃªncia Premium (Modal Ãšnico) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Central de Assistência Premium (Modal Único) ──────────────────
   abrirAssistencia(os: any, modoEdicao: boolean = false) {
     this.osSelecionada = os;
     this.modoEdicao = modoEdicao;
@@ -282,12 +282,12 @@ export class MaintenanceListComponent implements OnInit {
       this.statusForm.value
     ).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Status atualizado com sucesso na assistÃªncia.' });
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Status atualizado com sucesso na assistência.' });
         this.carregarHistoricoOS(this.osSelecionada.id);
         this.carregarDados();
       },
       error: () => {
-        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar ordem de serviÃ§o.' });
+        this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar ordem de serviço.' });
       }
     });
   }
@@ -298,13 +298,13 @@ export class MaintenanceListComponent implements OnInit {
     this.historicoOS = [];
   }
 
-  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Helpers ──────────────────────────────────────────────────────
   formatarStatusLabel(status: string): string {
     const mapa: Record<string, string> = {
       ABERTA:          'Aberta',
       EM_ANDAMENTO:    'Em Andamento',
-      AGUARDANDO_PECA: 'Aguardando PeÃ§a',
-      CONCLUIDA:       'ConcluÃ­da',
+      AGUARDANDO_PECA: 'Aguardando Peça',
+      CONCLUIDA:       'Concluída',
       CANCELADA:       'Cancelada',
     };
     return mapa[status] || status;
@@ -316,7 +316,7 @@ export class MaintenanceListComponent implements OnInit {
 
   getEquipamentoLabel(eq: any): string {
     if (!eq) return '';
-    return `${eq.patrimonio} â€” ${eq.tipoEquipamento?.nome || ''} ${eq.marca?.nome ? '(' + eq.marca.nome + ')' : ''}`.trim();
+    return `${eq.patrimonio} — ${eq.tipoEquipamento?.nome || ''} ${eq.marca?.nome ? '(' + eq.marca.nome + ')' : ''}`.trim();
   }
 
   diasAberta(dataAbertura: string): number {
@@ -330,4 +330,5 @@ export class MaintenanceListComponent implements OnInit {
     return new Date(os.dataPrevisao) < new Date();
   }
 }
+
 

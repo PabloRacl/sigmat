@@ -6,23 +6,23 @@ import { NotificationsService } from '../../../core/services/notifications.servi
 import { AuthService } from '../../../core/services/auth.service';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
-import { InputTextarea } from 'primeng/inputtextarea';
+import { Textarea } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
-import { TabViewModule } from 'primeng/tabview';
+import { TabsModule } from 'primeng/tabs';
 import { TableModule } from 'primeng/table';
 
 @Component({
   selector: 'app-approvals-list',
   standalone: true,
-  imports: [CommonModule, DialogModule, ButtonModule, InputTextarea, ToastModule, TooltipModule, FormsModule, ConfirmDialogModule, TabViewModule, TableModule],
+  imports: [CommonModule, DialogModule, ButtonModule, Textarea, ToastModule, TooltipModule, FormsModule, ConfirmDialogModule, TabsModule, TableModule],
   providers: [MessageService, ConfirmationService],
   templateUrl: './approvals-list.component.html',
-  styleUrl: './approvals-list.component.scss'
+  styleUrls: ['./approvals-list.component.scss']
 })
 export class ApprovalsListComponent implements OnInit {
   private approvalsService = inject(ApprovalsService);
@@ -33,9 +33,10 @@ export class ApprovalsListComponent implements OnInit {
   private authService = inject(AuthService);
 
   pendencias: any[] = [];
-  transferencias: any[] = []; // TransferÃªncias pendentes gerais (saÃ­da/entrada)
+  transferencias: any[] = []; // Transferências pendentes gerais (saída/entrada)
   
   carregando = true;
+  abaAtiva = 0;
   ehAdmin = false;
   usuarioLogado: any = null;
 
@@ -104,7 +105,7 @@ export class ApprovalsListComponent implements OnInit {
       header: 'Cancelar Envio',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Sim',
-      rejectLabel: 'NÃ£o',
+      rejectLabel: 'Não',
       accept: () => {
         this.transfersService.cancelar(id).subscribe({
           next: () => {
@@ -124,19 +125,19 @@ export class ApprovalsListComponent implements OnInit {
 
   cancelarPedido(p: any) {
     this.confirmationService.confirm({
-      message: 'Deseja realmente cancelar esta solicitaÃ§Ã£o de alteraÃ§Ã£o?',
-      header: 'Cancelar SolicitaÃ§Ã£o',
+      message: 'Deseja realmente cancelar esta solicitação de alteração?',
+      header: 'Cancelar Solicitação',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Sim, Cancelar',
       rejectLabel: 'Voltar',
       accept: () => {
-        this.approvalsService.processarDecisao(p.id, false, 'Cancelado pelo prÃ³prio solicitante').subscribe({
+        this.approvalsService.processarDecisao(p.id, false, 'Cancelado pelo próprio solicitante').subscribe({
           next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Cancelado', detail: 'Sua solicitaÃ§Ã£o foi cancelada.' });
+            this.messageService.add({ severity: 'success', summary: 'Cancelado', detail: 'Sua solicitação foi cancelada.' });
             this.notificationsService.atualizarContagem();
             this.carregar();
           },
-          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'NÃ£o foi possÃ­vel cancelar.' })
+          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível cancelar.' })
         });
       }
     });
@@ -154,10 +155,10 @@ export class ApprovalsListComponent implements OnInit {
   }
 
   aprovar(id: number) {
-    if (window.confirm('Deseja realmente aprovar esta alteraÃ§Ã£o?')) {
+    if (window.confirm('Deseja realmente aprovar esta alteração?')) {
       this.approvalsService.processarDecisao(id, true, '').subscribe({
         next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Aprovado', detail: 'AlteraÃ§Ã£o aplicada ao equipamento.' });
+          this.messageService.add({ severity: 'success', summary: 'Aprovado', detail: 'Alteração aplicada ao equipamento.' });
           this.notificationsService.atualizarContagem();
           this.carregar();
         },
@@ -176,33 +177,33 @@ export class ApprovalsListComponent implements OnInit {
     if (!this.motivoNegacao) return;
     this.approvalsService.processarDecisao(this.pendenciaSelecionada.id, false, this.motivoNegacao).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'warn', summary: 'Negado', detail: 'A alteraÃ§Ã£o foi descartada.' });
+        this.messageService.add({ severity: 'warn', summary: 'Negado', detail: 'A alteração foi descartada.' });
         this.notificationsService.atualizarContagem();
         this.exibirModalNegar = false;
         this.carregar();
       },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'NÃ£o foi possÃ­vel processar.' })
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível processar.' })
     });
   }
 
   traduzirCampo(campo: string): string {
     const mapa: any = {
-      patrimonio: 'PatrimÃ´nio',
+      patrimonio: 'Patrimônio',
       tipoEquipamentoId: 'Tipo',
       statusId: 'Status',
-      secaoId: 'SeÃ§Ã£o',
+      secaoId: 'Seção',
       marcaId: 'Marca',
       modeloId: 'Modelo',
-      numeroSerie: 'NÂº SÃ©rie',
-      observacao: 'ObservaÃ§Ãµes',
-      _acao: 'AÃ§Ã£o Requerida'
+      numeroSerie: 'Nº Série',
+      observacao: 'Observações',
+      _acao: 'Ação Requerida'
     };
     return mapa[campo] || campo;
   }
   
   traduzirValor(valor: any): string {
     if (valor === 'DELETE') return 'Excluir Equipamento';
-    return valor || 'â€”';
+    return valor || '—';
   }
 }
 

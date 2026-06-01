@@ -14,7 +14,7 @@ import { ButtonModule } from 'primeng/button';
   standalone: true,
   imports: [CommonModule, TableModule, TagModule, TooltipModule, InputTextModule, FormsModule, DialogModule, ButtonModule],
   templateUrl: './audit-logs.component.html',
-  styleUrl: './audit-logs.component.scss'
+  styleUrls: ['./audit-logs.component.scss']
 })
 export class AuditLogsComponent implements OnInit {
   private reportsService = inject(ReportsService);

@@ -110,27 +110,27 @@
         
         <div class="filter-field">
           <label class="filter-label">Tipo de Equipamento</label>
-          <p-dropdown [options]="tipos" [(ngModel)]="filtroTipo" optionLabel="nome" optionValue="id" [showClear]="true" placeholder="Todos os Tipos" styleClass="w-full" (onChange)="pesquisar()" [filter]="true"></p-dropdown>
+          <p-select [options]="tipos" [(ngModel)]="filtroTipo" optionLabel="nome" optionValue="id" [showClear]="true" placeholder="Todos os Tipos" styleClass="w-full" (onChange)="pesquisar()" [filter]="true"></p-select>
         </div>
 
         <div class="filter-field">
           <label class="filter-label">Status</label>
-          <p-dropdown [options]="status" [(ngModel)]="filtroStatus" optionLabel="nome" optionValue="id" [showClear]="true" placeholder="Todos os Status" styleClass="w-full" (onChange)="pesquisar()"></p-dropdown>
+          <p-select [options]="status" [(ngModel)]="filtroStatus" optionLabel="nome" optionValue="id" [showClear]="true" placeholder="Todos os Status" styleClass="w-full" (onChange)="pesquisar()"></p-select>
         </div>
 
         <div class="filter-field">
           <label class="filter-label">Disponibilidade</label>
-          <p-dropdown [options]="disponibilidades" [(ngModel)]="filtroDisponibilidade" optionLabel="nome" optionValue="id" [showClear]="true" placeholder="Todas" styleClass="w-full" (onChange)="pesquisar()"></p-dropdown>
+          <p-select [options]="disponibilidades" [(ngModel)]="filtroDisponibilidade" optionLabel="nome" optionValue="id" [showClear]="true" placeholder="Todas" styleClass="w-full" (onChange)="pesquisar()"></p-select>
         </div>
 
         <div class="filter-field">
           <label class="filter-label">Seção Atual</label>
-          <p-dropdown [options]="secoes" [(ngModel)]="filtroSecao" optionLabel="sigla" optionValue="id" [showClear]="true" placeholder="Todas as Seções" styleClass="w-full" (onChange)="pesquisar()" [filter]="true"></p-dropdown>
+          <p-select [options]="secoes" [(ngModel)]="filtroSecao" optionLabel="sigla" optionValue="id" [showClear]="true" placeholder="Todas as Seções" styleClass="w-full" (onChange)="pesquisar()" [filter]="true"></p-select>
         </div>
 
         <div class="filter-field">
           <label class="filter-label">Marca</label>
-          <p-dropdown [options]="marcas" [(ngModel)]="filtroMarca" optionLabel="nome" optionValue="id" [showClear]="true" placeholder="Todas as Marcas" styleClass="w-full" (onChange)="pesquisar()" [filter]="true"></p-dropdown>
+          <p-select [options]="marcas" [(ngModel)]="filtroMarca" optionLabel="nome" optionValue="id" [showClear]="true" placeholder="Todas as Marcas" styleClass="w-full" (onChange)="pesquisar()" [filter]="true"></p-select>
         </div>
 
         <div class="filter-field">
@@ -354,27 +354,27 @@
     <div class="eq-form__row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
       <div class="eq-form__field" style="flex: 1;">
         <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #64748b;">Novo Status</label>
-        <p-dropdown [options]="status" formControlName="statusId" optionLabel="nome" optionValue="id" placeholder="Manter atual" styleClass="w-full" appendTo="body" [showClear]="true"></p-dropdown>
+        <p-select [options]="status" formControlName="statusId" optionLabel="nome" optionValue="id" placeholder="Manter atual" styleClass="w-full" appendTo="body" [showClear]="true"></p-select>
       </div>
       <div class="eq-form__field" style="flex: 1;">
         <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #64748b;">Nova Disponibilidade</label>
-        <p-dropdown [options]="disponibilidades" formControlName="disponibilidadeId" optionLabel="nome" optionValue="id" placeholder="Manter atual" styleClass="w-full" appendTo="body" [showClear]="true"></p-dropdown>
+        <p-select [options]="disponibilidades" formControlName="disponibilidadeId" optionLabel="nome" optionValue="id" placeholder="Manter atual" styleClass="w-full" appendTo="body" [showClear]="true"></p-select>
       </div>
     </div>
 
     <div class="eq-form__field" style="margin-bottom: 1rem;">
       <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #64748b;">Nova Seção/Unidade (Destino)</label>
-      <p-dropdown [options]="secoes" formControlName="secaoId" optionLabel="sigla" optionValue="id" placeholder="Manter atual" [filter]="true" styleClass="w-full" appendTo="body" [showClear]="true"></p-dropdown>
+      <p-select [options]="secoes" formControlName="secaoId" optionLabel="sigla" optionValue="id" placeholder="Manter atual" [filter]="true" styleClass="w-full" appendTo="body" [showClear]="true"></p-select>
     </div>
 
     <div class="eq-form__field" style="margin-bottom: 1rem;">
       <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #64748b;">Tipo de Aquisição</label>
-      <p-dropdown [options]="tiposAquisicao" formControlName="tipoAquisicaoId" optionLabel="nome" optionValue="id" placeholder="Manter atual" styleClass="w-full" appendTo="body" [showClear]="true"></p-dropdown>
+      <p-select [options]="tiposAquisicao" formControlName="tipoAquisicaoId" optionLabel="nome" optionValue="id" placeholder="Manter atual" styleClass="w-full" appendTo="body" [showClear]="true"></p-select>
     </div>
 
     <div class="eq-form__field" style="margin-bottom: 1.5rem;">
       <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #64748b;">Observação (Adicional)</label>
-      <textarea pInputTextarea formControlName="observacao" rows="3" class="w-full" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px;" placeholder="Ex: Carga transferida conforme BG nº..."></textarea>
+      <textarea pTextarea formControlName="observacao" rows="3" class="w-full" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px;" placeholder="Ex: Carga transferida conforme BG nº..."></textarea>
     </div>
 
     <div class="eq-dialog-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 15px; border-top: 1px solid #f1f5f9;">
@@ -441,11 +441,11 @@
     <div class="eq-form__row">
       <div class="eq-form__field flex-1">
         <label>Seção/Unidade de Destino <span class="req">*</span></label>
-        <p-dropdown [options]="secoes" formControlName="destinoId" optionLabel="sigla" optionValue="id" [filter]="true" placeholder="Selecione o destino..." styleClass="w-full" appendTo="body"></p-dropdown>
+        <p-select [options]="secoes" formControlName="destinoId" optionLabel="sigla" optionValue="id" [filter]="true" placeholder="Selecione o destino..." styleClass="w-full" appendTo="body"></p-select>
       </div>
       <div class="eq-form__field flex-1">
         <label>Tipo de Movimentação <span class="req">*</span></label>
-        <p-dropdown [options]="disponibilidades" formControlName="disponibilidadeId" optionLabel="nome" optionValue="id" placeholder="Ex: Transferência Definitiva" styleClass="w-full" appendTo="body"></p-dropdown>
+        <p-select [options]="disponibilidades" formControlName="disponibilidadeId" optionLabel="nome" optionValue="id" placeholder="Ex: Transferência Definitiva" styleClass="w-full" appendTo="body"></p-select>
       </div>
     </div>
 
@@ -475,7 +475,7 @@
 
     <div class="eq-form__field">
       <label>Observações / Justificativa</label>
-      <textarea pInputTextarea formControlName="observacao" rows="3" class="w-full" placeholder="Motivo da transferência, número de ofício, etc..."></textarea>
+      <textarea pTextarea formControlName="observacao" rows="3" class="w-full" placeholder="Motivo da transferência, número de ofício, etc..."></textarea>
     </div>
 
     <div class="eq-dialog-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 15px; border-top: 1px solid #f1f5f9;">
@@ -505,7 +505,7 @@
   <form [formGroup]="manutencaoForm" (ngSubmit)="confirmarManutencao()" class="eq-form">
     <div class="eq-form__field">
       <label>Descrição do Problema / Motivo <span class="req">*</span></label>
-      <textarea pInputTextarea formControlName="descricaoProblema" rows="3" class="w-full" placeholder="Qual o defeito relatado?"></textarea>
+      <textarea pTextarea formControlName="descricaoProblema" rows="3" class="w-full" placeholder="Qual o defeito relatado?"></textarea>
     </div>
 
     <div class="eq-form__field" *ngIf="ehAdmin">
@@ -528,4 +528,5 @@
 </p-dialog>
 
 <p-toast position="bottom-right"></p-toast>
+
 

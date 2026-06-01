@@ -20,7 +20,7 @@ import { DialogModule } from 'primeng/dialog';
   standalone: true,
   imports: [CommonModule, DialogModule],
   templateUrl: './equipment-details.component.html',
-  styleUrl: './equipment-details.component.scss'
+  styleUrls: ['./equipment-details.component.scss']
 })
 export class EquipmentDetailsComponent {
   @Input() visible = false;

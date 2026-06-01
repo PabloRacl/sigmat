@@ -1,10 +1,10 @@
-﻿import { Component, OnInit, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, inject, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LoansService } from '../../../core/services/loans.service';
 import { PdfService } from '../../../core/services/pdf.service';
 import { DialogModule } from 'primeng/dialog';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { CalendarModule } from 'primeng/calendar';
@@ -20,12 +20,12 @@ import { DatePickerModule } from 'primeng/datepicker';
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule,
-    DialogModule, DropdownModule, ButtonModule, InputTextModule,
+    DialogModule, SelectModule, ButtonModule, InputTextModule,
     DatePickerModule, ToastModule, TabsModule, TooltipModule, TableModule
   ],
   providers: [MessageService, DatePipe],
   templateUrl: './loans-management.component.html',
-  styleUrl: './loans-management.component.scss',
+  styleUrls: ['./loans-management.component.scss'],
 })
 export class LoansManagementComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -41,12 +41,12 @@ export class LoansManagementComponent implements OnInit {
   carregando            = true;
   abaAtiva              = '0';
   dataHoje              = new Date();
-  filtroData: Date[]    = []; // Filtro de intervalo de datas para o histÃ³rico
+  filtroData: Date[]    = []; // Filtro de intervalo de datas para o histórico
 
   // Modal SEI
   exibirModalSEI = false;
 
-  // Modal saÃ­da
+  // Modal saída
   exibirModalSaida = false;
   equipamentoSelecionado: any = null;
   formSaida: FormGroup;
@@ -95,8 +95,8 @@ export class LoansManagementComponent implements OnInit {
   pesquisarEquipamentosDisponiveis(termo: string) {
     this.LoansService.listarEquipamentosDisponiveis(termo).subscribe(r => {
       const itens = r.itens || [];
-      // Filtra apenas os que estÃ£o como DISPONÃVEL no sistema
-      this.equipamentos = itens.filter((e: any) => e.disponibilidade?.nome?.toUpperCase() === 'DISPONÃVEL');
+      // Filtra apenas os que estão como DISPONÍVEL no sistema
+      this.equipamentos = itens.filter((e: any) => e.disponibilidade?.nome?.toUpperCase() === 'DISPONÍVEL');
     });
   }
 
@@ -122,11 +122,11 @@ export class LoansManagementComponent implements OnInit {
     };
     this.LoansService.registrarSaida(v.equipamentoId, dados).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'SaÃ­da registrada!', detail: 'Equipamento marcado como Emprestado.' });
+        this.messageService.add({ severity: 'success', summary: 'Saída registrada!', detail: 'Equipamento marcado como Emprestado.' });
         this.exibirModalSaida = false;
         this.carregarTudo();
       },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'NÃ£o foi possÃ­vel registrar a saÃ­da.' }),
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível registrar a saída.' }),
     });
   }
 
@@ -139,12 +139,12 @@ export class LoansManagementComponent implements OnInit {
     if (!this.itemRetorno) return;
     this.LoansService.registrarRetorno(this.itemRetorno.id).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Retorno confirmado!', detail: 'Equipamento marcado como DisponÃ­vel.' });
+        this.messageService.add({ severity: 'success', summary: 'Retorno confirmado!', detail: 'Equipamento marcado como Disponível.' });
         this.exibirModalRetorno = false;
         this.itemRetorno = null;
         this.carregarTudo();
       },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'NÃ£o foi possÃ­vel confirmar o retorno.' }),
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível confirmar o retorno.' }),
     });
   }
 
@@ -171,13 +171,13 @@ export class LoansManagementComponent implements OnInit {
         next: () => {
           concluidos++;
           if (concluidos === requests.length) {
-            this.messageService.add({ severity: 'success', summary: 'Lote Processado', detail: `${concluidos} equipamentos retornaram ao inventÃ¡rio.` });
+            this.messageService.add({ severity: 'success', summary: 'Lote Processado', detail: `${concluidos} equipamentos retornaram ao inventário.` });
             this.selecionados = [];
             this.carregarTudo();
           }
         },
         error: () => {
-          this.messageService.add({ severity: 'error', summary: 'Erro em Lote', detail: 'Alguns itens podem nÃ£o ter sido processados.' });
+          this.messageService.add({ severity: 'error', summary: 'Erro em Lote', detail: 'Alguns itens podem não ter sido processados.' });
           this.carregando = false;
         }
       });
@@ -201,11 +201,11 @@ export class LoansManagementComponent implements OnInit {
       this.messageService.add({ 
         severity: 'success', 
         summary: 'Copiado!', 
-        detail: 'Texto formatado copiado. Agora Ã© sÃ³ dar CTRL+V no SEI.' 
+        detail: 'Texto formatado copiado. Agora é só dar CTRL+V no SEI.' 
       });
       this.exibirModalSEI = false;
     } catch (err) {
-      // Fallback para navegadores que nÃ£o suportam ClipboardItem HTML
+      // Fallback para navegadores que não suportam ClipboardItem HTML
       const range = document.createRange();
       range.selectNode(el);
       window.getSelection()?.removeAllRanges();
@@ -216,7 +216,7 @@ export class LoansManagementComponent implements OnInit {
       this.messageService.add({ 
         severity: 'info', 
         summary: 'Copiado (Alt)', 
-        detail: 'Copiado via seleÃ§Ã£o. Tente colar no SEI.' 
+        detail: 'Copiado via seleção. Tente colar no SEI.' 
       });
       this.exibirModalSEI = false;
     }
@@ -233,5 +233,6 @@ export class LoansManagementComponent implements OnInit {
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 }
+
 
 
