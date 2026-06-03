@@ -1,5 +1,5 @@
 import { Controller, Post, Body, UseGuards, Res } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { PdfService } from './pdf.service';
 import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
 

@@ -15,7 +15,7 @@ export class PdfService {
       });
 
       let buffers: Buffer[] = [];
-      doc.on('data', (chunk) => buffers.push(chunk));
+      doc.on('data', (chunk: Buffer) => buffers.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
 
@@ -31,13 +31,13 @@ export class PdfService {
       doc.fillColor('#ffffff');
       doc.font('Helvetica-Bold');
       doc.fontSize(11);
-      doc.text(this.mmToPt(20), this.mmToPt(14), 'POLÍCIA MILITAR DE PERNAMBUCO  |  DTEC - SIGMAT V2');
+      doc.text('POLÍCIA MILITAR DE PERNAMBUCO  |  DTEC - SIGMAT V2', this.mmToPt(20), this.mmToPt(14));
 
       doc.fontSize(18);
-      doc.text(this.mmToPt(20), this.mmToPt(22), 'CAUTELA DE MATERIAL');
+      doc.text('CAUTELA DE MATERIAL', this.mmToPt(20), this.mmToPt(22));
 
       doc.fontSize(9);
-      doc.text(this.mmToPt(20), this.mmToPt(30), `Nº CAU-${Date.now()}`);
+      doc.text(`Nº CAU-${Date.now()}`, this.mmToPt(20), this.mmToPt(30));
 
       // Corpo do documento
       doc.fillColor('#000000');
@@ -57,7 +57,7 @@ export class PdfService {
         doc.fillColor('#9b0000');
         doc.font('Helvetica-Bold');
         doc.fontSize(10);
-        doc.text(this.mmToPt(20), cursorY - this.mmToPt(8), 'ATENÇÃO: EMPRESTIMO VENCIDO — DEVOLUÇÃO EM ATRASO');
+        doc.text('ATENÇÃO: EMPRESTIMO VENCIDO — DEVOLUÇÃO EM ATRASO', this.mmToPt(20), cursorY - this.mmToPt(8));
         cursorY -= this.mmToPt(20);
       }
 
@@ -83,7 +83,7 @@ export class PdfService {
       ];
 
       for (const [label, value] of dados) {
-        doc.text(label, this.mmToPt(16), cursorY);
+        doc.text(label as string, this.mmToPt(16), cursorY);
         doc.font('Helvetica');
         doc.text(String(value), this.mmToPt(90), cursorY);
         doc.font('Helvetica-Bold');
@@ -120,7 +120,7 @@ export class PdfService {
       });
 
       let buffers: Buffer[] = [];
-      doc.on('data', (chunk) => buffers.push(chunk));
+      doc.on('data', (chunk: Buffer) => buffers.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
 
@@ -135,47 +135,47 @@ export class PdfService {
       doc.fillColor('#ffffff');
       doc.font('Helvetica-Bold');
       doc.fontSize(5);
-      doc.text(this.mmToPt(10.5), pageHeight - this.mmToPt(3.8), 'POLÍCIA MILITAR DE PERNAMBUCO');
+      doc.text('POLÍCIA MILITAR DE PERNAMBUCO', this.mmToPt(10.5), pageHeight - this.mmToPt(3.8));
 
       doc.fontSize(6.2);
-      doc.text(this.mmToPt(10.5), pageHeight - this.mmToPt(6.8), 'SIGMAT — GESTÃO DE PATRIMÔNIO');
+      doc.text('SIGMAT — GESTÃO DE PATRIMÔNIO', this.mmToPt(10.5), pageHeight - this.mmToPt(6.8));
 
       // Conteúdo
       doc.fillColor('#000000');
       doc.font('Helvetica-Bold');
       doc.fontSize(5);
-      doc.text(this.mmToPt(4), pageHeight - this.mmToPt(26.5), 'PATRIMÔNIO');
+      doc.text('PATRIMÔNIO', this.mmToPt(4), pageHeight - this.mmToPt(26.5));
 
       doc.fontSize(9);
-      doc.text(this.mmToPt(4), pageHeight - this.mmToPt(23.5), item.patrimonio || 'S/PAT');
+      doc.text(item.patrimonio || 'S/PAT', this.mmToPt(4), pageHeight - this.mmToPt(23.5));
 
       doc.fontSize(5);
-      doc.text(this.mmToPt(4), pageHeight - this.mmToPt(20), 'TIPO DE MATERIAL');
+      doc.text('TIPO DE MATERIAL', this.mmToPt(4), pageHeight - this.mmToPt(20));
 
       doc.font('Helvetica');
       doc.fontSize(7.2);
-      doc.text(this.mmToPt(4), pageHeight - this.mmToPt(17.5), item.tipoEquipamento?.nome || 'Não Informado');
+      doc.text(item.tipoEquipamento?.nome || 'Não Informado', this.mmToPt(4), pageHeight - this.mmToPt(17.5));
 
       doc.font('Helvetica-Bold');
       doc.fontSize(5);
-      doc.text(this.mmToPt(4), pageHeight - this.mmToPt(14.5), 'MARCA / MODELO');
+      doc.text('MARCA / MODELO', this.mmToPt(4), pageHeight - this.mmToPt(14.5));
 
       doc.font('Helvetica');
       doc.fontSize(6.5);
       const marca = `${item.marca?.nome || '—'} ${item.modelo?.nome || ''}`.trim();
-      doc.text(this.mmToPt(4), pageHeight - this.mmToPt(12), marca);
+      doc.text(marca, this.mmToPt(4), pageHeight - this.mmToPt(12));
 
       // Seção alinhada à direita
       doc.font('Helvetica-Bold');
       doc.fontSize(5);
-      doc.text(this.mmToPt(4), pageHeight - this.mmToPt(14.5), 'SEÇÃO / UNIDADE', {
+      doc.text('SEÇÃO / UNIDADE', this.mmToPt(4), pageHeight - this.mmToPt(14.5), {
         align: 'right',
         width: this.mmToPt(52)
       });
 
       doc.font('Helvetica-Bold');
       doc.fontSize(7.5);
-      doc.text(this.mmToPt(4), pageHeight - this.mmToPt(12), item.secao?.sigla || 'DTEC', {
+      doc.text(item.secao?.sigla || 'DTEC', this.mmToPt(4), pageHeight - this.mmToPt(12), {
         align: 'right',
         width: this.mmToPt(52)
       });
@@ -192,7 +192,7 @@ export class PdfService {
       });
 
       let buffers: Buffer[] = [];
-      doc.on('data', (chunk) => buffers.push(chunk));
+      doc.on('data', (chunk: Buffer) => buffers.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
 
