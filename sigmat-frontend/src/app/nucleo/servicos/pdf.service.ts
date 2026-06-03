@@ -1,11 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class PdfService {
   private http = inject(HttpClient);
-  private apiUrl = environment.apiUrl || 'http://localhost:3000/api';
+  private apiUrl = 'http://localhost:3000/api';
 
   async gerarCautela(item: any) {
     try {
@@ -61,6 +60,22 @@ export class PdfService {
       }
     } catch (error) {
       console.error('Erro ao gerar etiquetas:', error);
+    }
+  }
+
+  async gerarTabelaPDF(titulo: string, subtitulo: string, colunas: string[], linhas: string[][]) {
+    try {
+      const data = { titulo, subtitulo, colunas, linhas };
+
+      const response = await this.http
+        .post(`${this.apiUrl}/pdf/tabela`, data, { responseType: 'blob' })
+        .toPromise();
+
+      if (response) {
+        this.downloadBlob(response, `relatorio_${new Date().getTime()}.pdf`);
+      }
+    } catch (error) {
+      console.error('Erro ao gerar tabela PDF:', error);
     }
   }
 

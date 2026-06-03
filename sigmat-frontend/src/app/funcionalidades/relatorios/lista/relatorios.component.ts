@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SettingsService } from '../../../nucleo/servicos/configuracoes.service';
 import { ReportsService } from '../../../nucleo/servicos/relatorios.service';
+import { PdfService } from '../../../nucleo/servicos/pdf.service';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
@@ -28,6 +29,7 @@ import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout
 export class ReportsComponent implements OnInit, OnDestroy {
   private reportsService = inject(ReportsService);
   private configService = inject(SettingsService);
+  private pdfService = inject(PdfService);
   private filtroInventarioSubject = new Subject<void>();
   private filtroTransferSubject = new Subject<void>();
   private subscriptions = new Subscription();
@@ -169,97 +171,6 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.filtroInventarioSubject.next();
   }
 
-  private mmToPt(mm: number): number {
-    return mm * 2.834645669291337;
-  }
-
-  private async loadPdfLib(): Promise<typeof import('pdf-lib')> {
-    return await import('pdf-lib');
-  }
-
-  private async loadDocx() {
-    return await import('docx');
-  }
-
-  private async loadFileSaver() {
-    const fileSaver = await import('file-saver-es');
-    return fileSaver.default ?? fileSaver;
-  }
-
-  private async gerarPdfTabela(titulo: string, subtitulo: string, colunas: string[], linhas: string[][], nomeArquivo: string) {
-    const pdfLib = await this.loadPdfLib();
-    const { PDFDocument, StandardFonts, rgb } = pdfLib;
-    const pdfDoc = await PDFDocument.create();
-    const pageWidth = this.mmToPt(297);
-    const pageHeight = this.mmToPt(210);
-    const margin = this.mmToPt(16);
-    const lineHeight = this.mmToPt(6.5);
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-    let page = pdfDoc.addPage([pageWidth, pageHeight]);
-    let cursorY = pageHeight - margin;
-
-    page.drawText(titulo, {
-      x: margin,
-      y: cursorY,
-      size: 14,
-      font: boldFont,
-      color: rgb(0.1, 0.1, 0.1)
-    });
-
-    cursorY -= lineHeight * 1.5;
-    page.drawText(subtitulo, {
-      x: margin,
-      y: cursorY,
-      size: 9,
-      font,
-      color: rgb(0.2, 0.2, 0.2)
-    });
-
-    cursorY -= lineHeight * 1.8;
-    const columnWidth = (pageWidth - margin * 2) / colunas.length;
-
-    const drawHeader = () => {
-      page.drawText(colunas.join(' | '), {
-        x: margin,
-        y: cursorY,
-        size: 8,
-        font: boldFont,
-        color: rgb(0.1, 0.1, 0.1)
-      });
-      cursorY -= lineHeight;
-    };
-
-    drawHeader();
-
-    for (const row of linhas) {
-      if (cursorY < margin + lineHeight) {
-        page = pdfDoc.addPage([pageWidth, pageHeight]);
-        cursorY = pageHeight - margin;
-        drawHeader();
-      }
-
-      const rowText = row.map((cell, index) => {
-        const value = String(cell || '').replace(/\s+/g, ' ').trim();
-        return value.length > 32 ? value.slice(0, 29) + '...' : value;
-      }).join(' | ');
-
-      page.drawText(rowText, {
-        x: margin,
-        y: cursorY,
-        size: 8,
-        font,
-        color: rgb(0.2, 0.2, 0.2)
-      });
-      cursorY -= lineHeight;
-    }
-
-    const pdfBytes = await pdfDoc.save();
-    const fileSaver = await this.loadFileSaver();
-    fileSaver.saveAs(new Blob([pdfBytes], { type: 'application/pdf' }), nomeArquivo);
-  }
-
   exportarCSV() {
     if (this.inventario.length === 0) return;
 
@@ -364,12 +275,11 @@ export class ReportsComponent implements OnInit, OnDestroy {
       t.observacao || ''
     ]);
 
-    await this.gerarPdfTabela(
+    await this.pdfService.gerarTabelaPDF(
       'Relatório de Transferências',
       `Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} | Total: ${this.transferencias.length} registros`,
       headers,
-      rows,
-      `transferencias_sigmat_${new Date().toISOString().slice(0, 10)}.pdf`
+      rows
     );
   }
 
@@ -566,108 +476,12 @@ export class ReportsComponent implements OnInit, OnDestroy {
       e.observacao || ''
     ]);
 
-    await this.gerarPdfTabela(
+    await this.pdfService.gerarTabelaPDF(
       'Relatório Oficial de Equipamentos',
       `Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} | Total de registros: ${this.inventario.length}`,
       headers,
-      rows,
-      `relatorio_sigmat_${new Date().toISOString().slice(0, 10)}.pdf`
+      rows
     );
-  }
-
-  async exportarWord() {
-    if (this.inventario.length === 0) return;
-
-    const docx = await this.loadDocx();
-    const FileSaver = await this.loadFileSaver();
-    const {
-      Document,
-      Packer,
-      Paragraph,
-      Table,
-      TableRow,
-      TableCell,
-      TextRun,
-      WidthType,
-      BorderStyle,
-      AlignmentType,
-      HeadingLevel,
-      PageOrientation
-    } = docx;
-
-    const tableRows = [
-      new TableRow({
-        tableHeader: true,
-        children: [
-          'Patrimônio', 'SEI', 'N. Série', 'Tipo', 'Marca/Modelo', 'Seção', 'Status', 'Disponibilidade', 'Observação'
-        ].map(text => new TableCell({
-          children: [new Paragraph({ children: [new TextRun({ text, bold: true, color: 'FFFFFF' })], alignment: AlignmentType.CENTER })],
-          shading: { fill: '15803d' },
-          margins: { top: 100, bottom: 100, left: 100, right: 100 }
-        }))
-      })
-    ];
-
-    this.inventario.forEach(e => {
-      tableRows.push(new TableRow({
-        children: [
-          e.patrimonio || '',
-          e.sei || '',
-          e.numeroSerie || '',
-          e.tipoEquipamento?.nome || '',
-          `${e.marca?.nome || ''} ${e.modelo?.nome || ''}`.trim(),
-          e.secao?.sigla || '',
-          e.status?.nome || '',
-          e.disponibilidade?.nome || '',
-          e.observacao || ''
-        ].map(text => new TableCell({
-          children: [new Paragraph({ children: [new TextRun({ text, size: 18 })] })],
-          margins: { top: 80, bottom: 80, left: 100, right: 100 }
-        }))
-      }));
-    });
-
-    const table = new Table({
-      rows: tableRows,
-      width: { size: '100%', type: WidthType.PERCENTAGE },
-      borders: {
-        top: { style: BorderStyle.SINGLE, size: 1, color: 'CCCCCC' },
-        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'CCCCCC' },
-        left: { style: BorderStyle.SINGLE, size: 1, color: 'CCCCCC' },
-        right: { style: BorderStyle.SINGLE, size: 1, color: 'CCCCCC' },
-        insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: 'EEEEEE' },
-        insideVertical: { style: BorderStyle.SINGLE, size: 1, color: 'EEEEEE' }
-      }
-    });
-
-    const doc = new Document({
-      creator: 'SIGMAT',
-      title: 'Relatório de Equipamentos',
-      sections: [{
-        properties: {
-          page: {
-            margin: { top: 1000, right: 1000, bottom: 1000, left: 1000 },
-            size: { orientation: PageOrientation.LANDSCAPE }
-          }
-        },
-        children: [
-          new Paragraph({
-            text: 'SIGMAT - SISTEMA DE GESTÃO DE MATERIAIS',
-            heading: HeadingLevel.HEADING_1,
-            alignment: AlignmentType.CENTER
-          }),
-          new Paragraph({
-            text: `Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} | Total: ${this.inventario.length} registros`,
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 400 }
-          }),
-          table
-        ]
-      }]
-    });
-
-    const blob = await Packer.toBlob(doc);
-    FileSaver.saveAs(blob, `relatorio_sigmat_${new Date().toISOString().slice(0, 10)}.docx`);
   }
 
   formatarData(v: string | null): string {
