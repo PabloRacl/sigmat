@@ -34,10 +34,7 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": [],
-            "allowedCommonJsDependencies": [
-              "pako"
-            ]
+            "scripts": []
           },
           "configurations": {
             "production": {

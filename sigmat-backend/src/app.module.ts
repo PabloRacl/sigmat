@@ -22,6 +22,7 @@ import { MaintenanceModule } from './modulos/manutencao/manutencao.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { NotificationsModule } from './modulos/notificacoes/notificacoes.module';
+import { PdfModule } from './modulos/pdf/pdf.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { NotificationsModule } from './modulos/notificacoes/notificacoes.module'
     ApprovalsModule,
     LoansModule,
     ReportsModule,
+    PdfModule,
 
     OrgStructureModule,
     SettingsModule,
