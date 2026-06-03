@@ -1,6 +1,13 @@
 
+import 'dotenv/config';
 import { PrismaClient, PerfilUsuario } from '@prisma/client';
-const prisma = new PrismaClient();
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
 
 async function main() {
   console.log('Populando banco de dados manualmente...');
@@ -35,14 +42,60 @@ async function main() {
   // Usuário Pablo
   await prisma.usuario.upsert({
     where: { login: 'pablo.ricardo' },
-    update: { perfil: PerfilUsuario.ADMIN_DTEC, secaoId: sec1.id },
+    update: { perfil: PerfilUsuario.ADMIN_DTEC, secaoId: sec1.id, autorizado: true },
     create: {
       login: 'pablo.ricardo',
       matricula: '123456',
       nome: 'Pablo Ricardo',
       email: 'pablo.ricardo@pm.pe.gov.br',
       perfil: PerfilUsuario.ADMIN_DTEC,
-      secaoId: sec1.id
+      secaoId: sec1.id,
+      autorizado: true
+    }
+  });
+
+  // Usuário Diretoria (mock dev)
+  await prisma.usuario.upsert({
+    where: { login: 'diretoria' },
+    update: { perfil: PerfilUsuario.DIRETORIA, secaoId: sec1.id, autorizado: true },
+    create: {
+      login: 'diretoria',
+      matricula: '654321',
+      nome: 'Usuário Diretoria',
+      email: 'diretoria@pm.pe.gov.br',
+      perfil: PerfilUsuario.DIRETORIA,
+      secaoId: sec1.id,
+      autorizado: true
+    }
+  });
+
+  // Usuário Comandante (mock dev)
+  await prisma.usuario.upsert({
+    where: { login: 'comandante' },
+    update: { perfil: PerfilUsuario.COMANDANTE, batalhaoId: bat1.id, autorizado: true },
+    create: {
+      login: 'comandante',
+      matricula: '111222',
+      nome: 'Comandante BPTUR',
+      email: 'comandante@pm.pe.gov.br',
+      perfil: PerfilUsuario.COMANDANTE,
+      batalhaoId: bat1.id,
+      autorizado: true
+    }
+  });
+
+  // Usuário de Batalhão (mock dev)
+  await prisma.usuario.upsert({
+    where: { login: 'usuariobatalhao' },
+    update: { perfil: PerfilUsuario.USUARIO_BATALHAO, secaoId: sec2.id, autorizado: true },
+    create: {
+      login: 'usuariobatalhao',
+      matricula: '333444',
+      nome: 'Usuário BPTUR',
+      email: 'usuariobatalhao@pm.pe.gov.br',
+      perfil: PerfilUsuario.USUARIO_BATALHAO,
+      secaoId: sec2.id,
+      autorizado: true
     }
   });
 
@@ -108,4 +161,8 @@ async function main() {
   console.log('Seed manual finalizado! 55 celulares criados na DTEC.');
 }
 
-main().catch(e => console.error(e)).finally(() => prisma.$disconnect());
+main().catch(e => console.error(e)).finally(async () => {
+  await prisma.$disconnect();
+  await pool.end();
+});
+

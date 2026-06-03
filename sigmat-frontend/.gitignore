@@ -31,6 +31,9 @@ yarn-error.log
 # Miscellaneous
 /.angular/cache
 .sass-cache/
+
+# Ignore TypeScript incremental build info
+*.tsbuildinfo
 /connect.lock
 /coverage
 /libpeerconnection.log

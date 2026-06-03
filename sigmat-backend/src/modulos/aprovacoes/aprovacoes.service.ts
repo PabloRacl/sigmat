@@ -1,0 +1,182 @@
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../../banco-dados/prisma.service';
+import { AcaoLog, PerfilUsuario } from '@prisma/client';
+
+import { AuditService } from '../../compartilhado/servicos/audit.service';
+import { NotificationsService } from '../notificacoes/notificacoes.service';
+
+@Injectable()
+export class ApprovalsService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
+
+  async criarSolicitacao(equipamentoId: number, solicitanteId: number, dadosNovos: any, dadosAntigos: any) {
+    const camposAlterados = Object.keys(dadosNovos).filter(
+      key => JSON.stringify(dadosNovos[key]) !== JSON.stringify(dadosAntigos[key])
+    );
+
+    if (camposAlterados.length === 0) {
+      return { message: 'Nenhuma alteração detectada' };
+    }
+
+    const pendencia = await this.prisma.alteracaoPendente.create({
+      data: {
+        equipamentoId,
+        solicitanteId,
+        dadosAntigos,
+        dadosNovos,
+        camposAlterados,
+      },
+    });
+
+    const diff = await this.auditService.gerarDiffComLabels(dadosAntigos, dadosNovos);
+    if (diff) {
+      await this.auditService.registrarLog({
+        usuarioId: solicitanteId,
+        equipamentoId,
+        acao: AcaoLog.UPDATE,
+        descricao: `Solicitação de alteração para o equipamento ${dadosAntigos?.patrimonio ?? equipamentoId}.`,
+        dadosAlterados: diff,
+      });
+    }
+
+    this.notificationsService.notificarAtualizacaoGlobal();
+
+    return pendencia;
+  }
+
+  async listarPendentesPorUnidade(batalhaoId?: number) {
+    return this.prisma.alteracaoPendente.findMany({
+      where: {
+        aprovado: null,
+        equipamento: batalhaoId ? { secao: { batalhaoId: batalhaoId } } : {},
+      },
+      include: {
+        equipamento: true,
+        solicitante: true,
+      },
+    });
+  }
+
+  async contarPendentes(batalhaoId?: number) {
+    return this.prisma.alteracaoPendente.count({
+      where: {
+        aprovado: null,
+        equipamento: batalhaoId ? { secao: { batalhaoId: batalhaoId } } : {},
+      },
+    });
+  }
+
+  async obterPendencia(id: number) {
+    const pendencia = await this.prisma.alteracaoPendente.findUnique({
+      where: { id },
+      include: {
+        equipamento: true,
+        solicitante: true,
+        aprovadoPor: true,
+      },
+    });
+
+    if (!pendencia) {
+      throw new NotFoundException('Solicitação de aprovação não encontrada');
+    }
+
+    return pendencia;
+  }
+
+  async processarDecisao(id: number, aprovado: boolean, usuario: any, motivoNegacao?: string) {
+    if (usuario.perfil !== PerfilUsuario.ADMIN_DTEC && usuario.perfil !== PerfilUsuario.COMANDANTE) {
+      throw new ForbiddenException('Apenas Comandantes ou Administradores podem processar aprovações.');
+    }
+
+    const solicitacao = await this.prisma.alteracaoPendente.findUnique({
+      where: { id },
+      include: { equipamento: { include: { secao: true } } }
+    });
+
+    if (!solicitacao) {
+      throw new NotFoundException('Solicitação não encontrada');
+    }
+
+    if (solicitacao.aprovado !== null) {
+      throw new BadRequestException('Solicitação já foi processada');
+    }
+
+    if (usuario.perfil === PerfilUsuario.COMANDANTE) {
+      const userBatalhaoId = usuario.batalhaoId;
+      if (!userBatalhaoId || solicitacao.equipamento?.secao?.batalhaoId !== userBatalhaoId) {
+        throw new ForbiddenException('Você só pode processar aprovações de sua unidade.');
+      }
+    }
+
+    const aprovadoPorId = usuario.id;
+
+    const resultado = await this.prisma.$transaction(async (tx) => {
+      const pendencia = await tx.alteracaoPendente.update({
+        where: { id },
+        data: {
+          aprovado,
+          aprovadoPorId,
+          motivoNegacao,
+          dataAprovacao: new Date(),
+        },
+      });
+
+      if (aprovado) {
+        const novos = solicitacao.dadosNovos as any;
+        if (solicitacao.camposAlterados.includes('_acao') && novos._acao === 'DELETE') {
+          await tx.equipamento.delete({
+            where: { id: solicitacao.equipamentoId },
+          });
+        } else {
+          const dadosParaAtualizar: any = {};
+          solicitacao.camposAlterados.forEach(campo => {
+            if (novos[campo] !== undefined) {
+              dadosParaAtualizar[campo] = novos[campo];
+            }
+          });
+
+          await tx.equipamento.update({
+            where: { id: solicitacao.equipamentoId },
+            data: dadosParaAtualizar,
+          });
+        }
+      }
+
+      // Log direto no TX para evitar deadlock
+      const dadosAlteradosNormalizados = await this.auditService.normalizarDadosParaLog({
+        campos: solicitacao.camposAlterados,
+        dadosNovos: solicitacao.dadosNovos,
+        motivoNegacao: motivoNegacao || undefined
+      });
+
+      await tx.logOperacao.create({
+        data: {
+          usuarioId: aprovadoPorId,
+          equipamentoId: solicitacao.equipamentoId,
+          acao: aprovado ? AcaoLog.APPROVE : AcaoLog.REJECT,
+          descricao: `${aprovado ? 'Aprovada' : 'Negada'} alteração para o equipamento ${solicitacao.equipamento.patrimonio}.`,
+          dadosAlterados: dadosAlteradosNormalizados,
+        }
+      });
+
+      return pendencia;
+    });
+
+    // Notificações APÓS a transação ter sucesso
+    this.notificationsService.notificarAtualizacaoGlobal();
+    this.notificationsService.notificarDecisaoAlteracao(
+      solicitacao.solicitanteId,
+      aprovado,
+      solicitacao.equipamento.patrimonio
+    );
+
+    return resultado;
+  }
+}
+
+
+

@@ -9,8 +9,17 @@ Thumbs.db
 
 # Personal and Temp Files
 Arquivos/
-Meus Pensamentos Sigmat/
+Meus Pensamentos Sigmat/.obsidian/
+Meus Pensamentos Sigmat/Sem título.base
+Meus Pensamentos Sigmat/Sem título.canvas
+Meus Pensamentos Sigmat/Sem título.md
 Obsidian/
 *.docx
 *.csv
 *.pdf
+
+# Ignore TypeScript incremental build info
+*.tsbuildinfo
+
+# Angular cache
+.angular/

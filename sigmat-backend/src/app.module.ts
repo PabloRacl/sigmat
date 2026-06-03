@@ -1,27 +1,28 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { DatabaseModule } from './database/database.module';
-import { LdapModule } from './integrations/ldap/ldap.module';
-import { SgaModule } from './integrations/sga/sga.module';
-import { AuthModule } from './modules/auth/auth.module';
-import { UsersModule } from './modules/users/users.module';
-import { EquipmentModule } from './modules/equipment/equipment.module';
-import { ApprovalsModule } from './modules/approvals/approvals.module';
-import { LoansModule } from './modules/loans/loans.module';
-import { ReportsModule } from './modules/reports/reports.module';
+import { DatabaseModule } from './banco-dados/banco-dados.module';
+import { LdapModule } from './integracoes/ldap/ldap.module';
+import { SgaModule } from './integracoes/sga/sga.module';
+import { AuthModule } from './modulos/autenticacao/autenticacao.module';
+import { UsersModule } from './modulos/usuarios/usuarios.module';
+import { EquipmentModule } from './modulos/equipamentos/equipamentos.module';
+import { ApprovalsModule } from './modulos/aprovacoes/aprovacoes.module';
+import { LoansModule } from './modulos/cautelas/cautelas.module';
+import { ReportsModule } from './modulos/relatorios/relatorios.module';
 
-import { OrgStructureModule } from './modules/org-structure/org-structure.module';
-import { SettingsModule } from './modules/settings/settings.module';
+import { OrgStructureModule } from './modulos/estrutura-organizacional/estrutura-organizacional.module';
+import { SettingsModule } from './modulos/configuracoes/configuracoes.module';
 
 import { ConfigModule } from '@nestjs/config';
-import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { TransfersModule } from './modules/transfers/transfers.module';
-import { SharedModule } from './shared/shared.module';
-import { MaintenanceModule } from './modules/maintenance/maintenance.module';
+import { DashboardModule } from './modulos/visao-geral/painel.module';
+import { TransfersModule } from './modulos/transferencias/transferencias.module';
+import { SharedModule } from './compartilhado/shared.module';
+import { MaintenanceModule } from './modulos/manutencao/manutencao.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { NotificationsModule } from './modules/notifications/notifications.module';
+import { NotificationsModule } from './modulos/notificacoes/notificacoes.module';
+import { PdfModule } from './modulos/pdf/pdf.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     ApprovalsModule,
     LoansModule,
     ReportsModule,
+    PdfModule,
 
     OrgStructureModule,
     SettingsModule,

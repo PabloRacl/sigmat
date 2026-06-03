@@ -1,0 +1,197 @@
+<app-layout-pagina 
+  [hasStats]="false" 
+  [hasSearch]="false" 
+  [noContentPadding]="true"
+>
+  <!-- Cabeçalho -->
+  <div header-title>
+    <h1>Logs de Auditoria</h1>
+    <p>Histórico completo de operações e alterações no patrimônio</p>
+  </div>
+
+  <!-- Conteúdo Principal -->
+  <div content>
+    <!-- Filtros de Auditoria integrados no topo do card -->
+    <div class="au-filters">
+      <div class="au-filters-title">
+        <strong>Filtros de Auditoria</strong>
+        <p>Use busca e filtros para localizar ações, usuários e patrimônio.</p>
+      </div>
+
+      <div class="au-filter-row">
+        <div class="au-filter-item">
+          <label>Ação</label>
+          <select [(ngModel)]="filtros.acao" class="au-input">
+            <option value="">Todas</option>
+            <option *ngFor="let a of acoesDisponiveis" [value]="a">{{a}}</option>
+          </select>
+        </div>
+
+        <div class="au-filter-item">
+          <label>Usuário</label>
+          <input type="text" [(ngModel)]="filtros.usuario" placeholder="nome ou matrícula" class="au-input" />
+        </div>
+
+        <div class="au-filter-item">
+          <label>Patrimônio</label>
+          <input type="text" [(ngModel)]="filtros.patrimonio" placeholder="nº patrimônio" class="au-input" />
+        </div>
+      </div>
+
+      <div class="au-filter-row">
+        <div class="au-filter-item">
+          <label>Data início</label>
+          <input type="date" [(ngModel)]="filtros.startDate" class="au-input" />
+        </div>
+
+        <div class="au-filter-item">
+          <label>Data fim</label>
+          <input type="date" [(ngModel)]="filtros.endDate" class="au-input" />
+        </div>
+
+        <div class="au-filter-item">
+          <label>Descrição</label>
+          <input type="text" [(ngModel)]="filtros.descricao" placeholder="texto na descrição" class="au-input" />
+        </div>
+      </div>
+
+      <div class="au-filter-actions">
+        <button class="au-btn au-btn-secondary" (click)="limparFiltros()">Limpar Todos os Filtros</button>
+        <button class="au-btn" (click)="aplicarFiltros()">
+          <i class="pi pi-search"></i> Filtrar Agora
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de Busca Rápida Local -->
+    <div class="au-search-wrap">
+      <i class="pi pi-search au-search-icon"></i>
+      <input 
+        type="text" 
+        pInputText 
+        class="au-search-input"
+        placeholder="Buscar dentro dos resultados..." 
+        (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+      />
+    </div>
+
+    <!-- Tabela Principal -->
+    <p-table 
+      #dt
+      [value]="logs" 
+      [loading]="carregando"
+      [paginator]="true" 
+      [rows]="20"
+      [globalFilterFields]="['usuario.nome', 'equipamento.patrimonio', 'descricao', 'acao']"
+      responsiveLayout="scroll"
+      styleClass="p-datatable-sm au-table"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 160px">Data/Hora</th>
+          <th style="width: 120px">Ação</th>
+          <th>Usuário</th>
+          <th>Patrimônio</th>
+          <th>Descrição</th>
+          <th style="width: 80px; text-align: center">Dados</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-log>
+        <tr>
+          <td class="au-date">{{ log.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+          <td>
+            <p-tag [severity]="obterCorAcao(log.acao)" [value]="log.acao"></p-tag>
+          </td>
+          <td>
+            <div class="au-user">
+              <strong>{{ log.usuario?.nome }}</strong>
+              <small>{{ log.usuario?.matricula }}</small>
+            </div>
+          </td>
+          <td>
+            <span class="au-pat" *ngIf="log.equipamento?.patrimonio">{{ log.equipamento.patrimonio }}</span>
+            <span class="au-none" *ngIf="!log.equipamento?.patrimonio">—</span>
+          </td>
+          <td class="au-desc">{{ log.descricao }}</td>
+          <td style="text-align: left; vertical-align: top; width: 320px;">
+            <ng-container *ngIf="log.dadosAlterados; else semDados">
+              <div *ngIf="isCreate(log)" class="au-create-summary">
+                <div class="au-create-summary-header">
+                  <span>Criado com {{ getChangedCount(log) }} campos</span>
+                  <button type="button" pButton pRipple label="Ver detalhes" class="p-button-text p-button-sm" (click)="openModal(log)"></button>
+                </div>
+                <div *ngIf="isExpanded(log.id)" class="au-full-json">
+                  <pre>{{ formatarJSON(log.dadosAlterados) }}</pre>
+                </div>
+              </div>
+
+              <div *ngIf="!isCreate(log)" class="au-update-summary">
+                <div *ngFor="let key of getTopChangedKeys(log, 3)" class="au-diff-line-inline">
+                  <span class="au-diff-key">{{ formatKey(key) }}:</span>
+                  <span class="au-diff-before">{{ formatValue(getBeforeValue(log.dadosAlterados, key)) }}</span>
+                  <span class="au-arrow">→</span>
+                  <span class="au-diff-after">{{ formatValue(getAfterValue(log.dadosAlterados, key)) }}</span>
+                </div>
+                <div *ngIf="getChangedCount(log) > 3" class="au-more-link">
+                  <a (click)="openModal(log)">+{{ getChangedCount(log) - 3 }} campos</a>
+                </div>
+
+                <div *ngIf="isExpanded(log.id)" class="au-diff-expanded">
+                  <div *ngFor="let key of diffKeys(log.dadosAlterados)" class="au-diff-line">
+                    <div class="au-diff-key">{{ formatKey(key) }}</div>
+                    <div class="au-diff-values">
+                      <span class="au-diff-before">de: {{ formatValue(getBeforeValue(log.dadosAlterados, key)) }}</span>
+                      <span class="au-diff-after">para: {{ formatValue(getAfterValue(log.dadosAlterados, key)) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+            <ng-template #semDados>
+              <span class="au-none">—</span>
+            </ng-template>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6">
+            <div class="au-empty">
+              <i class="pi pi-info-circle"></i>
+              <p>Nenhum log de auditoria encontrado.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Modais -->
+  <div dialogs>
+    <p-dialog [(visible)]="showModal" [modal]="true" [style]="{width: '720px'}" header="Detalhes da Auditoria" (onHide)="closeModal()">
+      <div *ngIf="selectedLog">
+        <div class="au-modal-header">
+          <div>
+            <strong>{{ selectedLog.acao }}</strong> — <span class="au-modal-desc">{{ selectedLog.descricao }}</span>
+          </div>
+          <div class="au-modal-date">{{ selectedLog.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+        </div>
+
+        <div class="au-modal-body">
+          <h4>Alterações</h4>
+          <div *ngIf="selectedLog.dadosAlterados; else noChanges">
+            <div *ngFor="let k of diffKeys(selectedLog.dadosAlterados)" class="au-modal-diff-row">
+              <div class="au-modal-diff-key">{{ formatKey(k) }}</div>
+              <div class="au-modal-diff-values">
+                <div class="au-diff-before-block">Antes: <span>{{ formatValue(getBeforeValue(selectedLog.dadosAlterados, k)) }}</span></div>
+                <div class="au-arrow-big">→</div>
+                <div class="au-diff-after-block">Depois: <span>{{ formatValue(getAfterValue(selectedLog.dadosAlterados, k)) }}</span></div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noChanges><div class="au-none">— Nenhuma alteração registrada.</div></ng-template>
+        </div>
+      </div>
+    </p-dialog>
+  </div>
+</app-layout-pagina>

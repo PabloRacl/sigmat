@@ -69,6 +69,7 @@ model Usuario {
   batalhaoId                Int?                     @map("batalhao_id")
   secaoId                   Int?                     @map("secao_id")
   perfil                    PerfilUsuario
+  autorizado                Boolean                  @default(true)
   createdAt                 DateTime                 @default(now()) @map("created_at")
   updatedAt                 DateTime                 @updatedAt @map("updated_at")
   alteracoesAprovadas       AlteracaoPendente[]      @relation("Aprovador")
@@ -87,6 +88,25 @@ model Usuario {
   secao                     Secao?                   @relation(fields: [secaoId], references: [id])
 
   @@map("usuarios")
+}
+
+model SolicitacaoAcesso {
+  id               Int                @id @default(autoincrement())
+  login            String             @db.VarChar(50)
+  cpf              String?            @db.VarChar(20)
+  matricula        String?            @db.VarChar(50)
+  nome             String             @db.VarChar(200)
+  email            String?            @db.VarChar(200)
+  postoGraduacao   String?            @map("posto_graduacao") @db.VarChar(100)
+  organizacaoDisp  String?            @db.VarChar(100)
+  secaoSigla       String?            @db.VarChar(100)
+  perfil           PerfilUsuario?     
+  status           StatusSolicitacao  @default(PENDENTE)
+  motivoRejeicao   String?            @map("motivo_rejeicao") @db.VarChar(255)
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  @@map("solicitacoes_acesso")
 }
 
 model TipoEquipamento {
@@ -374,6 +394,12 @@ enum AcaoLog {
   TRANSFERENCIA_CONCLUIDA
   LOGIN
   LOGOUT
+}
+
+enum StatusSolicitacao {
+  PENDENTE
+  APROVADA
+  REJEITADA
 }
 
 enum StatusManutencao {

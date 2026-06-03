@@ -1,0 +1,133 @@
+<p-dialog 
+  [(visible)]="visible" 
+  [header]="editando ? 'Editar Equipamento' : 'Novo Equipamento'" 
+  [modal]="true" 
+  [style]="{width: '680px'}" 
+  styleClass="eq-dialog" 
+  [draggable]="false" 
+  [resizable]="false"
+  (onHide)="fechar()"
+>
+  <form [formGroup]="form" (ngSubmit)="salvar()" class="eq-form">
+    <div class="eq-form__row">
+      <div class="eq-form__field flex-1">
+        <label>Patrimônio <span class="req">*</span></label>
+        <input type="text" pInputText formControlName="patrimonio" placeholder="Ex: PMPE-HT-001" class="w-full" />
+      </div>
+      <div class="eq-form__field flex-1">
+        <label>Nº de Série</label>
+        <input type="text" pInputText formControlName="numeroSerie" placeholder="Ex: 123456789" class="w-full" />
+      </div>
+    </div>
+
+    <div class="eq-form__row">
+      <div class="eq-form__field flex-1">
+        <label>Tipo <span class="req">*</span></label>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <p-select [options]="tipos" formControlName="tipoEquipamentoId" optionLabel="nome" optionValue="id"
+            [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+          </p-select>
+          <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="solicitarNovoTipo()" pTooltip="Adicionar novo tipo" tooltipPosition="top"></button>
+        </div>
+      </div>
+      <div class="eq-form__field flex-1">
+        <label>Marca</label>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <p-select [options]="marcas" formControlName="marcaId" optionLabel="nome" optionValue="id" 
+            [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+          </p-select>
+          <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="solicitarNovaMarca()" pTooltip="Adicionar nova marca" tooltipPosition="top"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="eq-form__row">
+      <div class="eq-form__field flex-1">
+        <label>Modelo</label>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <p-select [options]="modelosFiltrados" formControlName="modeloId" optionLabel="nome" optionValue="id"
+            [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+          </p-select>
+          <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="solicitarNovoModelo()" pTooltip="Adicionar novo modelo" tooltipPosition="top"></button>
+        </div>
+      </div>
+      <div class="eq-form__field flex-1">
+        <label>Status <span class="req">*</span></label>
+        <p-select [options]="status" formControlName="statusId" optionLabel="nome" optionValue="id" 
+          styleClass="w-full" appendTo="body"></p-select>
+      </div>
+    </div>
+
+    <!-- DADOS ESPECÍFICOS: CELULAR -->
+    <div class="eq-form-section" *ngIf="exibirCamposCelular">
+      <div class="eq-form-section__title"><i class="pi pi-mobile"></i> Dados do Celular/Smartphone</div>
+      <div class="eq-form__row">
+        <div class="eq-form__field flex-1">
+          <label>IMEI Principal</label>
+          <input type="text" pInputText [(ngModel)]="campoIMEI" [ngModelOptions]="{standalone: true}" placeholder="IMEI 1" class="w-full" />
+        </div>
+        <div class="eq-form__field flex-1">
+          <label>Número de Telefone</label>
+          <input type="text" pInputText [(ngModel)]="campoTelefone" [ngModelOptions]="{standalone: true}" placeholder="(81) 9...." class="w-full" />
+        </div>
+      </div>
+      <div class="eq-form__field">
+        <label>Chip Vinculado (ICCID / Patrimônio)</label>
+        <p-select [options]="chipsDisponiveis" [(ngModel)]="chipSelecionado" [ngModelOptions]="{standalone: true}" 
+          optionLabel="patrimonio" placeholder="Buscar chip para vincular..." [filter]="true" filterBy="patrimonio,numeroSerie" 
+          [showClear]="true" styleClass="w-full" appendTo="body">
+          <ng-template let-c pTemplate="item">
+            <div class="chip-item">
+              <span><strong>{{ c.patrimonio }}</strong></span>
+              <small>{{ c.numeroSerie }}</small>
+            </div>
+          </ng-template>
+        </p-select>
+      </div>
+    </div>
+
+    <!-- DADOS TÉCNICOS ESPECÍFICOS (DINÂMICO) -->
+    <div class="eq-form-section" *ngIf="camposDinamicos.length > 0">
+      <div class="eq-form-section__title"><i class="pi pi-cog"></i> Dados Técnicos Adicionais</div>
+      <div class="eq-form__row flex-wrap" style="gap: 1rem;">
+        <div class="eq-form__field flex-1" style="min-width: 200px;" *ngFor="let campo of camposDinamicos">
+          <label>{{ campo.label }}</label>
+          <input type="text" pInputText [(ngModel)]="valoresDinamicos[campo.key]" [ngModelOptions]="{standalone: true}" 
+            [placeholder]="campo.placeholder" class="w-full" />
+        </div>
+      </div>
+    </div>
+
+    <div class="eq-form__row">
+      <div class="eq-form__field flex-1">
+        <label>Disponibilidade <span class="req">*</span></label>
+        <p-select [options]="disponibilidades" formControlName="disponibilidadeId" optionLabel="nome" optionValue="id" 
+          styleClass="w-full" appendTo="body"></p-select>
+      </div>
+      <div class="eq-form__field flex-1">
+        <label>Seção <span class="req">*</span></label>
+        <p-select [options]="secoes" formControlName="secaoId" optionLabel="sigla" optionValue="id" 
+          [filter]="true" filterBy="sigla,nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+        </p-select>
+      </div>
+    </div>
+
+    <div class="eq-form__row">
+      <div class="eq-form__field flex-1">
+        <label>Data Aquisição</label>
+        <p-datepicker formControlName="dataAquisicao" dateFormat="dd/mm/yy" appendTo="body" styleClass="w-full"></p-datepicker>
+      </div>
+    </div>
+
+    <div class="eq-form__field">
+      <label>Observações</label>
+      <textarea pTextarea formControlName="observacao" rows="3" class="w-full" placeholder="Observações..."></textarea>
+    </div>
+
+    <div class="eq-dialog-footer">
+      <button type="button" class="eq-btn-ghost" (click)="fechar()">Cancelar</button>
+      <button type="submit" class="eq-btn-primary" [disabled]="form.invalid">{{ editando ? 'Salvar Alterações' : 'Cadastrar' }}</button>
+    </div>
+  </form>
+</p-dialog>
+

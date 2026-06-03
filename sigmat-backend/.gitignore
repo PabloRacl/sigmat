@@ -8,3 +8,6 @@ import.env
 
 # Ignore TypeScript incremental build info
 *.tsbuildinfo
+
+# Ignore compiled output
+/dist

@@ -1,0 +1,316 @@
+<app-layout-pagina 
+  [hasStats]="true" 
+  [hasSearch]="false" 
+  [noContentPadding]="true"
+>
+  <!-- Cabeçalho -->
+  <div header-title>
+    <h1>Central de Movimentações e Aprovações</h1>
+    <p>Gestão de transferências de carga e validação de edições cadastrais</p>
+  </div>
+
+  <div header-actions>
+    <span class="ap-count-badge" *ngIf="pendencias.length + transferencias.length > 0">
+      <i class="pi pi-clock"></i> {{ pendencias.length + transferencias.length }} pendência(s) total
+    </span>
+  </div>
+
+  <!-- Estatísticas -->
+  <div class="ap-stats" stats>
+    <div class="ap-stat-card">
+      <div class="ap-stat-card__icon blue"><i class="pi pi-exclamation-triangle"></i></div>
+      <div class="ap-stat-card__info">
+        <span class="ap-stat-card__val">{{ pendencias.length }}</span>
+        <span class="ap-stat-card__label">Alterações Pendentes</span>
+      </div>
+    </div>
+    <div class="ap-stat-card">
+      <div class="ap-stat-card__icon green"><i class="pi pi-download"></i></div>
+      <div class="ap-stat-card__info">
+        <span class="ap-stat-card__val">{{ transRecebidas.length }}</span>
+        <span class="ap-stat-card__label">Transferências Recebidas</span>
+      </div>
+    </div>
+    <div class="ap-stat-card">
+      <div class="ap-stat-card__icon indigo"><i class="pi pi-upload"></i></div>
+      <div class="ap-stat-card__info">
+        <span class="ap-stat-card__val">{{ transEnviadas.length }}</span>
+        <span class="ap-stat-card__label">Transferências Enviadas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Abas e Tabelas Grid Principais -->
+  <div content>
+    <!-- Loading -->
+    <div class="ap-loading" *ngIf="carregando">
+      <i class="pi pi-spinner pi-spin" style="font-size: 2rem; color: #2563eb; margin-bottom: 0.5rem;"></i>
+      <p>Sincronizando central...</p>
+    </div>
+
+    <p-tabs *ngIf="!carregando" [(value)]="abaAtiva" styleClass="ap-tabview">
+      <p-tablist>
+        <p-tab [value]="0">
+          <i class="pi pi-download" style="margin-right: 8px"></i>
+          <span>{{ ehAdmin ? 'Todas Transferências (Admin)' : 'Cargas a Caminho' }}</span>
+          <span class="ap-tab-badge" *ngIf="transRecebidas.length">{{ transRecebidas.length }}</span>
+        </p-tab>
+        <p-tab [value]="1" *ngIf="!ehAdmin">
+          <i class="pi pi-upload" style="margin-right: 8px"></i>
+          <span>Cargas Enviadas</span>
+          <span class="ap-tab-badge ap-tab-badge--indigo" *ngIf="transEnviadas.length">{{ transEnviadas.length }}</span>
+        </p-tab>
+        <p-tab [value]="2">
+          <i class="pi pi-pencil" style="margin-right: 8px"></i>
+          <span>Alterações Cadastrais</span>
+          <span class="ap-tab-badge ap-tab-badge--amber" *ngIf="pendencias.length">{{ pendencias.length }}</span>
+        </p-tab>
+      </p-tablist>
+
+      <p-tabpanels>
+        <p-tabpanel [value]="0">
+          <div class="ap-tab-desc">
+            <i class="pi pi-info-circle"></i>
+            Materiais que foram transferidos para sua Unidade. Confirme o recebimento para assumir a carga.
+          </div>
+
+          <p-table [value]="transRecebidas" [rowHover]="true" styleClass="ap-table" responsiveLayout="scroll">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Origem <i class="pi pi-arrow-right"></i> Destino</th>
+                <th>Material</th>
+                <th>Solicitante</th>
+                <th>Data Envio</th>
+                <th class="text-center">Ações</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-t>
+              <tr>
+                <td>
+                  <div class="ap-route">
+                    <span class="route-badge origin">{{ t.origem?.sigla }}</span>
+                    <i class="pi pi-angle-double-right route-arrow"></i>
+                    <span class="route-badge dest">{{ t.destino?.sigla }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="ap-equip">
+                    <span class="ap-patrimonio">{{ t.equipamento?.patrimonio }}</span>
+                    <span class="ap-tipo">{{ t.equipamento?.tipoEquipamento?.nome }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="ap-user">
+                    <i class="pi pi-user"></i>
+                    <span>{{ t.solicitante?.nome }}</span>
+                  </div>
+                </td>
+                <td class="ap-date">{{ t.dataEnvio | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <div class="ap-actions">
+                    <button *ngIf="podeAprovarRecebimento && t.destinoId === usuarioLogado?.secaoId" 
+                      class="ap-btn-approve ap-btn-approve-primary" 
+                      (click)="receberTransferencia(t.id)" 
+                      pTooltip="Confirmar Recebimento de Carga na Unidade" 
+                      tooltipPosition="top">
+                      <i class="pi pi-download"></i> Receber
+                    </button>
+
+                    <button *ngIf="ehAdmin && t.destinoId !== usuarioLogado?.secaoId" 
+                      class="ap-btn-approve ap-btn-approve-secondary" 
+                      (click)="receberTransferencia(t.id)" 
+                      pTooltip="Aprovar trâmite e liberar envio definitivo" 
+                      tooltipPosition="top">
+                      <i class="pi pi-check"></i> Aprovar
+                    </button>
+
+                    <button *ngIf="ehAdmin" class="ap-btn-reject" (click)="cancelarTransferencia(t.id)" pTooltip="Cancelar Forçadamente" tooltipPosition="top">
+                      <i class="pi pi-times"></i> Cancelar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="5"><div class="ap-empty"><i class="pi pi-box"></i><p>Nenhuma carga a caminho no momento.</p></div></td></tr>
+            </ng-template>
+          </p-table>
+        </p-tabpanel>
+
+        <!-- ABA 2: TRANSFERÊNCIAS ENVIADAS -->
+        <p-tabpanel [value]="1" *ngIf="!ehAdmin">
+          <div class="ap-tab-desc">
+            <i class="pi pi-info-circle"></i>
+            Materiais que você transferiu para outras unidades, mas que ainda não foram aceitos pelo destino.
+          </div>
+
+          <p-table [value]="transEnviadas" [rowHover]="true" styleClass="ap-table" responsiveLayout="scroll">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Origem <i class="pi pi-arrow-right"></i> Destino</th>
+                <th>Material</th>
+                <th>Data Envio</th>
+                <th class="text-center">Ações</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-t>
+              <tr>
+                <td>
+                  <div class="ap-route">
+                    <span class="route-badge origin">{{ t.origem?.sigla }}</span>
+                    <i class="pi pi-angle-double-right route-arrow"></i>
+                    <span class="route-badge dest">{{ t.destino?.sigla }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="ap-equip">
+                    <span class="ap-patrimonio">{{ t.equipamento?.patrimonio }}</span>
+                    <span class="ap-tipo">{{ t.equipamento?.tipoEquipamento?.nome }}</span>
+                  </div>
+                </td>
+                <td class="ap-date">{{ t.dataEnvio | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <div class="ap-actions">
+                    <button class="ap-btn-reject ap-btn-reject--amber" (click)="cancelarTransferencia(t.id)" pTooltip="Desfazer envio" tooltipPosition="top">
+                      <i class="pi pi-undo"></i> Cancelar Envio
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="4"><div class="ap-empty"><i class="pi pi-check-circle" style="color: #10b981;"></i><p>Nenhuma transferência enviada pendente.</p></div></td></tr>
+            </ng-template>
+          </p-table>
+        </p-tabpanel>
+
+        <!-- ABA 3: EDIÇÕES DE EQUIPAMENTO -->
+        <p-tabpanel [value]="2">
+          <div class="ap-tab-desc">
+            <i class="pi pi-info-circle"></i>
+            Solicitações de alteração nos dados do equipamento (Marca, Status, Modelo, Exclusão).
+          </div>
+
+          <p-table [value]="pendencias" [rowHover]="true" styleClass="ap-table" responsiveLayout="scroll">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Equipamento</th>
+                <th>Solicitante</th>
+                <th>Data</th>
+                <th>Campos Alterados</th>
+                <th class="text-center">Decisão</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-p>
+              <tr>
+                <td>
+                  <div class="ap-equip">
+                    <span class="ap-patrimonio">{{ p.equipamento?.patrimonio }}</span>
+                    <span class="ap-tipo">{{ p.equipamento?.tipoEquipamento?.nome }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="ap-user">
+                    <i class="pi pi-user"></i>
+                    <span>{{ p.solicitante?.nome }}</span>
+                  </div>
+                </td>
+                <td class="ap-date">{{ p.dataSolicitacao | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <div class="ap-tags">
+                    <span class="ap-tag" *ngFor="let campo of p.camposAlterados">
+                      {{ traduzirCampo(campo) }}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <div class="ap-actions">
+                    <button class="ap-btn-info" (click)="verDetalhes(p)" pTooltip="Ver detalhes da alteração" tooltipPosition="top">
+                      <i class="pi pi-eye"></i>
+                    </button>
+                    <ng-container *ngIf="ehAdmin">
+                      <button class="ap-btn-approve" (click)="aprovar(p.id)" pTooltip="Aprovar e aplicar" tooltipPosition="top">
+                        <i class="pi pi-check"></i>
+                      </button>
+                      <button class="ap-btn-reject ap-btn-reject--icon" (click)="abrirNegar(p)" pTooltip="Rejeitar" tooltipPosition="top">
+                        <i class="pi pi-times"></i>
+                      </button>
+                    </ng-container>
+                    <ng-container *ngIf="!ehAdmin">
+                      <button class="ap-btn-reject ap-btn-reject--amber ap-btn-reject--icon" (click)="cancelarPedido(p)" pTooltip="Cancelar solicitação" tooltipPosition="top">
+                        <i class="pi pi-undo"></i>
+                      </button>
+                    </ng-container>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="5"><div class="ap-empty"><i class="pi pi-check-circle" style="color: #10b981;"></i><p>Nenhuma alteração cadastral pendente.</p></div></td></tr>
+            </ng-template>
+          </p-table>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  </div>
+
+  <!-- Modais -->
+  <div dialogs>
+    <p-dialog
+      [(visible)]="exibirModalNegar"
+      header="Justificar Rejeição"
+      [modal]="true"
+      [style]="{ width: '460px' }"
+      styleClass="ap-dialog"
+      [draggable]="false"
+      [resizable]="false"
+    >
+      <ng-template pTemplate="content">
+        <div class="ap-form">
+          <p class="ap-form__info">
+            <i class="pi pi-info-circle"></i>
+            Informe o motivo para não aprovar esta alteração. O solicitante será notificado.
+          </p>
+          <div class="ap-form__field">
+            <label>Motivo da Rejeição <span class="req">*</span></label>
+            <textarea pTextarea [(ngModel)]="motivoNegacao" rows="4" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px;" placeholder="Descreva o motivo da rejeição..."></textarea>
+          </div>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <button class="ap-btn-ghost" (click)="exibirModalNegar = false"><i class="pi pi-times"></i> Cancelar</button>
+        <button class="ap-btn-reject-confirm" [disabled]="!motivoNegacao" (click)="confirmarNegar()"><i class="pi pi-ban"></i> Confirmar</button>
+      </ng-template>
+    </p-dialog>
+
+    <p-dialog
+      [(visible)]="exibirModalDetalhes"
+      [header]="'Comparação: ' + pendenciaSelecionada?.equipamento?.patrimonio"
+      [modal]="true"
+      [style]="{ width: '600px' }"
+      styleClass="ap-dialog"
+      [draggable]="false"
+    >
+      <div class="ap-diff" *ngIf="pendenciaSelecionada">
+        <div class="ap-diff__header">
+          <div class="label">Campo</div>
+          <div class="old">Valor Atual</div>
+          <div class="new">Novo Valor</div>
+        </div>
+        <div class="ap-diff__row" *ngFor="let campo of pendenciaSelecionada.camposAlterados">
+          <div class="label">{{ traduzirCampo(campo) }}</div>
+          <div class="old">{{ traduzirValor(pendenciaSelecionada.dadosAntigos[campo]) }}</div>
+          <div class="new">{{ traduzirValor(pendenciaSelecionada.dadosNovos[campo]) }}</div>
+        </div>
+      </div>
+      <ng-template pTemplate="footer">
+        <button class="ap-btn-ghost" (click)="exibirModalDetalhes = false">Fechar</button>
+        <button *ngIf="ehAdmin" class="ap-btn-approve" (click)="aprovar(pendenciaSelecionada.id); exibirModalDetalhes = false">Aprovar Agora</button>
+        <button *ngIf="!ehAdmin" class="ap-btn-reject ap-btn-reject--amber" (click)="cancelarPedido(pendenciaSelecionada); exibirModalDetalhes = false">Cancelar Pedido</button>
+      </ng-template>
+    </p-dialog>
+
+    <p-toast position="bottom-right"></p-toast>
+    <p-confirmDialog></p-confirmDialog>
+  </div>
+</app-layout-pagina>

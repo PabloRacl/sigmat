@@ -1,0 +1,348 @@
+<app-layout-pagina 
+  [hasStats]="true" 
+  [hasSearch]="true" 
+  [noContentPadding]="true"
+>
+  <!-- Cabeçalho -->
+  <div header-title>
+    <h1>Ordens de Serviço</h1>
+    <p>Gerenciamento de manutenção e reparo dos equipamentos da unidade</p>
+  </div>
+
+  <div header-actions>
+    <button class="mn-btn-primary" (click)="abrirNovaOS()" id="btn-nova-os">
+      <i class="pi pi-plus"></i> Nova OS
+    </button>
+  </div>
+
+  <!-- Cards Estatísticas/Resumo -->
+  <div class="mn-summary" stats>
+    <div class="mn-sum-card" [class.active]="filtroStatus === null" (click)="filtrarPorStatus(null)">
+      <span class="mn-sum-card__val">{{ contadorStatus.total }}</span>
+      <span class="mn-sum-card__label">Total</span>
+    </div>
+    <div class="mn-sum-card aberta" [class.active]="filtroStatus === 'ABERTA'" (click)="filtrarPorStatus('ABERTA')">
+      <span class="mn-sum-card__val">{{ contadorStatus.abertas }}</span>
+      <span class="mn-sum-card__label">Abertas</span>
+    </div>
+    <div class="mn-sum-card em_andamento" [class.active]="filtroStatus === 'EM_ANDAMENTO'" (click)="filtrarPorStatus('EM_ANDAMENTO')">
+      <span class="mn-sum-card__val">{{ contadorStatus.emAndamento }}</span>
+      <span class="mn-sum-card__label">Em Andamento</span>
+    </div>
+    <div class="mn-sum-card aguardando_peca" [class.active]="filtroStatus === 'AGUARDANDO_PECA'" (click)="filtrarPorStatus('AGUARDANDO_PECA')">
+      <span class="mn-sum-card__val">{{ contadorStatus.aguardando }}</span>
+      <span class="mn-sum-card__label">Aguardando Peça</span>
+    </div>
+    <div class="mn-sum-card concluida" [class.active]="filtroStatus === 'CONCLUIDA'" (click)="filtrarPorStatus('CONCLUIDA')">
+      <span class="mn-sum-card__val">{{ contadorStatus.concluidas }}</span>
+      <span class="mn-sum-card__label">Concluídas</span>
+    </div>
+    <div class="mn-sum-card cancelada" [class.active]="filtroStatus === 'CANCELADA'" (click)="filtrarPorStatus('CANCELADA')">
+      <span class="mn-sum-card__val">{{ contadorStatus.canceladas }}</span>
+      <span class="mn-sum-card__label">Canceladas</span>
+    </div>
+  </div>
+
+  <!-- Busca e Filtros -->
+  <div class="mn-toolbar" search-filters>
+    <div class="mn-search">
+      <i class="pi pi-search mn-search__icon"></i>
+      <input
+        id="mn-busca"
+        type="text"
+        class="mn-search__input"
+        placeholder="Buscar por patrimônio, técnico, problema..."
+        [(ngModel)]="buscaTexto"
+        (ngModelChange)="onBuscaChange()"
+      />
+      <button *ngIf="buscaTexto" class="mn-search__clear" (click)="buscaTexto=''; onBuscaChange()">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+    <div class="mn-toolbar__right">
+      <span class="mn-count">{{ ordensFiltradas.length }} resultado(s)</span>
+      <button class="mn-btn-ghost" (click)="carregarDados()" pTooltip="Recarregar" tooltipPosition="top">
+        <i class="pi pi-sync" [class.pi-spin]="carregando"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Grid Principal (Tabela) -->
+  <div content>
+    <p-table
+      [value]="ordensFiltradas"
+      [paginator]="true"
+      [rows]="10"
+      [loading]="carregando"
+      [rowHover]="true"
+      styleClass="p-datatable-sm p-datatable-gridlines mn-table"
+      responsiveLayout="scroll"
+      [rowsPerPageOptions]="[10, 25, 50]"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 70px; text-align:center">OS #</th>
+          <th style="min-width: 160px">Equipamento</th>
+          <th style="min-width: 140px">Técnico / Empresa</th>
+          <th style="min-width: 200px">Problema Relatado</th>
+          <th style="min-width: 120px">Abertura</th>
+          <th style="min-width: 110px">Previsão</th>
+          <th style="min-width: 90px; text-align:center">Dias</th>
+          <th style="min-width: 150px; text-align:center">Status</th>
+          <th style="width: 110px; text-align:center">Ações</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-os>
+        <tr [class.mn-row-atrasada]="isAtrasada(os)">
+          <td style="text-align:center">
+            <span class="mn-os-num">#{{ os.id }}</span>
+          </td>
+          <td>
+            <div class="mn-equip">
+              <span class="mn-equip__pat">{{ os.equipamento?.patrimonio }}</span>
+              <span class="mn-equip__tipo">{{ os.equipamento?.tipoEquipamento?.nome }}</span>
+              <span class="mn-equip__marca" *ngIf="os.equipamento?.marca">{{ os.equipamento?.marca?.nome }}</span>
+            </div>
+          </td>
+          <td>
+            <span *ngIf="os.tecnicoResponsavel" class="mn-tecnico">{{ os.tecnicoResponsavel }}</span>
+            <span *ngIf="!os.tecnicoResponsavel" class="mn-nd">— não definido</span>
+          </td>
+          <td>
+            <span class="mn-problema" [pTooltip]="os.descricaoProblema" tooltipPosition="top">
+              {{ os.descricaoProblema }}
+            </span>
+          </td>
+          <td>
+            <div class="mn-date-cell">
+              <i class="pi pi-calendar"></i>
+              {{ os.dataAbertura | date:'dd/MM/yyyy' }}
+            </div>
+          </td>
+          <td>
+            <div class="mn-date-cell" *ngIf="os.dataPrevisao; else semPrevisao">
+              <i class="pi pi-flag" [style.color]="isAtrasada(os) ? '#ef4444' : '#64748b'"></i>
+              <span [style.color]="isAtrasada(os) ? '#ef4444' : 'inherit'" [style.font-weight]="isAtrasada(os) ? '700' : 'normal'">
+                {{ os.dataPrevisao | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+            <ng-template #semPrevisao>
+              <span class="mn-nd">— não estimada</span>
+            </ng-template>
+          </td>
+          <td style="text-align:center">
+            <span *ngIf="!isStatusFinal(os.status)" class="mn-dias-badge" [class.mn-dias-badge--warn]="diasAberta(os.dataAbertura) > 7" [class.mn-dias-badge--danger]="diasAberta(os.dataAbertura) > 30">
+              {{ diasAberta(os.dataAbertura) }}d
+            </span>
+            <span *ngIf="isStatusFinal(os.status)" class="mn-nd">—</span>
+          </td>
+          <td style="text-align:center">
+            <span class="mn-status-badge" [ngClass]="os.status | lowercase">
+              {{ formatarStatusLabel(os.status) }}
+            </span>
+            <div *ngIf="isAtrasada(os)" class="mn-atrasada-tag">
+              <i class="pi pi-exclamation-triangle"></i> Atrasada
+            </div>
+          </td>
+          <td style="text-align:center">
+            <div class="mn-actions">
+              <button class="mn-btn-icon edit"
+                (click)="abrirAssistencia(os, ehAdmin)"
+                pTooltip="Abrir Assistência" tooltipPosition="left">
+                <i class="pi pi-briefcase"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9">
+            <div class="mn-empty">
+              <i class="pi pi-search"></i>
+              <p>Nenhuma ordem de serviço encontrada.</p>
+              <button class="mn-btn-ghost" (click)="filtrarPorStatus(null); buscaTexto=''; onBuscaChange()">
+                Limpar filtros
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Modais -->
+  <div dialogs>
+    <!-- MODAL: NOVA OS -->
+    <p-dialog
+      [(visible)]="exibirModalNovaOS"
+      header="Abrir Nova Ordem de Serviço"
+      [modal]="true"
+      [style]="{ width: '560px' }"
+      styleClass="mn-dialog"
+      [draggable]="false"
+      [resizable]="false"
+      id="modal-nova-os"
+    >
+      <form [formGroup]="novaOsForm" (ngSubmit)="confirmarNovaOS()" class="mn-form">
+        <!-- Equipamento (AutoComplete) -->
+        <div class="mn-form__field">
+          <label>Equipamento <span class="req">*</span></label>
+          <p-autoComplete
+            [(ngModel)]="equipamentoNovaOs"
+            [ngModelOptions]="{standalone: true}"
+            [suggestions]="equipSugestoes"
+            (completeMethod)="buscarEquipamentos($event)"
+            [field]="'patrimonio'"
+            [forceSelection]="true"
+            placeholder="Digite o patrimônio ou tipo..."
+            styleClass="w-full"
+            appendTo="body"
+            [minLength]="1"
+            [delay]="300"
+          >
+            <ng-template let-eq pTemplate="item">
+              <div class="mn-equip-option">
+                <strong>{{ eq.patrimonio }}</strong>
+                <span>{{ eq.tipoEquipamento?.nome }} · {{ eq.secao?.sigla }}</span>
+              </div>
+            </ng-template>
+          </p-autoComplete>
+
+          <!-- Preview do equipamento selecionado -->
+          <div *ngIf="equipamentoNovaOs?.id" class="mn-equip-preview">
+            <i class="pi pi-check-circle"></i>
+            <div>
+              <strong>{{ equipamentoNovaOs.patrimonio }}</strong>
+              <span>{{ equipamentoNovaOs.tipoEquipamento?.nome }} · {{ equipamentoNovaOs.marca?.nome }} · {{ equipamentoNovaOs.secao?.sigla }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Problema -->
+        <div class="mn-form__field">
+          <label>Descrição do Problema / Defeito <span class="req">*</span></label>
+          <textarea
+            pTextarea
+            formControlName="descricaoProblema"
+            rows="4"
+            class="w-full"
+            placeholder="Descreva o problema observado: defeito, falha, avaria..."
+          ></textarea>
+        </div>
+
+        <!-- Técnico + Previsão (apenas admin vê) -->
+        <div class="mn-form__row" *ngIf="ehAdmin">
+          <div class="mn-form__field flex-1">
+            <label>Técnico / Empresa Responsável</label>
+            <input type="text" pInputText formControlName="tecnicoResponsavel" class="w-full" placeholder="Nome ou empresa..." />
+          </div>
+          <div class="mn-form__field flex-1">
+            <label>Previsão de Retorno</label>
+            <p-datepicker formControlName="dataPrevisao" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body" class="w-full" styleClass="w-full"></p-datepicker>
+          </div>
+        </div>
+
+        <div class="mn-form__footer">
+          <button type="button" class="mn-btn-ghost" (click)="exibirModalNovaOS = false">Cancelar</button>
+          <button type="submit" class="mn-btn-warning" [disabled]="novaOsForm.invalid || !equipamentoNovaOs?.id">
+            <i class="pi pi-check"></i> Abrir Ordem de Serviço
+          </button>
+        </div>
+      </form>
+    </p-dialog>
+
+    <!-- MODAL: ASSISTÊNCIA PREMIUM -->
+    <p-dialog
+      [(visible)]="exibirModalAssistencia"
+      [header]="'Oficina de Assistência — OS #' + osSelecionada?.id"
+      [modal]="true"
+      [style]="{ width: '1100px' }"
+      styleClass="mn-dialog assistance-modal"
+      [draggable]="false"
+      [resizable]="false"
+      id="modal-assistance-os"
+      (onHide)="fecharAssistencia()"
+    >
+      <div *ngIf="osSelecionada" class="assistance-layout">
+        <div class="assistance-grid">
+          <!-- COLUNA 1 -->
+          <div class="assistance-col triage-panel">
+            <div class="panel-section-title"><i class="pi pi-file-edit"></i> Triagem & Diagnóstico</div>
+            <div class="triage-card">
+              <div class="triage-card__header">
+                <span class="equipment-pat">{{ osSelecionada.equipamento?.patrimonio }}</span>
+                <span class="status-indicator" [ngClass]="osSelecionada.status | lowercase">
+                  {{ formatarStatusLabel(osSelecionada.status) }}
+                </span>
+              </div>
+              <div class="triage-details">
+                <div class="detail-row"><span class="detail-label">Equipamento:</span><strong>{{ osSelecionada.equipamento?.tipoEquipamento?.nome }}</strong></div>
+                <div class="detail-row" *ngIf="osSelecionada.equipamento?.marca"><span class="detail-label">Marca/Modelo:</span><span>{{ osSelecionada.equipamento?.marca?.nome }}</span></div>
+                <div class="detail-row"><span class="detail-label">Origem:</span><span>{{ osSelecionada.equipamento?.secao?.sigla }}</span></div>
+                <div class="detail-row"><span class="detail-label">Aberto em:</span><span>{{ osSelecionada.dataAbertura | date:'dd/MM/yyyy' }}</span></div>
+              </div>
+            </div>
+            <div class="triage-problem">
+              <label style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Problema Relatado</label>
+              <div style="background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; font-size: 0.85rem; color: #cbd5e1; min-height: 80px; overflow-y: auto;">
+                {{ osSelecionada.descricaoProblema }}
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUNA 2 -->
+          <div class="assistance-col action-panel">
+            <div class="panel-section-title"><i class="pi pi-cog"></i> Processamento & Ações</div>
+            <form [formGroup]="statusForm" (ngSubmit)="salvarStatus()" style="display: flex; flex-direction: column; gap: 1rem;">
+              <div class="mn-form__field">
+                <label>Alterar Status</label>
+                <p-select [options]="statusOpcoes" formControlName="status" optionLabel="label" optionValue="value" styleClass="w-full" appendTo="body" [disabled]="!ehAdmin || !modoEdicao"></p-select>
+              </div>
+              <div class="mn-form__field">
+                <label>Técnico Encarregado</label>
+                <input type="text" pInputText formControlName="tecnicoResponsavel" class="w-full" [readonly]="!ehAdmin || !modoEdicao" />
+              </div>
+              <div class="mn-form__field">
+                <label>Previsão de Saída</label>
+                <p-datepicker formControlName="dataPrevisao" dateFormat="dd/mm/yy" appendTo="body" styleClass="w-full" [disabled]="!ehAdmin || !modoEdicao"></p-datepicker>
+              </div>
+              <div *ngIf="statusForm.get('status')?.value === 'CONCLUIDA' || statusForm.get('status')?.value === 'CANCELADA'" style="background: rgba(15,23,42,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                <div class="mn-form__field">
+                  <label>{{ statusForm.get('status')?.value === 'CONCLUIDA' ? 'Solução Técnica' : 'Justificativa' }}</label>
+                  <textarea pTextarea formControlName="solucaoAplicada" rows="2" class="w-full" [readonly]="!ehAdmin || !modoEdicao"></textarea>
+                </div>
+                <div class="mn-form__field" *ngIf="statusForm.get('status')?.value === 'CONCLUIDA'">
+                  <label>Custo (R$)</label>
+                  <p-inputNumber formControlName="valorGasto" mode="currency" currency="BRL" locale="pt-BR" class="w-full" styleClass="w-full" [disabled]="!ehAdmin || !modoEdicao"></p-inputNumber>
+                </div>
+              </div>
+              <button type="submit" *ngIf="ehAdmin && modoEdicao" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;"><i class="pi pi-save"></i> Atualizar Processo</button>
+            </form>
+          </div>
+
+          <!-- COLUNA 3 -->
+          <div class="assistance-col history-panel" style="display: flex; flex-direction: column;">
+            <div class="panel-section-title"><i class="pi pi-history"></i> Linha do Tempo</div>
+            <div class="timeline-wrapper" style="flex: 1; overflow-y: auto; max-height: 380px;">
+              <div *ngIf="carregandoHistorico" style="text-align: center; color: #94a3b8; padding: 1rem 0;"><i class="pi pi-spinner pi-spin"></i></div>
+              <div *ngIf="!carregandoHistorico && historicoOS.length > 0" style="display: flex; flex-direction: column; gap: 12px;">
+                <div *ngFor="let log of historicoOS" style="background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 8px; font-size: 0.8rem; color: #94a3b8;">
+                  <span style="font-size: 0.75rem; color: #64748b;">{{ log.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <p style="margin: 4px 0; font-weight: 500; color: #cbd5e1;">{{ log.descricao }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <ng-template pTemplate="footer">
+        <button type="button" (click)="fecharAssistencia()" class="mn-btn-ghost">Fechar Oficina</button>
+      </ng-template>
+    </p-dialog>
+
+    <p-toast position="bottom-right"></p-toast>
+  </div>
+</app-layout-pagina>
