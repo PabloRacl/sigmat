@@ -1,0 +1,167 @@
+<app-layout-pagina 
+  [hasStats]="true" 
+  [hasSearch]="false" 
+  [noContentPadding]="true"
+>
+  <!-- Cabeçalho -->
+  <div header-title>
+    <h1>Seções SIGMAT</h1>
+    <p>Gerencie seções da unidade, visualize totais e movimente equipamentos com clareza.</p>
+  </div>
+
+  <div header-actions>
+    <button pButton type="button" icon="pi pi-exchange" label="Transferência Interna" class="sections-btn-secondary" (click)="abrirModalTransferencia()"></button>
+    <button pButton type="button" icon="pi pi-plus" label="Nova Seção" class="sections-btn-primary" (click)="abrirDialog()"></button>
+  </div>
+
+  <!-- Cards Estatísticas -->
+  <div class="sections-stats" stats>
+    <div class="sections-stat-card">
+      <div class="sections-stat-card__icon blue"><i class="pi pi-th-large"></i></div>
+      <div class="sections-stat-card__info">
+        <span class="sections-stat-card__val">{{ secoes.length }}</span>
+        <span class="sections-stat-card__label">Seções</span>
+      </div>
+    </div>
+    <div class="sections-stat-card">
+      <div class="sections-stat-card__icon green"><i class="pi pi-box"></i></div>
+      <div class="sections-stat-card__info">
+        <span class="sections-stat-card__val">{{ totalEquipamentos | number }}</span>
+        <span class="sections-stat-card__label">Equipamentos</span>
+      </div>
+    </div>
+    <div class="sections-stat-card">
+      <div class="sections-stat-card__icon indigo"><i class="pi pi-briefcase"></i></div>
+      <div class="sections-stat-card__info">
+        <span class="sections-stat-card__val">{{ batalhoes.length }}</span>
+        <span class="sections-stat-card__label">Batalhões</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela Grid Principal -->
+  <div class="sections-table-scroll-wrapper" content>
+    <p-table
+      [value]="secoes"
+      [loading]="carregando"
+      [responsiveLayout]="'scroll'"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10,20,50]"
+      styleClass="p-datatable-sm p-datatable-gridlines"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="min-width: 120px">Sigla</th>
+          <th style="min-width: 220px">Nome</th>
+          <th style="min-width: 180px">Batalhão</th>
+          <th style="min-width: 110px; text-align:center">Equipamentos</th>
+          <th style="min-width: 170px; text-align:center">Ações</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td>{{ item.sigla }}</td>
+          <td>{{ item.nome }}</td>
+          <td>{{ getBatalhaoNome(item.batalhaoId) }}</td>
+          <td style="text-align:center">{{ item._count?.equipamentos || 0 }}</td>
+          <td style="text-align:center">
+            <div class="sections-actions-inline">
+              <button pButton type="button" icon="pi pi-pencil" class="p-button-text sections-action-btn" title="Editar" (click)="abrirDialog(item)"></button>
+              <button pButton type="button" icon="pi pi-exchange" class="p-button-text sections-action-btn" title="Transferir" (click)="abrirModalTransferencia(item)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Modais -->
+  <div dialogs>
+    <p-dialog header="{{ editando ? 'Editar Seção' : 'Nova Seção' }}" [(visible)]="dialogVisivel" modal="true" [style]="{ width: '560px' }" [closable]="true" [dismissableMask]="true">
+      <div class="dialog-header-note">
+        <span>Defina a seção e o batalhão vinculado. Usuário de batalhão não pode alterar o batalhão.</span>
+      </div>
+      <form [formGroup]="form" class="section-form">
+        <div class="form-grid">
+          <div class="p-field">
+            <label>Sigla</label>
+            <input pInputText formControlName="sigla" />
+          </div>
+          <div class="p-field">
+            <label>Nome</label>
+            <input pInputText formControlName="nome" />
+          </div>
+          <div class="p-field">
+            <label>Batalhão</label>
+            <p-select
+              [options]="batalhoes"
+              formControlName="batalhaoId"
+              optionLabel="sigla"
+              optionValue="id"
+              [showClear]="true"
+              [disabled]="userPerfil === 'USUARIO_BATALHAO'"
+              placeholder="Selecione um batalhão"
+            ></p-select>
+          </div>
+        </div>
+      </form>
+      <p-footer>
+        <button pButton type="button" label="Sair" class="p-button-text" (click)="fecharDialog()"></button>
+        <button pButton type="button" label="Salvar" icon="pi pi-save" class="p-button-primary" (click)="salvar()"></button>
+      </p-footer>
+    </p-dialog>
+
+    <p-dialog header="Transferência Interna de Equipamentos" [(visible)]="exibirModalTransferencia" modal="true" [style]="{ width: '680px' }" [closable]="true" [dismissableMask]="true">
+      <div class="dialog-header-note">
+        <span>Transfira equipamentos entre seções internas. A regra de autorização segue as regras do sistema.</span>
+      </div>
+      <div class="p-fluid transfer-form">
+        <div class="form-grid">
+          <div class="p-field">
+            <label>Seção de Origem</label>
+            <p-select
+              [options]="secoes"
+              [(ngModel)]="origemSecaoId"
+              optionLabel="sigla"
+              optionValue="id"
+              [showClear]="false"
+              placeholder="Selecione a seção de origem"
+              (onChange)="filtrarDestinosPorOrigem()"
+            ></p-select>
+          </div>
+          <div class="p-field">
+            <label>Seção de Destino</label>
+            <p-select
+              [options]="destinosDisponiveis"
+              [(ngModel)]="destinoSecaoId"
+              optionLabel="sigla"
+              optionValue="id"
+              [showClear]="false"
+              placeholder="Selecione a seção de destino"
+            ></p-select>
+          </div>
+          <div class="p-field">
+            <label>Equipamento</label>
+            <p-select
+              [options]="equipamentosOrigem"
+              [(ngModel)]="equipamentoSelecionadoId"
+              optionLabel="patrimonio"
+              optionValue="id"
+              [showClear]="false"
+              placeholder="Selecione o equipamento"
+            ></p-select>
+          </div>
+        </div>
+        <div class="p-field">
+          <label>Observação</label>
+          <textarea pInputTextarea rows="4" [(ngModel)]="observacaoTransferencia" placeholder="Detalhes opcionais"></textarea>
+        </div>
+      </div>
+      <p-footer>
+        <button pButton type="button" label="Cancelar" class="p-button-text" (click)="exibirModalTransferencia = false"></button>
+        <button pButton type="button" label="Solicitar Transferência" icon="pi pi-exchange" class="p-button-primary" (click)="confirmarTransferenciaInterna()"></button>
+      </p-footer>
+    </p-dialog>
+  </div>
+</app-layout-pagina>

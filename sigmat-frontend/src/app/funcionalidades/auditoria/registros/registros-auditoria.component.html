@@ -1,0 +1,198 @@
+<app-layout-pagina 
+  [hasStats]="false" 
+  [hasSearch]="false" 
+  [noContentPadding]="true"
+>
+  <!-- Cabeçalho -->
+  <div header-title>
+    <h1>Logs de Auditoria</h1>
+    <p>Histórico completo de operações e alterações no patrimônio</p>
+  </div>
+
+  <!-- Conteúdo Principal -->
+  <div content>
+    <!-- Filtros de Auditoria integrados no topo do card -->
+    <div class="au-filters" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 1.5rem; border-radius: 16px 16px 0 0;">
+      <div class="au-filters-title" style="margin-bottom: 1.25rem;">
+        <strong>Filtros de Auditoria</strong>
+        <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748b;">Use busca e filtros para localizar ações, usuários e patrimônio.</p>
+      </div>
+
+      <div class="au-filter-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+        <div class="au-filter-item" style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Ação</label>
+          <select [(ngModel)]="filtros.acao" class="au-input" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none; background: white;">
+            <option value="">Todas</option>
+            <option *ngFor="let a of acoesDisponiveis" [value]="a">{{a}}</option>
+          </select>
+        </div>
+
+        <div class="au-filter-item" style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Usuário</label>
+          <input type="text" [(ngModel)]="filtros.usuario" placeholder="nome ou matrícula" class="au-input" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none;" />
+        </div>
+
+        <div class="au-filter-item" style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Patrimônio</label>
+          <input type="text" [(ngModel)]="filtros.patrimonio" placeholder="nº patrimônio" class="au-input" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none;" />
+        </div>
+      </div>
+
+      <div class="au-filter-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+        <div class="au-filter-item" style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Data início</label>
+          <input type="date" [(ngModel)]="filtros.startDate" class="au-input" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none;" />
+        </div>
+
+        <div class="au-filter-item" style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Data fim</label>
+          <input type="date" [(ngModel)]="filtros.endDate" class="au-input" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none;" />
+        </div>
+
+        <div class="au-filter-item" style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Descrição</label>
+          <input type="text" [(ngModel)]="filtros.descricao" placeholder="texto na descrição" class="au-input" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none;" />
+        </div>
+      </div>
+
+      <div class="au-filter-actions" style="display: flex; gap: 12px; justify-content: flex-end;">
+        <button class="au-btn" (click)="aplicarFiltros()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">Filtrar Agora</button>
+        <button class="au-btn au-btn-secondary" (click)="limparFiltros()" style="background: white; border: 1px solid #e2e8f0; color: #475569; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">Limpar Todos os Filtros</button>
+      </div>
+    </div>
+
+    <!-- Barra de Busca Rápida Local -->
+    <div class="au-search-wrap" style="padding: 1rem; border-bottom: 1px solid #f1f5f9; background: #f8fafc;">
+      <span class="p-input-icon-left w-full" style="display: flex; align-items: center; position: relative;">
+        <i class="pi pi-search" style="position: absolute; left: 12px; color: #94a3b8;"></i>
+        <input 
+          type="text" 
+          pInputText 
+          class="w-full" 
+          style="padding-left: 36px; width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem;"
+          placeholder="Buscar dentro dos resultados..." 
+          (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+        />
+      </span>
+    </div>
+
+    <!-- Tabela Principal -->
+    <p-table 
+      #dt
+      [value]="logs" 
+      [loading]="carregando"
+      [paginator]="true" 
+      [rows]="20"
+      [globalFilterFields]="['usuario.nome', 'equipamento.patrimonio', 'descricao', 'acao']"
+      responsiveLayout="scroll"
+      styleClass="p-datatable-sm au-table"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 160px">Data/Hora</th>
+          <th style="width: 120px">Ação</th>
+          <th>Usuário</th>
+          <th>Patrimônio</th>
+          <th>Descrição</th>
+          <th style="width: 80px; text-align: center">Dados</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-log>
+        <tr>
+          <td class="au-date">{{ log.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+          <td>
+            <p-tag [severity]="obterCorAcao(log.acao)" [value]="log.acao"></p-tag>
+          </td>
+          <td>
+            <div class="au-user" style="display: flex; flex-direction: column;">
+              <strong>{{ log.usuario?.nome }}</strong>
+              <small style="color: #64748b; font-size: 0.75rem;">{{ log.usuario?.matricula }}</small>
+            </div>
+          </td>
+          <td>
+            <span class="au-pat" style="font-weight: 700; color: #0f172a;" *ngIf="log.equipamento?.patrimonio">{{ log.equipamento.patrimonio }}</span>
+            <span class="au-none" style="color: #cbd5e1;" *ngIf="!log.equipamento?.patrimonio">—</span>
+          </td>
+          <td class="au-desc">{{ log.descricao }}</td>
+          <td style="text-align: left; vertical-align: top; width: 320px;">
+            <ng-container *ngIf="log.dadosAlterados; else semDados">
+              <div *ngIf="isCreate(log)" class="au-create-summary">
+                <div class="au-create-summary-header" style="display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-size: 0.8rem; color: #475569;">Criado com {{ getChangedCount(log) }} campos</span>
+                  <button type="button" pButton pRipple label="Ver detalhes" class="p-button-text p-button-sm" (click)="openModal(log)"></button>
+                </div>
+                <div *ngIf="isExpanded(log.id)" class="au-full-json">
+                  <pre>{{ formatarJSON(log.dadosAlterados) }}</pre>
+                </div>
+              </div>
+
+              <div *ngIf="!isCreate(log)" class="au-update-summary">
+                <div *ngFor="let key of getTopChangedKeys(log, 3)" class="au-diff-line-inline" style="font-size: 0.8rem; margin-bottom: 2px;">
+                  <span class="au-diff-key" style="font-weight: 600; color: #475569;">{{ formatKey(key) }}:</span>
+                  <span class="au-diff-before" style="text-decoration: line-through; color: #ef4444; margin: 0 4px;">{{ formatValue(getBeforeValue(log.dadosAlterados, key)) }}</span>
+                  <span class="au-arrow" style="color: #94a3b8;">→</span>
+                  <span class="au-diff-after" style="color: #10b981; font-weight: 600; margin-left: 4px;">{{ formatValue(getAfterValue(log.dadosAlterados, key)) }}</span>
+                </div>
+                <div *ngIf="getChangedCount(log) > 3" style="font-size: 0.8rem; margin-top: 4px;">
+                  <a (click)="openModal(log)" style="cursor:pointer; color: #2563eb; font-weight: 600;">+{{ getChangedCount(log) - 3 }} campos</a>
+                </div>
+
+                <div *ngIf="isExpanded(log.id)" class="au-diff-expanded">
+                  <div *ngFor="let key of diffKeys(log.dadosAlterados)" class="au-diff-line">
+                    <div class="au-diff-key">{{ formatKey(key) }}</div>
+                    <div class="au-diff-values">
+                      <span class="au-diff-before">de: {{ formatValue(getBeforeValue(log.dadosAlterados, key)) }}</span>
+                      <span class="au-diff-after">para: {{ formatValue(getAfterValue(log.dadosAlterados, key)) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+            <ng-template #semDados>
+              <span class="au-none" style="color: #cbd5e1;">—</span>
+            </ng-template>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6">
+            <div class="au-empty" style="text-align: center; padding: 2rem 0; color: #94a3b8;">
+              <i class="pi pi-info-circle" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+              <p style="margin: 0;">Nenhum log de auditoria encontrado.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Modais -->
+  <div dialogs>
+    <p-dialog [(visible)]="showModal" [modal]="true" [style]="{width: '720px'}" header="Detalhes da Auditoria" (onHide)="closeModal()">
+      <div *ngIf="selectedLog">
+        <div style="display:flex; gap:12px; margin-bottom:8px; align-items:center;">
+          <div style="flex:1">
+            <strong>{{ selectedLog.acao }}</strong> — <span style="color:#64748b">{{ selectedLog.descricao }}</span>
+          </div>
+          <div style="text-align:right; color:#94a3b8">{{ selectedLog.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <h4 style="margin:0 0 6px 0; font-size:0.95rem">Alterações</h4>
+          <div *ngIf="selectedLog.dadosAlterados; else noChanges">
+            <div *ngFor="let k of diffKeys(selectedLog.dadosAlterados)" style="border:1px solid #e6eefc; padding:10px; border-radius:8px; margin-bottom:8px; background:#fbfdff;">
+              <div style="font-weight:700; color:#0f172a; margin-bottom:6px">{{ formatKey(k) }}</div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <div style="background:#f1f5f9; padding:6px 10px; border-radius:6px; color:#334155; min-width:160px">Antes: <span style="font-weight:600">{{ formatValue(getBeforeValue(selectedLog.dadosAlterados, k)) }}</span></div>
+                <div style="font-size:1.2rem; color:#94a3b8">→</div>
+                <div style="background:#dbeafe; padding:6px 10px; border-radius:6px; color:#1d4ed8; min-width:160px">Depois: <span style="font-weight:600">{{ formatValue(getAfterValue(selectedLog.dadosAlterados, k)) }}</span></div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noChanges><div class="au-none" style="color: #cbd5e1;">— Nenhuma alteração registrada.</div></ng-template>
+        </div>
+      </div>
+    </p-dialog>
+  </div>
+</app-layout-pagina>

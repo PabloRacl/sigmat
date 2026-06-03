@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ExecutionContext } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { JwtAuthGuard } from '../src/modules/auth/guards/jwt-auth.guard';
-import { ApprovalsService } from '../src/modules/approvals/approvals.service';
+import { JwtAuthGuard } from '../src/modulos/autenticacao/guardas/jwt-autenticacao.guard';
+import { ApprovalsService } from '../src/modulos/aprovacoes/aprovacoes.service';
 import { EquipmentService } from '../src/modules/equipment/equipment.service';
 
 describe('Approval Flow (e2e)', () => {

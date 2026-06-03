@@ -1,64 +1,64 @@
 import { Routes } from '@angular/router';
-import { AdminGuard } from './core/guards/admin.guard';
-import { RoleGuard } from './core/guards/role.guard';
+import { AdminGuard } from './nucleo/guardas/admin.guard';
+import { RoleGuard } from './nucleo/guardas/role.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   {
     path: 'login',
-    loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
+    loadComponent: () => import('./funcionalidades/autenticacao/entrada/entrada.component').then(m => m.LoginComponent)
   },
   {
     path: 'qrcode/:id',
-    loadComponent: () => import('./features/mobile/mobile-qrcode/mobile-qrcode.component').then(m => m.MobileQrcodeComponent)
+    loadComponent: () => import('./funcionalidades/celular/qrcode-movel/qr-movel.component').then(m => m.MobileQrcodeComponent)
   },
   {
-    path: 'dashboard',
-    loadComponent: () => import('./features/dashboard/dashboard/dashboard.component').then(m => m.DashboardComponent),
+    path: 'visao-geral',
+    loadComponent: () => import('./funcionalidades/visao-geral/painel/painel.component').then(m => m.DashboardComponent),
     children: [
       {
-        path: 'home',
-        loadComponent: () => import('./features/dashboard/dashboard-home/dashboard-home.component').then(m => m.DashboardHomeComponent)
+        path: 'inicio',
+        loadComponent: () => import('./funcionalidades/visao-geral/inicio/visao-inicial.component').then(m => m.DashboardHomeComponent)
       },
       {
-        path: 'equipment',
-        loadComponent: () => import('./features/equipment/equipment-list/equipment-list.component').then(m => m.EquipmentListComponent)
+        path: 'equipamentos',
+        loadComponent: () => import('./funcionalidades/equipamentos/lista/lista-equipamentos.component').then(m => m.EquipmentListComponent)
       },
       {
-        path: 'users',
-        loadComponent: () => import('./features/users/users-list/users-list.component').then(m => m.UsersListComponent),
+        path: 'usuarios',
+        loadComponent: () => import('./funcionalidades/usuarios/lista/lista-usuarios.component').then(m => m.UsersListComponent),
         canActivate: [AdminGuard]
       },
       {
-        path: 'loans',
-        loadComponent: () => import('./features/loans/loans-management/loans-management.component').then(m => m.LoansManagementComponent)
+        path: 'cautelas',
+        loadComponent: () => import('./funcionalidades/cautelas/gestao/gestao-cautelas.component').then(m => m.LoansManagementComponent)
       },
       {
-        path: 'approvals',
-        loadComponent: () => import('./features/approvals/approvals-list/approvals-list.component').then(m => m.ApprovalsListComponent)
+        path: 'aprovacoes',
+        loadComponent: () => import('./funcionalidades/aprovacoes/lista/lista-aprovacoes.component').then(m => m.ApprovalsListComponent)
       },
       {
-        path: 'reports',
-        loadComponent: () => import('./features/reports/reports/reports.component').then(m => m.ReportsComponent)
+        path: 'relatorios',
+        loadComponent: () => import('./funcionalidades/relatorios/lista/relatorios.component').then(m => m.ReportsComponent)
       },
       {
-        path: 'secoes',
-        loadComponent: () => import('./features/settings/sections/sections.component').then(m => m.SettingsSectionsComponent),
+        path: 'configuracoes',
+        loadComponent: () => import('./funcionalidades/configuracoes/secoes/secoes.component').then(m => m.SettingsSectionsComponent),
         canActivate: [RoleGuard]
       },
       {
-        path: 'transfers',
-        loadComponent: () => import('./features/transfers/transfers-list/transfers-list.component').then(m => m.TransfersListComponent)
+        path: 'transferencias',
+        loadComponent: () => import('./funcionalidades/transferencias/lista/lista-transferencias.component').then(m => m.TransfersListComponent)
       },
       {
-        path: 'maintenance',
-        loadComponent: () => import('./features/maintenance/maintenance-list/maintenance-list.component').then(m => m.MaintenanceListComponent)
+        path: 'manutencao',
+        loadComponent: () => import('./funcionalidades/manutencao/lista/lista-manutencao.component').then(m => m.MaintenanceListComponent)
       },
       {
-        path: 'audit',
-        loadComponent: () => import('./features/audit/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent)
+        path: 'auditoria',
+        loadComponent: () => import('./funcionalidades/auditoria/registros/registros-auditoria.component').then(m => m.AuditLogsComponent)
       },
-      { path: '', redirectTo: 'home', pathMatch: 'full' }
+      { path: '', redirectTo: 'inicio', pathMatch: 'full' }
     ]
   }
 ];

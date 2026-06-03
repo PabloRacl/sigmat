@@ -1,0 +1,163 @@
+<app-layout-pagina 
+  [hasStats]="false" 
+  [hasSearch]="true" 
+  [noContentPadding]="true"
+>
+  <!-- Cabeçalho -->
+  <div header-title>
+    <h1>Movimentação de Carga</h1>
+    <p>Gestão de transferência definitiva de material entre Unidades</p>
+  </div>
+
+  <div header-actions>
+    <button class="tf-btn-primary" (click)="abrirSolicitar()"
+      pTooltip="Enviar material para outra unidade (saída definitiva da sua carga)" tooltipPosition="left" style="display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: #fff; border: none; padding: 12px 22px; border-radius: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">
+      <i class="pi pi-send"></i>
+      Enviar para Outra Unidade
+    </button>
+  </div>
+
+  <!-- Busca e Filtros -->
+  <div class="tf-search-wrap" search-filters style="padding: 1rem; border-bottom: 1px solid #f1f5f9; background: #f8fafc; border-radius: 16px 16px 0 0;">
+    <div class="tf-search" style="display: flex; align-items: center; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 2px 12px; width: 350px;">
+      <i class="pi pi-search tf-search__icon" style="color: #94a3b8; margin-right: 8px;"></i>
+      <input #searchInput type="text"
+        class="tf-search__input"
+        placeholder="Buscar por patrimônio, tipo, origem ou solicitante..."
+        (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+        style="border: none; outline: none; font-size: 0.85rem; padding: 6px 0; color: #334155; width: 100%;"
+      />
+    </div>
+  </div>
+
+  <!-- Grid Principal (Tabela) -->
+  <div content>
+    <p-table
+      #dt
+      [value]="pendentes"
+      [loading]="carregando"
+      [rowHover]="true"
+      [paginator]="true"
+      [rows]="10"
+      [globalFilterFields]="['equipamento.patrimonio','equipamento.tipoEquipamento.nome','origem.sigla','solicitante.nome']"
+      responsiveLayout="scroll"
+      styleClass="tf-table"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Patrimônio</th>
+          <th>Tipo</th>
+          <th>Origem</th>
+          <th>Solicitante</th>
+          <th>Data Envio</th>
+          <th style="text-align:center">Ações</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-t>
+        <tr>
+          <td><span class="tf-patrimonio" style="font-weight: 700;">{{ t.equipamento?.patrimonio }}</span></td>
+          <td>{{ t.equipamento?.tipoEquipamento?.nome }}</td>
+          <td><span class="tf-unidade" style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 0.8rem;">{{ t.origem?.sigla }}</span></td>
+          <td>
+            <div class="tf-user" style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+              <i class="pi pi-user" style="color: #94a3b8;"></i>
+              <span>{{ t.solicitante?.nome }}</span>
+            </div>
+          </td>
+          <td>{{ t.dataEnvio | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <div class="tf-actions" style="display: flex; gap: 6px; justify-content: center;">
+              <button *ngIf="podeAprovar" class="tf-btn-receive" (click)="receber(t.id)"
+                pTooltip="Confirmar recebimento do material" tooltipPosition="top" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                <i class="pi pi-check"></i> Receber
+              </button>
+              <button class="tf-btn-cancel" (click)="cancelar(t.id)"
+                pTooltip="Cancelar transferência" tooltipPosition="top" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                <i class="pi pi-times"></i> Cancelar
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6">
+            <div class="tf-empty" style="text-align: center; padding: 2rem 0; color: #94a3b8;">
+              <i class="pi pi-inbox" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+              <p>Nenhuma transferência pendente para sua unidade.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Modais -->
+  <div dialogs>
+    <!-- Modal: Solicitar Nova Transferência -->
+    <p-dialog
+      [(visible)]="exibirModalSolicitar"
+      header="Nova Solicitação de Transferência"
+      [modal]="true"
+      [style]="{width: '560px'}"
+      styleClass="custom-dialog"
+      [draggable]="false"
+      [resizable]="false"
+    >
+      <ng-template pTemplate="content">
+        <div class="tf-form" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="tf-form__field" style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Material para Transferir (Seu Inventário) <span class="req" style="color: #ef4444;">*</span></label>
+            <p-select
+              [options]="equipamentosDisponiveis"
+              [(ngModel)]="novaTransferencia.equipamentoId"
+              optionLabel="patrimonio"
+              optionValue="id"
+              [filter]="true"
+              filterBy="patrimonio"
+              placeholder="Selecione o patrimônio..."
+              appendTo="body"
+              styleClass="w-full">
+            </p-select>
+          </div>
+          <div class="tf-form__field" style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Unidade de Destino <span class="req" style="color: #ef4444;">*</span></label>
+            <p-select
+              [options]="secoes"
+              [(ngModel)]="novaTransferencia.destinoId"
+              optionLabel="sigla"
+              optionValue="id"
+              [filter]="true"
+              filterBy="sigla"
+              placeholder="Selecione a unidade destino..."
+              appendTo="body"
+              styleClass="w-full">
+            </p-select>
+          </div>
+          <div class="tf-form__field" style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Observações / Justificativa</label>
+            <textarea pTextarea
+              [(ngModel)]="novaTransferencia.observacao"
+              rows="4"
+              style="width:100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px;"
+              placeholder="Detalhes adicionais sobre a transferência...">
+            </textarea>
+          </div>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <button class="tf-btn-ghost" (click)="exibirModalSolicitar = false" style="background: white; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; color: #64748b;"><i class="pi pi-times"></i> Cancelar</button>
+        <button class="tf-btn-primary"
+          [disabled]="!novaTransferencia.equipamentoId || !novaTransferencia.destinoId"
+          (click)="confirmarSolicitacao()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="pi pi-send"></i> Solicitar Envio
+        </button>
+      </ng-template>
+    </p-dialog>
+
+    <p-toast position="bottom-right"></p-toast>
+    <p-confirmDialog></p-confirmDialog>
+  </div>
+</app-layout-pagina>

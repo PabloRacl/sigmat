@@ -1,0 +1,316 @@
+<app-layout-pagina 
+  [hasStats]="true" 
+  [hasSearch]="false" 
+  [noContentPadding]="true"
+>
+  <!-- Cabeçalho -->
+  <div header-title>
+    <h1>Central de Movimentações e Aprovações</h1>
+    <p>Gestão de transferências de carga e validação de edições cadastrais</p>
+  </div>
+
+  <div header-actions>
+    <span class="ap-count-badge" *ngIf="pendencias.length + transferencias.length > 0" style="background: #eef2ff; border: 1px solid #c7d2fe; color: #4f46e5; font-size: 0.8rem; font-weight: 700; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+      <i class="pi pi-clock"></i> {{ pendencias.length + transferencias.length }} pendência(s) total
+    </span>
+  </div>
+
+  <!-- Estatísticas -->
+  <div class="ap-stats" stats>
+    <div class="ap-stat-card">
+      <div class="ap-stat-card__icon blue"><i class="pi pi-exclamation-triangle"></i></div>
+      <div class="ap-stat-card__info">
+        <span class="ap-stat-card__val">{{ pendencias.length }}</span>
+        <span class="ap-stat-card__label">Alterações Pendentes</span>
+      </div>
+    </div>
+    <div class="ap-stat-card">
+      <div class="ap-stat-card__icon green"><i class="pi pi-download"></i></div>
+      <div class="ap-stat-card__info">
+        <span class="ap-stat-card__val">{{ transRecebidas.length }}</span>
+        <span class="ap-stat-card__label">Transferências Recebidas</span>
+      </div>
+    </div>
+    <div class="ap-stat-card">
+      <div class="ap-stat-card__icon indigo"><i class="pi pi-upload"></i></div>
+      <div class="ap-stat-card__info">
+        <span class="ap-stat-card__val">{{ transEnviadas.length }}</span>
+        <span class="ap-stat-card__label">Transferências Enviadas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Abas e Tabelas Grid Principais -->
+  <div content>
+    <!-- Loading -->
+    <div class="ap-loading" *ngIf="carregando" style="display: flex; flex-direction: column; align-items: center; padding: 3rem 0; color: #64748b;">
+      <i class="pi pi-spinner pi-spin" style="font-size: 2rem; color: #2563eb; margin-bottom: 0.5rem;"></i>
+      <p>Sincronizando central...</p>
+    </div>
+
+    <p-tabs *ngIf="!carregando" [(value)]="abaAtiva" styleClass="ap-tabview">
+      <p-tablist>
+        <p-tab [value]="0">
+          <i class="pi pi-download" style="margin-right: 8px"></i>
+          <span>{{ ehAdmin ? 'Todas Transferências (Admin)' : 'Cargas a Caminho' }}</span>
+          <span class="ap-tab-badge" *ngIf="transRecebidas.length" style="background: #eff6ff; color: #2563eb; font-size: 0.75rem; padding: 2px 6px; border-radius: 99px; font-weight: 700; margin-left: 6px;">{{ transRecebidas.length }}</span>
+        </p-tab>
+        <p-tab [value]="1" *ngIf="!ehAdmin">
+          <i class="pi pi-upload" style="margin-right: 8px"></i>
+          <span>Cargas Enviadas</span>
+          <span class="ap-tab-badge" *ngIf="transEnviadas.length" style="background: #eef2ff; color: #4f46e5; font-size: 0.75rem; padding: 2px 6px; border-radius: 99px; font-weight: 700; margin-left: 6px;">{{ transEnviadas.length }}</span>
+        </p-tab>
+        <p-tab [value]="2">
+          <i class="pi pi-pencil" style="margin-right: 8px"></i>
+          <span>Alterações Cadastrais</span>
+          <span class="ap-tab-badge" *ngIf="pendencias.length" style="background: #fef3c7; color: #d97706; font-size: 0.75rem; padding: 2px 6px; border-radius: 99px; font-weight: 700; margin-left: 6px;">{{ pendencias.length }}</span>
+        </p-tab>
+      </p-tablist>
+
+      <p-tabpanels>
+        <p-tabpanel [value]="0">
+          <div class="ap-tab-desc" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+            <i class="pi pi-info-circle"></i>
+            Materiais que foram transferidos para sua Unidade. Confirme o recebimento para assumir a carga.
+          </div>
+
+          <p-table [value]="transRecebidas" [rowHover]="true" styleClass="ap-table" responsiveLayout="scroll">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Origem <i class="pi pi-arrow-right"></i> Destino</th>
+                <th>Material</th>
+                <th>Solicitante</th>
+                <th>Data Envio</th>
+                <th class="text-center">Ações</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-t>
+              <tr>
+                <td>
+                  <div class="ap-route" style="display: flex; align-items: center; gap: 6px;">
+                    <span class="route-badge origin" style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">{{ t.origem?.sigla }}</span>
+                    <i class="pi pi-angle-double-right route-arrow"></i>
+                    <span class="route-badge dest" style="background: #eff6ff; color: #2563eb; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">{{ t.destino?.sigla }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="ap-equip" style="display: flex; flex-direction: column; gap: 2px;">
+                    <span class="ap-patrimonio" style="font-weight: 700;">{{ t.equipamento?.patrimonio }}</span>
+                    <span class="ap-tipo" style="font-size: 0.8rem; color: #64748b;">{{ t.equipamento?.tipoEquipamento?.nome }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="ap-user" style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+                    <i class="pi pi-user" style="color: #94a3b8;"></i>
+                    <span>{{ t.solicitante?.nome }}</span>
+                  </div>
+                </td>
+                <td class="ap-date">{{ t.dataEnvio | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <div class="ap-actions" style="display: flex; gap: 6px; justify-content: center;">
+                    <button *ngIf="podeAprovarRecebimento && t.destinoId === usuarioLogado?.secaoId" 
+                      class="ap-btn-approve ap-btn-approve-primary" 
+                      (click)="receberTransferencia(t.id)" 
+                      pTooltip="Confirmar Recebimento de Carga na Unidade" 
+                      tooltipPosition="top" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                      <i class="pi pi-download"></i> Receber
+                    </button>
+
+                    <button *ngIf="ehAdmin && t.destinoId !== usuarioLogado?.secaoId" 
+                      class="ap-btn-approve ap-btn-approve-secondary" 
+                      (click)="receberTransferencia(t.id)" 
+                      pTooltip="Aprovar trâmite e liberar envio definitivo" 
+                      tooltipPosition="top" style="background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                      <i class="pi pi-check"></i> Aprovar
+                    </button>
+
+                    <button *ngIf="ehAdmin" class="ap-btn-reject" (click)="cancelarTransferencia(t.id)" pTooltip="Cancelar Forçadamente" tooltipPosition="top" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                      <i class="pi pi-times"></i> Cancelar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="5"><div class="ap-empty" style="text-align: center; padding: 2rem 0; color: #94a3b8;"><i class="pi pi-box" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i><p>Nenhuma carga a caminho no momento.</p></div></td></tr>
+            </ng-template>
+          </p-table>
+        </p-tabpanel>
+
+        <!-- ABA 2: TRANSFERÊNCIAS ENVIADAS -->
+        <p-tabpanel [value]="1" *ngIf="!ehAdmin">
+          <div class="ap-tab-desc" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+            <i class="pi pi-info-circle"></i>
+            Materiais que você transferiu para outras unidades, mas que ainda não foram aceitos pelo destino.
+          </div>
+
+          <p-table [value]="transEnviadas" [rowHover]="true" styleClass="ap-table" responsiveLayout="scroll">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Origem <i class="pi pi-arrow-right"></i> Destino</th>
+                <th>Material</th>
+                <th>Data Envio</th>
+                <th class="text-center">Ações</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-t>
+              <tr>
+                <td>
+                  <div class="ap-route" style="display: flex; align-items: center; gap: 6px;">
+                    <span class="route-badge origin" style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">{{ t.origem?.sigla }}</span>
+                    <i class="pi pi-angle-double-right route-arrow"></i>
+                    <span class="route-badge dest" style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">{{ t.destino?.sigla }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="ap-equip" style="display: flex; flex-direction: column; gap: 2px;">
+                    <span class="ap-patrimonio" style="font-weight: 700;">{{ t.equipamento?.patrimonio }}</span>
+                    <span class="ap-tipo" style="font-size: 0.8rem; color: #64748b;">{{ t.equipamento?.tipoEquipamento?.nome }}</span>
+                  </div>
+                </td>
+                <td class="ap-date">{{ t.dataEnvio | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <div class="ap-actions" style="display: flex; justify-content: center;">
+                    <button class="ap-btn-reject" (click)="cancelarTransferencia(t.id)" pTooltip="Desfazer envio" tooltipPosition="top" style="background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                      <i class="pi pi-undo"></i> Cancelar Envio
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="4"><div class="ap-empty" style="text-align: center; padding: 2rem 0; color: #94a3b8;"><i class="pi pi-check-circle" style="font-size: 2rem; color: #10b981; margin-bottom: 0.5rem; display: block;"></i><p>Nenhuma transferência enviada pendente.</p></div></td></tr>
+            </ng-template>
+          </p-table>
+        </p-tabpanel>
+
+        <!-- ABA 3: EDIÇÕES DE EQUIPAMENTO -->
+        <p-tabpanel [value]="2">
+          <div class="ap-tab-desc" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+            <i class="pi pi-info-circle"></i>
+            Solicitações de alteração nos dados do equipamento (Marca, Status, Modelo, Exclusão).
+          </div>
+
+          <p-table [value]="pendencias" [rowHover]="true" styleClass="ap-table" responsiveLayout="scroll">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Equipamento</th>
+                <th>Solicitante</th>
+                <th>Data</th>
+                <th>Campos Alterados</th>
+                <th class="text-center">Decisão</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-p>
+              <tr>
+                <td>
+                  <div class="ap-equip" style="display: flex; flex-direction: column; gap: 2px;">
+                    <span class="ap-patrimonio" style="font-weight: 700;">{{ p.equipamento?.patrimonio }}</span>
+                    <span class="ap-tipo" style="font-size: 0.8rem; color: #64748b;">{{ p.equipamento?.tipoEquipamento?.nome }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="ap-user" style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+                    <i class="pi pi-user" style="color: #94a3b8;"></i>
+                    <span>{{ p.solicitante?.nome }}</span>
+                  </div>
+                </td>
+                <td class="ap-date">{{ p.dataSolicitacao | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <div class="ap-tags" style="display: flex; flex-wrap: wrap; gap: 4px;">
+                    <span class="ap-tag" *ngFor="let campo of p.camposAlterados" style="background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                      {{ traduzirCampo(campo) }}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <div class="ap-actions" style="display: flex; gap: 6px; justify-content: center;">
+                    <button class="ap-btn-info" (click)="verDetalhes(p)" pTooltip="Ver detalhes da alteração" tooltipPosition="top" style="background: white; border: 1px solid #cbd5e1; color: #475569; width: 30px; height: 30px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                      <i class="pi pi-eye"></i>
+                    </button>
+                    <ng-container *ngIf="ehAdmin">
+                      <button class="ap-btn-approve" (click)="aprovar(p.id)" pTooltip="Aprovar e aplicar" tooltipPosition="top" style="background: #10b981; color: white; border: none; width: 30px; height: 30px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                        <i class="pi pi-check"></i>
+                      </button>
+                      <button class="ap-btn-reject" (click)="abrirNegar(p)" pTooltip="Rejeitar" tooltipPosition="top" style="background: #ef4444; color: white; border: none; width: 30px; height: 30px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                        <i class="pi pi-times"></i>
+                      </button>
+                    </ng-container>
+                    <ng-container *ngIf="!ehAdmin">
+                      <button class="ap-btn-reject" style="background-color: #f59e0b; color: white; border: none; width: 30px; height: 30px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;" (click)="cancelarPedido(p)" pTooltip="Cancelar solicitação" tooltipPosition="top">
+                        <i class="pi pi-undo"></i>
+                      </button>
+                    </ng-container>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="5"><div class="ap-empty" style="text-align: center; padding: 2rem 0; color: #94a3b8;"><i class="pi pi-check-circle" style="font-size: 2rem; color: #10b981; margin-bottom: 0.5rem; display: block;"></i><p>Nenhuma alteração cadastral pendente.</p></div></td></tr>
+            </ng-template>
+          </p-table>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  </div>
+
+  <!-- Modais -->
+  <div dialogs>
+    <p-dialog
+      [(visible)]="exibirModalNegar"
+      header="Justificar Rejeição"
+      [modal]="true"
+      [style]="{ width: '460px' }"
+      styleClass="ap-dialog"
+      [draggable]="false"
+      [resizable]="false"
+    >
+      <ng-template pTemplate="content">
+        <div class="ap-form" style="display: flex; flex-direction: column; gap: 1rem;">
+          <p class="ap-form__info" style="font-size: 0.85rem; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; display: flex; align-items: center; gap: 6px;">
+            <i class="pi pi-info-circle" style="color: #2563eb;"></i>
+            Informe o motivo para não aprovar esta alteração. O solicitante será notificado.
+          </p>
+          <div class="ap-form__field" style="display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Motivo da Rejeição <span class="req" style="color: #ef4444;">*</span></label>
+            <textarea pTextarea [(ngModel)]="motivoNegacao" rows="4" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px;" placeholder="Descreva o motivo da rejeição..."></textarea>
+          </div>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <button class="ap-btn-ghost" (click)="exibirModalNegar = false" style="background: white; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; color: #64748b;"><i class="pi pi-times"></i> Cancelar</button>
+        <button class="ap-btn-reject-confirm" [disabled]="!motivoNegacao" (click)="confirmarNegar()" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;"><i class="pi pi-ban"></i> Confirmar</button>
+      </ng-template>
+    </p-dialog>
+
+    <p-dialog
+      [(visible)]="exibirModalDetalhes"
+      [header]="'Comparação: ' + pendenciaSelecionada?.equipamento?.patrimonio"
+      [modal]="true"
+      [style]="{ width: '600px' }"
+      styleClass="ap-dialog"
+      [draggable]="false"
+    >
+      <div class="ap-diff" *ngIf="pendenciaSelecionada" style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: white; font-size: 0.85rem;">
+        <div class="ap-diff__header" style="display: grid; grid-template-columns: 1fr 1fr 1fr; background: #f8fafc; padding: 10px; font-weight: 700; border-bottom: 1px solid #e2e8f0; color: #475569;">
+          <div class="label">Campo</div>
+          <div class="old">Valor Atual</div>
+          <div class="new">Novo Valor</div>
+        </div>
+        <div class="ap-diff__row" *ngFor="let campo of pendenciaSelecionada.camposAlterados" style="display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 10px; border-bottom: 1px solid #f1f5f9; align-items: center;">
+          <div class="label" style="font-weight: 600; color: #475569;">{{ traduzirCampo(campo) }}</div>
+          <div class="old" style="color: #ef4444; text-decoration: line-through;">{{ traduzirValor(pendenciaSelecionada.dadosAntigos[campo]) }}</div>
+          <div class="new" style="color: #10b981; font-weight: 600;">{{ traduzirValor(pendenciaSelecionada.dadosNovos[campo]) }}</div>
+        </div>
+      </div>
+      <ng-template pTemplate="footer">
+        <button class="ap-btn-ghost" (click)="exibirModalDetalhes = false" style="background: white; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; color: #64748b;">Fechar</button>
+        <button *ngIf="ehAdmin" class="ap-btn-approve" (click)="aprovar(pendenciaSelecionada.id); exibirModalDetalhes = false" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Aprovar Agora</button>
+        <button *ngIf="!ehAdmin" class="ap-btn-warning" (click)="cancelarPedido(pendenciaSelecionada); exibirModalDetalhes = false" style="background: #f59e0b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancelar Pedido</button>
+      </ng-template>
+    </p-dialog>
+
+    <p-toast position="bottom-right"></p-toast>
+    <p-confirmDialog></p-confirmDialog>
+  </div>
+</app-layout-pagina>

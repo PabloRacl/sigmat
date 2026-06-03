@@ -1,0 +1,170 @@
+<div class="login-container">
+  <div class="background-decor">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+  </div>
+
+  <div class="login-card">
+    <div class="header">
+      <div class="logo">
+        <img src="logo-pmpe-192.png" alt="Brasão da PMPE" class="logo-img">
+      </div>
+      <h2>SIGMAT</h2>
+      <p>Sistema de Gestão de Materiais — PMPE</p>
+    </div>
+
+      <form class="login-form" (ngSubmit)="login()">
+        <div class="input-group">
+          <label for="username">Matrícula ou CPF</label>
+          <div class="input-wrapper">
+            <i class="pi pi-user"></i>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              [(ngModel)]="username" 
+              placeholder="Digite sua matrícula ou CPF" 
+              required
+            >
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="password">Senha Corporativa</label>
+          <div class="input-wrapper">
+            <i class="pi pi-lock"></i>
+            <input 
+              [type]="showPassword ? 'text' : 'password'" 
+              id="password" 
+              name="password" 
+              [(ngModel)]="password" 
+              placeholder="••••••••" 
+              required
+            >
+            <i 
+              [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" 
+              class="toggle-password" 
+              (click)="togglePasswordVisibility()"
+            ></i>
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="error">
+          <i class="pi pi-times-circle"></i>
+          {{ error }}
+        </div>
+
+        <div class="mock-mode-toggle" *ngIf="mockLoginHint">
+          <label class="p-checkbox-label">
+            <input type="checkbox" name="mockMode" [(ngModel)]="mockMode" (change)="toggleMockMode()" />
+            Usar login mock local
+          </label>
+          <div class="mock-login-hint">
+            {{ mockLoginHint }}
+          </div>
+        </div>
+
+        <div class="mock-banner warning" *ngIf="mockModeService.useMock">
+          <div>
+            <div class="mock-banner-title">Modo mock local ativo</div>
+            <div class="mock-banner-text">As requisições irão usar dados de teste locais em vez do backend.</div>
+            <div class="mock-key" *ngIf="mockModeService.hasOverride">Override atual: {{ mockModeService.overrideValue }}</div>
+          </div>
+          <button type="button" class="link-btn" (click)="forceRealMode()">Forçar modo real</button>
+        </div>
+
+        <div class="mock-banner real-mode" *ngIf="!mockModeService.useMock && mockModeService.hasOverride">
+          <div>
+            <div class="mock-banner-title">Modo real forçado</div>
+            <div class="mock-banner-text">O backend real será usado mesmo em localhost.</div>
+            <div class="mock-key">Override atual: {{ mockModeService.overrideValue }}</div>
+          </div>
+          <button type="button" class="link-btn" (click)="resetMockOverride()">Remover override</button>
+        </div>
+
+        <button type="submit" class="login-btn" [disabled]="loading">
+          <span *ngIf="!loading">Acessar Sistema</span>
+          <i class="pi pi-spin pi-spinner" *ngIf="loading"></i>
+        </button>
+
+        <button type="button" class="secondary-btn" (click)="abrirDialogSolicitarAcesso()" [disabled]="loading">
+          Solicitar acesso
+        </button>
+      </form>
+
+      <p-dialog header="Solicitar acesso ao SIGMAT" [(visible)]="showRequestModal" [modal]="true" appendTo="body" [style]="{ width: '520px' }" [contentStyle]="{ 'max-height': 'calc(100vh - 140px)', overflow: 'visible' }" styleClass="login-access-dialog" (onHide)="fecharDialogSolicitarAcesso()">
+        <div class="request-dialog-content">
+          <div class="dialog-intro">
+            <div class="dialog-icon">
+              <i class="pi pi-shield"></i>
+            </div>
+            <div class="dialog-text">
+              <h3>Solicitação de acesso</h3>
+              <p>Use suas credenciais corporativas. Após o envio, a DTEC analisará e liberará seu acesso quando autorizado.</p>
+            </div>
+          </div>
+
+          <div class="request-note">
+            <i class="pi pi-info-circle"></i>
+            Essa solicitação só é necessária para usuários corporativos do SGA que ainda não têm autorização no SIGMAT.
+          </div>
+
+          <div class="input-group">
+            <label for="requestUsername">Matrícula ou CPF</label>
+            <div class="input-wrapper">
+              <i class="pi pi-user"></i>
+              <input
+                type="text"
+                id="requestUsername"
+                name="requestUsername"
+                [(ngModel)]="username"
+                placeholder="Digite sua matrícula ou CPF"
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="requestPassword">Senha Corporativa</label>
+            <div class="input-wrapper">
+              <i class="pi pi-lock"></i>
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                id="requestPassword"
+                name="requestPassword"
+                [(ngModel)]="password"
+                placeholder="••••••••"
+              />
+              <i
+                [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                class="toggle-password"
+                (click)="togglePasswordVisibility()"
+              ></i>
+            </div>
+          </div>
+
+          <div class="error-message" *ngIf="requestError">
+            <i class="pi pi-times-circle"></i>
+            {{ requestError }}
+          </div>
+
+          <div class="success-message" *ngIf="requestSuccess">
+            <i class="pi pi-check-circle"></i>
+            {{ requestSuccess }}
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="secondary-btn" (click)="fecharDialogSolicitarAcesso()">Cancelar</button>
+            <button type="button" class="login-btn" (click)="solicitarAcesso()" [disabled]="requestLoading">
+              <span *ngIf="!requestLoading">Enviar solicitação</span>
+              <i class="pi pi-spin pi-spinner" *ngIf="requestLoading"></i>
+            </button>
+          </div>
+        </div>
+      </p-dialog>
+
+    <div class="footer">
+      <p>&copy; 2026 DTEC - PMPE</p>
+    </div>
+  </div>
+</div>
+
