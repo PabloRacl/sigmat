@@ -58,10 +58,19 @@ export default async (req: any, res: any) => {
     return server(req, res);
   } catch (err: any) {
     console.error('ERRO CRÍTICO NO VERCEL:', err);
+    // Garante headers CORS mesmo em caso de falha no bootstrap
+    const origin = req.headers.origin;
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin || '*');
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.status(500).json({
       error: 'Falha na inicialização do servidor (Bootstrap Failed)',
       message: err.message,
       db_configured: !!process.env.DATABASE_URL,
+      mock_auth: process.env.USE_MOCK_AUTH,
     });
   }
 };
