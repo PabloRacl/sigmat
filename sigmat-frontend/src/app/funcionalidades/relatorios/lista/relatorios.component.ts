@@ -169,16 +169,12 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.filtroInventarioSubject.next();
   }
 
-  private async loadJspdf() {
-    const [jspdfModule, autoTableModule] = await Promise.all([
-      import('jspdf'),
-      import('jspdf-autotable')
-    ]);
+  private mmToPt(mm: number): number {
+    return mm * 2.834645669291337;
+  }
 
-    return {
-      jsPDF: jspdfModule.jsPDF ?? jspdfModule.default ?? jspdfModule,
-      autoTable: autoTableModule.default ?? autoTableModule
-    };
+  private async loadPdfLib(): Promise<typeof import('pdf-lib')> {
+    return await import('pdf-lib');
   }
 
   private async loadDocx() {
@@ -186,8 +182,82 @@ export class ReportsComponent implements OnInit, OnDestroy {
   }
 
   private async loadFileSaver() {
-    const fileSaver = await import('file-saver');
+    const fileSaver = await import('file-saver-es');
     return fileSaver.default ?? fileSaver;
+  }
+
+  private async gerarPdfTabela(titulo: string, subtitulo: string, colunas: string[], linhas: string[][], nomeArquivo: string) {
+    const pdfLib = await this.loadPdfLib();
+    const { PDFDocument, StandardFonts, rgb } = pdfLib;
+    const pdfDoc = await PDFDocument.create();
+    const pageWidth = this.mmToPt(297);
+    const pageHeight = this.mmToPt(210);
+    const margin = this.mmToPt(16);
+    const lineHeight = this.mmToPt(6.5);
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    let page = pdfDoc.addPage([pageWidth, pageHeight]);
+    let cursorY = pageHeight - margin;
+
+    page.drawText(titulo, {
+      x: margin,
+      y: cursorY,
+      size: 14,
+      font: boldFont,
+      color: rgb(0.1, 0.1, 0.1)
+    });
+
+    cursorY -= lineHeight * 1.5;
+    page.drawText(subtitulo, {
+      x: margin,
+      y: cursorY,
+      size: 9,
+      font,
+      color: rgb(0.2, 0.2, 0.2)
+    });
+
+    cursorY -= lineHeight * 1.8;
+    const columnWidth = (pageWidth - margin * 2) / colunas.length;
+
+    const drawHeader = () => {
+      page.drawText(colunas.join(' | '), {
+        x: margin,
+        y: cursorY,
+        size: 8,
+        font: boldFont,
+        color: rgb(0.1, 0.1, 0.1)
+      });
+      cursorY -= lineHeight;
+    };
+
+    drawHeader();
+
+    for (const row of linhas) {
+      if (cursorY < margin + lineHeight) {
+        page = pdfDoc.addPage([pageWidth, pageHeight]);
+        cursorY = pageHeight - margin;
+        drawHeader();
+      }
+
+      const rowText = row.map((cell, index) => {
+        const value = String(cell || '').replace(/\s+/g, ' ').trim();
+        return value.length > 32 ? value.slice(0, 29) + '...' : value;
+      }).join(' | ');
+
+      page.drawText(rowText, {
+        x: margin,
+        y: cursorY,
+        size: 8,
+        font,
+        color: rgb(0.2, 0.2, 0.2)
+      });
+      cursorY -= lineHeight;
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    const fileSaver = await this.loadFileSaver();
+    fileSaver.saveAs(new Blob([pdfBytes], { type: 'application/pdf' }), nomeArquivo);
   }
 
   exportarCSV() {
@@ -277,15 +347,12 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   async exportarTransferPDF() {
     if (this.transferencias.length === 0) return;
-    const { jsPDF, autoTable } = await this.loadJspdf();
-    const doc = new jsPDF('landscape');
-    const totalPagesExp = '{total_pages_count_string}';
 
-    const headers = [[
+    const headers = [
       'Data Envio', 'Origem', 'Destino', 'Patrimônio', 'Solicitante', 'Recebedor', 'Status', 'Data Recebimento', 'Observação'
-    ]];
+    ];
 
-    const data = this.transferencias.map((t: any) => [
+    const rows = this.transferencias.map((t: any) => [
       this.formatarData(t.dataEnvio),
       t.origem?.sigla || '',
       t.destino?.sigla || '',
@@ -297,43 +364,13 @@ export class ReportsComponent implements OnInit, OnDestroy {
       t.observacao || ''
     ]);
 
-    autoTable(doc, {
-      head: headers,
-      body: data,
-      startY: 35,
-      styles: { fontSize: 7, cellPadding: 3 },
-      headStyles: { fillColor: [21, 128, 61], textColor: 255, fontStyle: 'bold', halign: 'center' },
-      alternateRowStyles: { fillColor: [248, 250, 252] },
-      didDrawPage: (data) => {
-        doc.setFillColor(30, 64, 175);
-        doc.rect(0, 0, doc.internal.pageSize.width, 15, 'F');
-        doc.setTextColor(255);
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('SIGMAT - SISTEMA DE GESTÃO DE MATERIAIS', 14, 10);
-
-        doc.setTextColor(50);
-        doc.setFontSize(12);
-        doc.text('Relatório de Transferências', 14, 25);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} | Total: ${this.transferencias.length} registros`, 14, 30);
-
-        let str = `Página ${(doc.internal as any).getNumberOfPages()}`;
-        if (typeof doc.putTotalPages === 'function') {
-          str = str + ' de ' + totalPagesExp;
-        }
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(str, data.settings.margin.left, doc.internal.pageSize.height - 10);
-      }
-    });
-
-    if (typeof doc.putTotalPages === 'function') {
-      doc.putTotalPages(totalPagesExp);
-    }
-
-    doc.save(`transferencias_sigmat_${new Date().toISOString().slice(0, 10)}.pdf`);
+    await this.gerarPdfTabela(
+      'Relatório de Transferências',
+      `Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} | Total: ${this.transferencias.length} registros`,
+      headers,
+      rows,
+      `transferencias_sigmat_${new Date().toISOString().slice(0, 10)}.pdf`
+    );
   }
 
   imprimirTransferencias() {
@@ -515,12 +552,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   async exportarPDF() {
     if (this.inventario.length === 0) return;
-    const { jsPDF, autoTable } = await this.loadJspdf();
-    const doc = new jsPDF('landscape');
-    const totalPagesExp = '{total_pages_count_string}';
 
-    const headers = [['Patrimônio', 'SEI', 'Série', 'Tipo', 'Marca/Modelo', 'Seção', 'Status', 'Disp.', 'Observação']];
-    const data = this.inventario.map(e => [
+    const headers = ['Patrimônio', 'SEI', 'Série', 'Tipo', 'Marca/Modelo', 'Seção', 'Status', 'Disp.', 'Observação'];
+    const rows = this.inventario.map(e => [
       e.patrimonio || '',
       e.sei || '',
       e.numeroSerie || '',
@@ -532,43 +566,13 @@ export class ReportsComponent implements OnInit, OnDestroy {
       e.observacao || ''
     ]);
 
-    autoTable(doc, {
-      head: headers,
-      body: data,
-      startY: 35,
-      styles: { fontSize: 8, cellPadding: 3 },
-      headStyles: { fillColor: [21, 128, 61], textColor: 255, fontStyle: 'bold', halign: 'center' },
-      alternateRowStyles: { fillColor: [248, 250, 252] },
-      didDrawPage: (data) => {
-        doc.setFillColor(30, 64, 175);
-        doc.rect(0, 0, doc.internal.pageSize.width, 15, 'F');
-        doc.setTextColor(255);
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('SIGMAT - SISTEMA DE GESTÃO DE MATERIAIS', 14, 10);
-
-        doc.setTextColor(50);
-        doc.setFontSize(12);
-        doc.text('Relatório Oficial de Equipamentos', 14, 25);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} | Total de registros: ${this.inventario.length}`, 14, 30);
-
-        let str = `Página ${(doc.internal as any).getNumberOfPages()}`;
-        if (typeof doc.putTotalPages === 'function') {
-          str = str + ' de ' + totalPagesExp;
-        }
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(str, data.settings.margin.left, doc.internal.pageSize.height - 10);
-      }
-    });
-
-    if (typeof doc.putTotalPages === 'function') {
-      doc.putTotalPages(totalPagesExp);
-    }
-
-    doc.save(`relatorio_sigmat_${new Date().toISOString().slice(0, 10)}.pdf`);
+    await this.gerarPdfTabela(
+      'Relatório Oficial de Equipamentos',
+      `Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} | Total de registros: ${this.inventario.length}`,
+      headers,
+      rows,
+      `relatorio_sigmat_${new Date().toISOString().slice(0, 10)}.pdf`
+    );
   }
 
   async exportarWord() {
