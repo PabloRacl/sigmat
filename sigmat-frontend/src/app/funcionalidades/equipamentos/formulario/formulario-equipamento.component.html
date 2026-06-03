@@ -53,8 +53,12 @@
       </div>
       <div class="eq-form__field flex-1">
         <label>Status <span class="req">*</span></label>
-        <p-select [options]="status" formControlName="statusId" optionLabel="nome" optionValue="id" 
-          styleClass="w-full" appendTo="body"></p-select>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <p-select [options]="status" formControlName="statusId" optionLabel="nome" optionValue="id"
+            styleClass="w-full" appendTo="body"></p-select>
+          <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm"
+            (click)="solicitarNovoStatus()" pTooltip="Adicionar novo status" tooltipPosition="top"></button>
+        </div>
       </div>
     </div>
 
@@ -125,7 +129,7 @@
     </div>
 
     <div class="eq-dialog-footer">
-      <button type="button" class="eq-btn-ghost" (click)="fechar()">Cancelar</button>
+      <button type="button" class="eq-btn-cancel" (click)="fechar()">Cancelar</button>
       <button type="submit" class="eq-btn-primary" [disabled]="form.invalid">{{ editando ? 'Salvar Alterações' : 'Cadastrar' }}</button>
     </div>
   </form>

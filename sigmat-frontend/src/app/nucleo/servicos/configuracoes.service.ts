@@ -119,11 +119,53 @@ export class SettingsService {
     return this.http.post<any>(`${this.API_URL}/modelos`, dados);
   }
 
+  excluirTipo(id: number): Observable<any> {
+    if (this.mockMode.useMock) {
+      return of({ success: true });
+    }
+    return this.http.delete<any>(`${this.API_URL}/tipos/${id}`);
+  }
+
+  excluirMarca(id: number): Observable<any> {
+    if (this.mockMode.useMock) {
+      return of({ success: true });
+    }
+    return this.http.delete<any>(`${this.API_URL}/marcas/${id}`);
+  }
+
+  excluirModelo(id: number): Observable<any> {
+    if (this.mockMode.useMock) {
+      return of({ success: true });
+    }
+    return this.http.delete<any>(`${this.API_URL}/modelos/${id}`);
+  }
+
+  criarStatus(dados: { nome: string }): Observable<any> {
+    if (this.mockMode.useMock) {
+      return of({ id: Date.now(), ...dados });
+    }
+    return this.http.post<any>(`${this.API_URL}/status`, dados);
+  }
+
   listarStatus(): Observable<any[]> {
     if (this.mockMode.useMock) {
       return of(MOCK_STATUS);
     }
     return this.http.get<any[]>(`${this.API_URL}/status`);
+  }
+
+  excluirStatus(id: number): Observable<any> {
+    if (this.mockMode.useMock) {
+      return of({ success: true });
+    }
+    return this.http.delete<any>(`${this.API_URL}/status/${id}`);
+  }
+
+  atualizarStatus(id: number, dados: { nome: string }): Observable<any> {
+    if (this.mockMode.useMock) {
+      return of({ ...dados, id });
+    }
+    return this.http.put<any>(`${this.API_URL}/status/${id}`, dados);
   }
 
   listarDisponibilidades(): Observable<any[]> {

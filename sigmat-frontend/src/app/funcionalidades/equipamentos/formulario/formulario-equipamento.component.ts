@@ -160,6 +160,10 @@ export class EquipmentFormComponent implements OnInit {
     this.carregarChips();
   }
 
+  refreshStatus() {
+    this.configService.listarStatus().subscribe(res => this.status = res);
+  }
+
   refreshTipos() {
     this.configService.listarTipos().subscribe(res => this.tipos = res);
   }
@@ -175,6 +179,29 @@ export class EquipmentFormComponent implements OnInit {
     });
   }
 
+  solicitarNovoStatus() {
+    const nome = prompt('Informe o nome do novo status:');
+    if (!nome?.trim()) return;
+    const payload = { nome: nome.trim() };
+    this.configService.criarStatus(payload).subscribe({
+      next: (res: any) => {
+        this.messageService.add({ severity: 'success', summary: 'Status criado', detail: 'Status cadastrado com sucesso.' });
+        this.refreshStatus();
+      },
+      error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Não foi possível criar o status.' })
+    });
+  }
+
+  excluirStatus(id: number) {
+    this.configService.excluirStatus(id).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Status excluído', detail: 'Status removido com sucesso.' });
+        this.refreshStatus();
+      },
+      error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Não foi possível excluir o status.' })
+    });
+  }
+
   solicitarNovoTipo() {
     const nome = prompt('Informe o nome do novo tipo de equipamento:');
     if (!nome?.trim()) return;
@@ -185,7 +212,7 @@ export class EquipmentFormComponent implements OnInit {
         this.refreshTipos();
         this.form.patchValue({ tipoEquipamentoId: res.id });
       },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'NÃ£o foi possÃ­vel criar o tipo.' })
+      error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Não foi possível criar o tipo.' })
     });
   }
 
@@ -199,7 +226,7 @@ export class EquipmentFormComponent implements OnInit {
         this.refreshMarcas();
         this.form.patchValue({ marcaId: res.id });
       },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'NÃ£o foi possÃ­vel criar a marca.' })
+      error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Não foi possível criar a marca.' })
     });
   }
 
@@ -218,7 +245,7 @@ export class EquipmentFormComponent implements OnInit {
         this.refreshModelos();
         this.form.patchValue({ modeloId: res.id });
       },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'NÃ£o foi possÃ­vel criar o modelo.' })
+      error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Não foi possível criar o modelo.' })
     });
   }
 

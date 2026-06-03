@@ -23,3 +23,6 @@ Obsidian/
 
 # Angular cache
 .angular/
+
+# Arquivos grandes / instaladores
+*.exe

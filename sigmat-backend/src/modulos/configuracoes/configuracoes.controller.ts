@@ -1,33 +1,65 @@
-import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { SettingsService } from './configuracoes.service';
 import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
 import { RolesGuard } from '../../comum/guardas/roles.guard';
 import { Roles } from '../../comum/decoradores/roles.decorator';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 class CriarTipoDto {
+  @IsString()
+  @IsNotEmpty({ message: 'O nome do tipo de equipamento não pode ser vazio.' })
   nome: string = '';
 }
 
 class CriarMarcaDto {
+  @IsString()
+  @IsNotEmpty({ message: 'O nome da marca não pode ser vazio.' })
   nome: string = '';
 }
 
 class CriarModeloDto {
+  @IsString()
+  @IsNotEmpty({ message: 'O nome do modelo não pode ser vazio.' })
   nome: string = '';
+
+  @IsInt()
+  @IsOptional()
   marcaId?: number;
 }
 
 class CriarSecaoDto {
+  @IsString()
+  @IsNotEmpty()
   sigla: string = '';
+
+  @IsString()
+  @IsNotEmpty()
   nome: string = '';
+
+  @IsInt()
+  @IsOptional()
   batalhaoId?: number;
+
+  @IsInt()
+  @IsOptional()
   diretoriaId?: number;
 }
 
 class AtualizarSecaoDto {
+  @IsString()
+  @IsOptional()
   sigla?: string;
+
+  @IsString()
+  @IsOptional()
   nome?: string;
+
+  @IsInt()
+  @IsOptional()
   batalhaoId?: number;
+
+  @IsInt()
+  @IsOptional()
   diretoriaId?: number;
 }
 
@@ -101,6 +133,24 @@ export class SettingsController {
   @Get('batalhoes')
   listarBatalhoes() {
     return this.SettingsService.listarBatalhoes();
+  }
+
+  @Delete('tipos/:id')
+  @Roles('ADMIN_DTEC')
+  excluirTipo(@Param('id') id: string) {
+    return this.SettingsService.excluirTipo(Number(id));
+  }
+
+  @Delete('marcas/:id')
+  @Roles('ADMIN_DTEC')
+  excluirMarca(@Param('id') id: string) {
+    return this.SettingsService.excluirMarca(Number(id));
+  }
+
+  @Delete('modelos/:id')
+  @Roles('ADMIN_DTEC')
+  excluirModelo(@Param('id') id: string) {
+    return this.SettingsService.excluirModelo(Number(id));
   }
 }
 

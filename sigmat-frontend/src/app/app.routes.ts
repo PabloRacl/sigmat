@@ -42,6 +42,11 @@ export const routes: Routes = [
         loadComponent: () => import('./funcionalidades/relatorios/lista/relatorios.component').then(m => m.ReportsComponent)
       },
       {
+        path: 'secoes',
+        loadComponent: () => import('./funcionalidades/configuracoes/secoes/secoes.component').then(m => m.SettingsSectionsComponent),
+        canActivate: [RoleGuard]
+      },
+      {
         path: 'configuracoes',
         loadComponent: () => import('./funcionalidades/configuracoes/secoes/secoes.component').then(m => m.SettingsSectionsComponent),
         canActivate: [RoleGuard]

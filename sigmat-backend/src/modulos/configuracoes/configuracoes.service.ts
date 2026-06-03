@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../banco-dados/prisma.service';
 import { PerfilUsuario } from '@prisma/client';
 
@@ -78,15 +78,64 @@ export class SettingsService {
   }
 
   async criarTipo(dados: { nome: string }) {
-    return this.prisma.tipoEquipamento.create({ data: { nome: dados.nome } });
+    const nomeNormalizado = dados.nome?.trim();
+    if (!nomeNormalizado) {
+      throw new BadRequestException('O nome do tipo de equipamento não pode ser vazio.');
+    }
+    const existente = await this.prisma.tipoEquipamento.findFirst({
+      where: {
+        nome: {
+          equals: nomeNormalizado,
+          mode: 'insensitive'
+        }
+      }
+    });
+    if (existente) {
+      throw new ConflictException(`O tipo de equipamento "${nomeNormalizado}" já está cadastrado.`);
+    }
+    return this.prisma.tipoEquipamento.create({ data: { nome: nomeNormalizado } });
   }
 
   async criarMarca(dados: { nome: string }) {
-    return this.prisma.marca.create({ data: { nome: dados.nome } });
+    const nomeNormalizado = dados.nome?.trim();
+    if (!nomeNormalizado) {
+      throw new BadRequestException('O nome da marca não pode ser vazio.');
+    }
+    const existente = await this.prisma.marca.findFirst({
+      where: {
+        nome: {
+          equals: nomeNormalizado,
+          mode: 'insensitive'
+        }
+      }
+    });
+    if (existente) {
+      throw new ConflictException(`A marca "${nomeNormalizado}" já está cadastrada.`);
+    }
+    return this.prisma.marca.create({ data: { nome: nomeNormalizado } });
   }
 
   async criarModelo(dados: { nome: string; marcaId?: number }) {
-    return this.prisma.modelo.create({ data: { nome: dados.nome, marcaId: dados.marcaId } });
+    const nomeNormalizado = dados.nome?.trim();
+    if (!nomeNormalizado) {
+      throw new BadRequestException('O nome do modelo não pode ser vazio.');
+    }
+    if (!dados.marcaId) {
+      throw new BadRequestException('A marca deve ser informada para criar um modelo.');
+    }
+    const existente = await this.prisma.modelo.findFirst({
+      where: {
+        nome: {
+          equals: nomeNormalizado,
+          mode: 'insensitive'
+        },
+        marcaId: dados.marcaId
+      }
+    });
+    if (existente) {
+      throw new ConflictException(`O modelo "${nomeNormalizado}" já está cadastrado para esta marca.`);
+    }
+    return this.prisma.modelo.create({ data: { nome: nomeNormalizado, marcaId: dados.marcaId } });
   }
 
   async listarStatus() {
@@ -165,6 +214,56 @@ export class SettingsService {
   async listarBatalhoes() {
     return this.prisma.batalhao.findMany({
       orderBy: { sigla: 'asc' },
+    });
+  }
+
+  async excluirTipo(id: number) {
+    const equipamentosCount = await this.prisma.equipamento.count({
+      where: { tipoEquipamentoId: id }
+    });
+    if (equipamentosCount > 0) {
+      throw new ConflictException(`Não é possível excluir este tipo de equipamento porque existem ${equipamentosCount} equipamento(s) vinculados a ele.`);
+    }
+
+    await this.prisma.usuarioTipoEquipamento.deleteMany({
+      where: { tipoEquipamentoId: id }
+    });
+
+    return this.prisma.tipoEquipamento.delete({
+      where: { id }
+    });
+  }
+
+  async excluirMarca(id: number) {
+    const modelosCount = await this.prisma.modelo.count({
+      where: { marcaId: id }
+    });
+    if (modelosCount > 0) {
+      throw new ConflictException(`Não é possível excluir esta marca porque existem ${modelosCount} modelo(s) cadastrados para ela. Exclua os modelos primeiro.`);
+    }
+
+    const equipamentosCount = await this.prisma.equipamento.count({
+      where: { marcaId: id }
+    });
+    if (equipamentosCount > 0) {
+      throw new ConflictException(`Não é possível excluir esta marca porque existem ${equipamentosCount} equipamento(s) vinculados a ela.`);
+    }
+
+    return this.prisma.marca.delete({
+      where: { id }
+    });
+  }
+
+  async excluirModelo(id: number) {
+    const equipamentosCount = await this.prisma.equipamento.count({
+      where: { modeloId: id }
+    });
+    if (equipamentosCount > 0) {
+      throw new ConflictException(`Não é possível excluir este modelo porque existem ${equipamentosCount} equipamento(s) vinculados a ele.`);
+    }
+
+    return this.prisma.modelo.delete({
+      where: { id }
     });
   }
 }

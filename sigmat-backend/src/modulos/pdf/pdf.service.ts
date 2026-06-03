@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import PDFDocument from 'pdfkit';
+import PDFDocument = require('pdfkit');
+import * as fs from 'fs';
+import * as path from 'path';
+import QRCode from 'qrcode';
 
 @Injectable()
 export class PdfService {
@@ -112,73 +115,118 @@ export class PdfService {
     });
   }
 
+  // Duplicate gerarEtiqueta implementation removed
   async gerarEtiqueta(item: any): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      // Determine label orientation and dimensions (mm)
+      const isVertical = item.layout === 'vertical';
+      const widthMm = isVertical ? 40 : 60; // label width in mm
+      const heightMm = isVertical ? 60 : 40; // label height in mm
+
+      // Create A4 PDF document to hold five labels
       const doc = new PDFDocument({
-        size: [this.mmToPt(60), this.mmToPt(40)],
-        margins: { top: 0, left: 0, right: 0, bottom: 0 }
+        size: 'A4',
+        margins: { top: 0, left: 0, right: 0, bottom: 0 },
       });
 
-      let buffers: Buffer[] = [];
+      const buffers: Buffer[] = [];
       doc.on('data', (chunk: Buffer) => buffers.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
 
-      const pageWidth = this.mmToPt(60);
-      const pageHeight = this.mmToPt(40);
+      // Convert label dimensions to points (pdfkit uses points)
+      const labelWidthPt = this.mmToPt(widthMm);
+      const labelHeightPt = this.mmToPt(heightMm);
+      const pageWidth = this.mmToPt(210); // A4 width in points
 
-      // Cabeçalho
-      doc
-        .rect(0, pageHeight - this.mmToPt(9), pageWidth, this.mmToPt(9))
-        .fillAndStroke('#0f163a', '#0f163a');
+      // Prepare QR code and logo buffers (reuse for all labels)
+      const qrContent = `https://sigmat.local/etiqueta/${item.patrimonio}`;
+      const qrDataUrl = await QRCode.toDataURL(qrContent);
+      const qrBase64 = qrDataUrl.replace(/^data:image\/png;base64,/, '');
+      const qrBuffer = Buffer.from(qrBase64, 'base64');
+      const logoPath = path.resolve(__dirname, '../../../../sigmat-frontend/src/assets/cropped-logo-pmpe-150x150.png');
+      const logoBuffer = fs.readFileSync(logoPath);
 
-      doc.fillColor('#ffffff');
-      doc.font('Helvetica-Bold');
-      doc.fontSize(5);
-      doc.text('POLÍCIA MILITAR DE PERNAMBUCO', this.mmToPt(10.5), pageHeight - this.mmToPt(3.8));
+      // Helper to draw a single label at a given vertical offset
+      const drawLabel = (offsetY: number) => {
+        // Header (premium background)
+        const headerHeight = this.mmToPt(9);
+        doc
+          .rect(0, offsetY, labelWidthPt, headerHeight)
+          .fillAndStroke('#0f163a', '#0f163a');
 
-      doc.fontSize(6.2);
-      doc.text('SIGMAT — GESTÃO DE PATRIMÔNIO', this.mmToPt(10.5), pageHeight - this.mmToPt(6.8));
+        // Logo in header left corner
+        const logoWidthMm = 4;
+        const logoX = this.mmToPt(2);
+        const logoY = offsetY + (headerHeight - this.mmToPt(logoWidthMm)) / 2;
+        doc.image(logoBuffer, logoX, logoY, { width: this.mmToPt(logoWidthMm) });
 
-      // Conteúdo
-      doc.fillColor('#000000');
-      doc.font('Helvetica-Bold');
-      doc.fontSize(5);
-      doc.text('PATRIMÔNIO', this.mmToPt(4), pageHeight - this.mmToPt(26.5));
+        // Centered header text
+        doc.fillColor('#ffffff');
+        doc.font('Helvetica-Bold');
+        const headerTextX = this.mmToPt(2) + this.mmToPt(logoWidthMm) + this.mmToPt(1);
+        const headerTextWidth = labelWidthPt - headerTextX - this.mmToPt(2);
+        doc.fontSize(3);
+        doc.text('POLÍCIA MILITAR DE PERNAMBUCO', headerTextX, offsetY + this.mmToPt(1.5), { width: headerTextWidth, align: 'center' });
+        
+        // Adjust body top and QR size based on orientation
+        const bodyTop = offsetY + headerHeight + this.mmToPt(isVertical ? 1 : 0.5);
+        const columnGap = this.mmToPt(1);
+        const columnWidth = (labelWidthPt - columnGap) / 2;
+        const qrSize = this.mmToPt(18); // larger QR for better scanability
+        const qrX = labelWidthPt - qrSize - this.mmToPt(2);
+        const qrY = bodyTop;
+        doc.image(qrBuffer, qrX, qrY, { width: qrSize });
 
-      doc.fontSize(9);
-      doc.text(item.patrimonio || 'S/PAT', this.mmToPt(4), pageHeight - this.mmToPt(23.5));
+        // Left column
+        const leftX = this.mmToPt(2);
+        doc.fillColor('#000000');
+        // Left column (starts at top after header)
+        doc.font('Helvetica-Bold');
+        doc.fontSize(3);
+        doc.text('PATRIMÔNIO', leftX, bodyTop + this.mmToPt(2));
+        doc.font('Helvetica');
+        doc.fontSize(5);
+        doc.text(item.patrimonio || 'S/PAT', leftX, bodyTop + this.mmToPt(5));
+        doc.font('Helvetica-Bold');
+        doc.fontSize(4);
+        doc.text('TIPO DE MATERIAL', leftX, bodyTop + this.mmToPt(9));
+        doc.font('Helvetica');
+        doc.fontSize(5);
+        doc.text(item.tipoEquipamento?.nome || '—', leftX, bodyTop + this.mmToPt(11));
+        doc.font('Helvetica-Bold');
+        doc.fontSize(4);
+        doc.text('MARCA / MODELO', leftX, bodyTop + this.mmToPt(15));
+        doc.font('Helvetica');
+        doc.fontSize(5);
+        const marca = `${item.marca?.nome || '—'} ${item.modelo?.nome || ''}`.trim();
+        doc.text(marca, leftX, bodyTop + this.mmToPt(17));
 
-      doc.fontSize(5);
-      doc.text('TIPO DE MATERIAL', this.mmToPt(4), pageHeight - this.mmToPt(20));
+        // Section / Unidade placed below QR code
+        const secY = bodyTop + qrSize + this.mmToPt(20);
+        doc.font('Helvetica-Bold');
+        doc.fontSize(4);
+        doc.text('SEÇÃO / UNIDADE', qrX, secY, { width: qrSize, align: 'center' });
+        doc.fontSize(5);
+        doc.text(item.secao?.sigla || 'DTEC', qrX, secY + this.mmToPt(3), { width: qrSize, align: 'center' });
 
-      doc.font('Helvetica');
-      doc.fontSize(7.2);
-      doc.text(item.tipoEquipamento?.nome || 'Não Informado', this.mmToPt(4), pageHeight - this.mmToPt(17.5));
+        // Footer (premium background)
+        const footerHeight = this.mmToPt(9);
+        doc
+          .rect(0, offsetY + labelHeightPt - footerHeight, labelWidthPt, footerHeight)
+          .fillAndStroke('#0f163a', '#0f163a');
+        doc.fillColor('#ffffff');
+        doc.font('Helvetica-Bold');
+        doc.fontSize(4);
+        doc.text('DTEC‑UTEL', this.mmToPt(2), offsetY + labelHeightPt - footerHeight + this.mmToPt(2), { width: labelWidthPt - this.mmToPt(4), align: 'center' });
+        doc.font('Helvetica');
+        doc.fontSize(3);
+        doc.text('DTEC / SISTEMAS AUDITORIA VIA QR CODE', this.mmToPt(2), offsetY + labelHeightPt - footerHeight + this.mmToPt(5), { width: labelWidthPt - this.mmToPt(4), align: 'center' });
+      };
 
-      doc.font('Helvetica-Bold');
-      doc.fontSize(5);
-      doc.text('MARCA / MODELO', this.mmToPt(4), pageHeight - this.mmToPt(14.5));
-
-      doc.font('Helvetica');
-      doc.fontSize(6.5);
-      const marca = `${item.marca?.nome || '—'} ${item.modelo?.nome || ''}`.trim();
-      doc.text(marca, this.mmToPt(4), pageHeight - this.mmToPt(12));
-
-      // Seção alinhada à direita
-      doc.font('Helvetica-Bold');
-      doc.fontSize(5);
-      doc.text('SEÇÃO / UNIDADE', this.mmToPt(4), pageHeight - this.mmToPt(14.5), {
-        align: 'right',
-        width: this.mmToPt(52)
-      });
-
-      doc.font('Helvetica-Bold');
-      doc.fontSize(7.5);
-      doc.text(item.secao?.sigla || 'DTEC', this.mmToPt(4), pageHeight - this.mmToPt(12), {
-        align: 'right',
-        width: this.mmToPt(52)
-      });
+// Draw a single label (no stacking)
+const offsetY = 0;
+drawLabel(offsetY);
 
       doc.end();
     });

@@ -13,6 +13,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputTextarea } from 'primeng/inputtextarea';
 import { SelectModule } from 'primeng/select';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-settings-sections',
@@ -40,6 +41,10 @@ export class SettingsSectionsComponent implements OnInit {
   private equipmentService = inject(EquipmentService);
   private transfersService = inject(TransfersService);
   private messageService = inject(MessageService);
+  private router = inject(Router);
+
+  // flag to detect if we are on the dedicated "Seções" route
+  isSecoesRoute: boolean = false;
 
   usuario: any = null;
   userPerfil: string | null = null;
@@ -48,8 +53,22 @@ export class SettingsSectionsComponent implements OnInit {
 
   secoes: any[] = [];
   batalhoes: any[] = [];
+  tipos: any[] = [];
+  marcas: any[] = [];
+  modelos: any[] = [];
+  statusList: any[] = [];
+  abaAtiva: 'secoes' | 'tipos' | 'marcas' | 'modelos' | 'status' = 'secoes';
+
   carregando = false;
+  statusDialogVisivel = false;
+  editandoStatus = false;
+  statusForm: FormGroup;
+  statusSelecionadoId: number | null = null;
   dialogVisivel = false;
+  tipoDialogVisivel = false;
+  marcaDialogVisivel = false;
+  modeloDialogVisivel = false;
+
   exibirModalTransferencia = false;
   editando = false;
   totalEquipamentos = 0;
@@ -59,7 +78,11 @@ export class SettingsSectionsComponent implements OnInit {
   equipamentoSelecionadoId: number | null = null;
   observacaoTransferencia = '';
   destinosDisponiveis: any[] = [];
+
   form: FormGroup;
+  tipoForm: FormGroup;
+  marcaForm: FormGroup;
+  modeloForm: FormGroup;
 
   constructor() {
     this.form = this.fb.group({
@@ -68,6 +91,19 @@ export class SettingsSectionsComponent implements OnInit {
       nome: ['', Validators.required],
       batalhaoId: [null, Validators.required]
     });
+    this.tipoForm = this.fb.group({
+      nome: ['', Validators.required]
+    });
+    this.marcaForm = this.fb.group({
+      nome: ['', Validators.required]
+    });
+    this.modeloForm = this.fb.group({
+      nome: ['', Validators.required],
+      marcaId: [null, Validators.required]
+    });
+    this.statusForm = this.fb.group({
+      nome: ['', Validators.required]
+    });
   }
 
   ngOnInit() {
@@ -75,9 +111,11 @@ export class SettingsSectionsComponent implements OnInit {
     this.userPerfil = this.usuario?.perfil;
     this.userBatalhaoId = this.usuario?.batalhaoId ?? null;
     this.userDiretoriaId = this.usuario?.diretoriaId ?? null;
+    this.isSecoesRoute = this.router.url.includes('/secoes');
     this.carregarDados();
   }
 
+  // ---------- Data loading ----------
   carregarDados() {
     this.carregando = true;
     this.settingsService.listarSecoes().subscribe({
@@ -86,9 +124,7 @@ export class SettingsSectionsComponent implements OnInit {
         this.atualizarTotalEquipamentos();
         this.carregando = false;
       },
-      error: () => {
-        this.carregando = false;
-      }
+      error: () => (this.carregando = false)
     });
 
     this.settingsService.listarBatalhoes().subscribe({
@@ -103,8 +139,14 @@ export class SettingsSectionsComponent implements OnInit {
         }
       }
     });
+
+    this.settingsService.listarTipos().subscribe({ next: (res) => (this.tipos = res || []) });
+    this.settingsService.listarMarcas().subscribe({ next: (res) => (this.marcas = res || []) });
+    this.settingsService.listarModelos().subscribe({ next: (res) => (this.modelos = res || []) });
+    this.settingsService.listarStatus().subscribe({ next: (res) => (this.statusList = res || []) });
   }
 
+  // ---------- Dialog handling ----------
   abrirDialog(secao?: any) {
     this.editando = !!secao;
     this.dialogVisivel = true;
@@ -118,11 +160,10 @@ export class SettingsSectionsComponent implements OnInit {
     } else {
       this.form.reset();
       this.form.patchValue({ id: null });
-      if (this.userPerfil === 'USUARIO_BATALHAO' && this.userBatalhaoId) {
+      if (this.userPerfil === 'USUARIO_BATALHO' && this.userBatalhaoId) {
         this.form.patchValue({ batalhaoId: this.userBatalhaoId });
       }
     }
-
     if (this.userPerfil === 'USUARIO_BATALHAO') {
       this.form.get('batalhaoId')?.disable();
     } else {
@@ -147,7 +188,6 @@ export class SettingsSectionsComponent implements OnInit {
     const origem = this.secoes.find((s: any) => s.id === this.origemSecaoId);
     const batalhaoId = origem?.batalhaoId ?? this.userBatalhaoId;
     this.destinosDisponiveis = this.secoes.filter((s: any) => s.batalhaoId === batalhaoId && s.id !== this.origemSecaoId);
-
     if (this.origemSecaoId) {
       this.carregarEquipamentosOrigem(this.origemSecaoId);
     } else {
@@ -157,12 +197,8 @@ export class SettingsSectionsComponent implements OnInit {
 
   carregarEquipamentosOrigem(secaoId: number) {
     this.equipmentService.listarTodos(1, 1000, '', { secaoId }).subscribe({
-      next: (res) => {
-        this.equipamentosOrigem = res.itens || [];
-      },
-      error: () => {
-        this.equipamentosOrigem = [];
-      }
+      next: (res) => (this.equipamentosOrigem = res.itens || []),
+      error: () => (this.equipamentosOrigem = [])
     });
   }
 
@@ -171,12 +207,7 @@ export class SettingsSectionsComponent implements OnInit {
       this.messageService.add({ severity: 'warn', summary: 'Atenção', detail: 'Selecione equipamento e seção de destino.' });
       return;
     }
-
-    this.transfersService.solicitar({
-      equipamentoId: this.equipamentoSelecionadoId,
-      destinoId: this.destinoSecaoId,
-      observacao: this.observacaoTransferencia
-    }).subscribe({
+    this.transfersService.solicitar({ equipamentoId: this.equipamentoSelecionadoId, destinoId: this.destinoSecaoId, observacao: this.observacaoTransferencia }).subscribe({
       next: () => {
         this.messageService.add({ severity: 'success', summary: 'Transferência criada', detail: 'Solicitação de transferência interna enviada com sucesso.' });
         this.exibirModalTransferencia = false;
@@ -197,12 +228,8 @@ export class SettingsSectionsComponent implements OnInit {
       this.messageService.add({ severity: 'warn', summary: 'Validação', detail: 'Preencha todos os campos obrigatórios.' });
       return;
     }
-
     const dados = this.form.getRawValue();
-    const action = this.editando
-      ? this.settingsService.atualizarSecao(dados.id, dados)
-      : this.settingsService.criarSecao(dados);
-
+    const action = this.editando ? this.settingsService.atualizarSecao(dados.id, dados) : this.settingsService.criarSecao(dados);
     action.subscribe({
       next: () => {
         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: `Seção ${this.editando ? 'atualizada' : 'criada'} com sucesso.` });
@@ -218,5 +245,144 @@ export class SettingsSectionsComponent implements OnInit {
 
   getBatalhaoNome(id: number) {
     return this.batalhoes.find((b: any) => b.id === id)?.sigla || '—';
+  }
+
+  // ---------- Tipo ----------
+  abrirDialogTipo() {
+    this.tipoForm.reset();
+    this.tipoDialogVisivel = true;
+  }
+
+  salvarTipo() {
+    if (this.tipoForm.invalid) return;
+    this.settingsService.criarTipo(this.tipoForm.value).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Tipo criado com sucesso.' });
+        this.tipoDialogVisivel = false;
+        this.carregarDados();
+      },
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Erro ao criar tipo.' })
+    });
+  }
+
+  excluirTipo(id: number, nome: string) {
+    if (!confirm(`Deseja realmente excluir o tipo de equipamento "${nome}"?`)) return;
+    this.settingsService.excluirTipo(id).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Tipo excluído com sucesso.' });
+        this.carregarDados();
+      },
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Erro ao excluir tipo.' })
+    });
+  }
+
+  // ---------- Marca ----------
+  abrirDialogMarca() {
+    this.marcaForm.reset();
+    this.marcaDialogVisivel = true;
+  }
+
+  salvarMarca() {
+    if (this.marcaForm.invalid) return;
+    this.settingsService.criarMarca(this.marcaForm.value).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Marca criada com sucesso.' });
+        this.marcaDialogVisivel = false;
+        this.carregarDados();
+      },
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Erro ao criar marca.' })
+    });
+  }
+
+  excluirMarca(id: number, nome: string) {
+    if (!confirm(`Deseja realmente excluir a marca "${nome}"?`)) return;
+    this.settingsService.excluirMarca(id).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Marca excluída com sucesso.' });
+        this.carregarDados();
+      },
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Erro ao excluir marca.' })
+    });
+  }
+
+  // ---------- Modelo ----------
+  abrirDialogModelo() {
+    this.modeloForm.reset();
+    this.modeloDialogVisivel = true;
+  }
+
+  salvarModelo() {
+    if (this.modeloForm.invalid) return;
+    this.settingsService.criarModelo(this.modeloForm.value).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Modelo criado com sucesso.' });
+        this.modeloDialogVisivel = false;
+        this.carregarDados();
+      },
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Erro ao criar modelo.' })
+    });
+  }
+
+  excluirModelo(id: number, nome: string) {
+    if (!confirm(`Deseja realmente excluir o modelo "${nome}"?`)) return;
+    this.settingsService.excluirModelo(id).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Modelo excluído com sucesso.' });
+        this.carregarDados();
+      },
+      error: (err) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Erro ao excluir modelo.' })
+    });
+  }
+
+  getMarcaNome(id: number) {
+    return this.marcas.find((m: any) => m.id === id)?.nome || '—';
+  }
+
+  // ---------- Status ----------
+  abrirDialogStatus(status?: any) {
+    this.editandoStatus = !!status;
+    this.statusSelecionadoId = status?.id ?? null;
+    this.statusForm.reset();
+    if (status) {
+      this.statusForm.patchValue({ nome: status.nome });
+    }
+    this.statusDialogVisivel = true;
+  }
+
+  salvarStatus() {
+    if (this.statusForm.invalid) return;
+    const dados = this.statusForm.value;
+    const acao = this.editandoStatus && this.statusSelecionadoId
+      ? this.settingsService.atualizarStatus(this.statusSelecionadoId, dados)
+      : this.settingsService.criarStatus(dados);
+    acao.subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: `Status ${this.editandoStatus ? 'atualizado' : 'criado'} com sucesso.`
+        });
+        this.statusDialogVisivel = false;
+        this.carregarDados();
+      },
+      error: (err) => this.messageService.add({
+        severity: 'error', summary: 'Erro',
+        detail: err?.error?.message || 'Erro ao salvar status.'
+      })
+    });
+  }
+
+  excluirStatus(id: number, nome: string) {
+    if (!confirm(`Deseja realmente excluir o status "${nome}"?`)) return;
+    this.settingsService.excluirStatus(id).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Status excluído com sucesso.' });
+        this.carregarDados();
+      },
+      error: (err) => this.messageService.add({
+        severity: 'error', summary: 'Erro',
+        detail: err?.error?.message || 'Erro ao excluir status.'
+      })
+    });
   }
 }

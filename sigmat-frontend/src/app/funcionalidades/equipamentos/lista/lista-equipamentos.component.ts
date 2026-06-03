@@ -486,15 +486,24 @@ abrirModalManutencao() {
     this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Arquivo CSV gerado com sucesso.' });
   }
 
-  imprimirEtiquetasMassa() {
+  async imprimirEtiquetasMassa() {
     if (this.selecionados.length === 0) return;
-    this.pdfService.gerarEtiquetas(this.selecionados);
-    this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Etiquetas geradas com sucesso.' });
+    const success = await this.pdfService.gerarEtiquetas(this.selecionados);
+    if (success) {
+      this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Etiquetas geradas com sucesso.' });
+    } else {
+      this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao gerar etiquetas.' });
+    }
   }
 
-  imprimirEtiquetaUnica(eq: any) {
-    this.pdfService.gerarEtiquetas([eq]);
-    this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: `Etiqueta do patrimÃ´nio ${eq.patrimonio} gerada.` });
+  async imprimirEtiquetaUnica(eq: any) {
+    const success = await this.pdfService.gerarEtiquetas([eq]);
+    const patrimonioDisplay = eq.patrimonio ?? eq.id ?? 'desconhecido';
+    if (success) {
+      this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: `Etiqueta do patrimônio ${patrimonioDisplay} gerada.` });
+    } else {
+      this.messageService.add({ severity: 'error', summary: 'Erro', detail: `Falha ao gerar etiqueta do patrimônio ${patrimonioDisplay}.` });
+    }
   }
 
   obterDestinoSigla(): string {
