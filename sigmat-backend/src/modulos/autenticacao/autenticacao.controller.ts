@@ -12,7 +12,7 @@
 
 import { Controller, Post, Body, HttpCode, HttpStatus, Req, UseGuards, Get } from '@nestjs/common';
 import { AuthService } from './autenticacao.service';
-import { LoginDto } from './dto/entrada.dto';
+import { LoginDto, SolicitarAcessoDto } from './dto/entrada.dto';
 import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from './guardas/jwt-autenticacao.guard';
 
@@ -30,8 +30,8 @@ export class AuthController {
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Post('solicitar-acesso')
   @HttpCode(HttpStatus.OK)
-  async solicitarAcesso(@Body() body: LoginDto) {
-    return this.authService.solicitarAcessoCorporativo(body.usuario, body.senha);
+  async solicitarAcesso(@Body() body: SolicitarAcessoDto) {
+    return this.authService.solicitarAcessoCorporativo(body);
   }
 
   @Get('debug-ping')

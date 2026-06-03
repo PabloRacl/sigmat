@@ -1,4 +1,4 @@
-﻿import { Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
@@ -23,7 +23,16 @@ export class LoginComponent {
   loading = false;
   requestLoading = false;
   showPassword = false;
+  
+  // Solicitar acesso fields
+  reqMatricula = '';
+  reqCpf = '';
+  reqNome = '';
+  reqUnidade = '';
+  reqSenha = '';
+
   showRequestModal = false;
+  showAdvancedMenu = false;
   returnUrl = '/visao-geral';
   mockMode = false;
 
@@ -72,11 +81,16 @@ export class LoginComponent {
     this.showRequestModal = false;
     this.requestError = '';
     this.requestSuccess = '';
+    this.reqMatricula = '';
+    this.reqCpf = '';
+    this.reqNome = '';
+    this.reqUnidade = '';
+    this.reqSenha = '';
   }
 
   solicitarAcesso() {
-    if (!this.username || !this.password) {
-      this.requestError = 'Para solicitar acesso, preencha matrícula/CPF e senha corporativa.';
+    if (!this.reqMatricula || !this.reqCpf || !this.reqNome || !this.reqUnidade || !this.reqSenha) {
+      this.requestError = 'Preencha todos os campos para solicitar acesso.';
       return;
     }
 
@@ -84,7 +98,15 @@ export class LoginComponent {
     this.requestError = '';
     this.requestSuccess = '';
 
-    this.authService.solicitarAcesso(this.username, this.password).subscribe({
+    const dados = {
+      matricula: this.reqMatricula,
+      cpf: this.reqCpf,
+      nome: this.reqNome,
+      unidade: this.reqUnidade,
+      senha: this.reqSenha
+    };
+
+    this.authService.solicitarAcesso(dados).subscribe({
       next: (res: any) => {
         this.requestSuccess = res?.message || 'Solicitação enviada com sucesso. Aguarde retorno da DTEC.';
         this.requestLoading = false;
@@ -121,6 +143,10 @@ export class LoginComponent {
   resetMockOverride() {
     this.mockModeService.clearOverride();
     this.mockMode = this.mockModeService.useMock;
+  }
+  
+  toggleAdvancedMenu() {
+    this.showAdvancedMenu = !this.showAdvancedMenu;
   }
 }
 

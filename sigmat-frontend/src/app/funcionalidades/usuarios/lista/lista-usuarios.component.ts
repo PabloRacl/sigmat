@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UsersService } from '../../../nucleo/servicos/usuarios.service';
 import { SettingsService } from '../../../nucleo/servicos/configuracoes.service';
+import { AccessRequestsFrontendService } from '../../../nucleo/servicos/solicitacoes-acesso.service';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
@@ -42,8 +43,10 @@ export class UsersListComponent implements OnInit {
   private UsersService = inject(UsersService);
   private configService = inject(SettingsService);
   private messageService = inject(MessageService);
+  private accessReqService = inject(AccessRequestsFrontendService);
 
   usuarios: any[] = [];
+  solicitacoes: any[] = [];
   carregando = true;
   exibirModal = false;
   editando = false;
@@ -78,9 +81,47 @@ export class UsersListComponent implements OnInit {
 
   carregar() {
     this.carregando = true;
+    
+    // Carregar usuários
     this.UsersService.listarTodos().subscribe({
-      next: (res) => { this.usuarios = res; this.carregando = false; },
+      next: (res) => { 
+        this.usuarios = res; 
+        this.carregarSolicitacoes();
+      },
       error: () => this.carregando = false,
+    });
+  }
+
+  carregarSolicitacoes() {
+    this.accessReqService.listarPendentes().subscribe({
+      next: (res) => {
+        this.solicitacoes = res;
+        this.carregando = false;
+      },
+      error: () => this.carregando = false
+    });
+  }
+
+  aprovarSolicitacao(req: any) {
+    if (!confirm(`Aprovar a solicitação de ${req.nome}? O acesso real precisa ser liberado no SGA.`)) return;
+    this.accessReqService.aprovar(req.id).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Aprovada', detail: 'Solicitação aprovada.' });
+        this.carregarSolicitacoes();
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao aprovar.' })
+    });
+  }
+
+  rejeitarSolicitacao(req: any) {
+    const motivo = prompt(`Informe o motivo para rejeitar a solicitação de ${req.nome}:`);
+    if (motivo === null) return;
+    this.accessReqService.rejeitar(req.id, motivo).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Rejeitada', detail: 'Solicitação rejeitada.' });
+        this.carregarSolicitacoes();
+      },
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao rejeitar.' })
     });
   }
 

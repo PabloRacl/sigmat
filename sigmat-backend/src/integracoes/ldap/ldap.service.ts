@@ -20,7 +20,7 @@ import * as https from 'https';
 export class LdapService {
   private readonly logger = new Logger(LdapService.name);
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   /**
    * Valida as credenciais (usuário e senha) na API LDAP do sistema corporativo PMPE e retorna o CPF.
@@ -35,17 +35,7 @@ export class LdapService {
     };
 
     if (useMock) {
-      const usuarioTrimmed = usuario.trim();
-      const isAllLower = usuarioTrimmed === usuarioTrimmed.toLowerCase();
-      const isAllUpper = usuarioTrimmed === usuarioTrimmed.toUpperCase();
-
-      if (!isAllLower && !isAllUpper) {
-        this.logger.warn(`[MOCK DEV] Login LDAP negado por caso misto: ${usuario}`);
-        throw new UnauthorizedException('Usuário ou senha incorretos para modo de desenvolvimento.');
-      }
-
-      const normalizedUsuario = usuarioTrimmed.toLowerCase();
-      const key = `${normalizedUsuario}:${senha}`;
+      const key = `${usuario.trim()}:${senha}`;
       const cpfMock = allowedMocks[key];
 
       if (!cpfMock) {

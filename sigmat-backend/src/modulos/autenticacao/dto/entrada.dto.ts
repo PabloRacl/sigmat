@@ -10,6 +10,28 @@ export class LoginDto {
   senha: string = '';
 }
 
+export class SolicitarAcessoDto {
+  @IsString()
+  @IsNotEmpty({ message: 'A matrícula é obrigatória' })
+  matricula: string = '';
+
+  @IsString()
+  @IsNotEmpty({ message: 'O CPF é obrigatório' })
+  cpf: string = '';
+
+  @IsString()
+  @IsNotEmpty({ message: 'O nome é obrigatório' })
+  nome: string = '';
+
+  @IsString()
+  @IsNotEmpty({ message: 'A unidade é obrigatória' })
+  unidade: string = '';
+
+  @IsString()
+  @IsNotEmpty({ message: 'A senha é obrigatória' })
+  senha: string = '';
+}
+
 
 
 

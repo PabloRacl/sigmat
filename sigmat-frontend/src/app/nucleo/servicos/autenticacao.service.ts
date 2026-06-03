@@ -128,8 +128,8 @@ export class AuthService {
       );
   }
 
-  solicitarAcesso(usuario: string, senha: string) {
-    return this.http.post<any>(`${this.API_URL}/solicitar-acesso`, { usuario, senha });
+  solicitarAcesso(dados: { matricula: string, cpf: string, nome: string, unidade: string, senha: string }) {
+    return this.http.post<any>(`${this.API_URL}/solicitar-acesso`, dados);
   }
 
   logout() {

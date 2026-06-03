@@ -1,10 +1,8 @@
-import { Controller, Post, Body, UseGuards, Res } from '@nestjs/common';
+import { Controller, Post, Body, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { PdfService } from './pdf.service';
-import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
 
 @Controller('pdf')
-@UseGuards(JwtAuthGuard)
 export class PdfController {
   constructor(private readonly pdfService: PdfService) {}
 

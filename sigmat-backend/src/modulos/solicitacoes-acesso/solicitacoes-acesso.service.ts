@@ -45,4 +45,27 @@ export class AccessRequestsService {
 
     return novaSolicitacao;
   }
+
+  async listarPendentes() {
+    return this.repository.findMany({
+      where: { status: 'PENDENTE' },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async aprovar(id: number) {
+    const solicitacao = await this.repository.update({
+      where: { id },
+      data: { status: 'APROVADA' }
+    });
+    // Lógica para notificar ou criar usuário pode ser adicionada aqui se necessário
+    return solicitacao;
+  }
+
+  async rejeitar(id: number, motivo?: string) {
+    return this.repository.update({
+      where: { id },
+      data: { status: 'REJEITADA', motivoRejeicao: motivo }
+    });
+  }
 }

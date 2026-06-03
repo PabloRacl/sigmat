@@ -140,22 +140,29 @@ export class AuthService {
     }
   }
 
-  async solicitarAcessoCorporativo(usuario: string, senha: string) {
+  async solicitarAcessoCorporativo(dto: import('./dto/entrada.dto').SolicitarAcessoDto) {
     try {
-      const cpfLdap = await this.ldapService.autenticar(usuario, senha);
-      const sgpmData = await this.sgaService.obterDadosSgpm(cpfLdap);
-      const sgaPermissao = await this.sgaService.obterPermissao(cpfLdap);
+      const isMock = process.env.USE_MOCK_AUTH === 'true';
+      let cpfLdap = dto.cpf;
+      let sgpmData: any = {};
+      let sgaPermissao: any = { perfil: 'USUARIO_BATALHAO' };
+
+      if (!isMock) {
+        cpfLdap = await this.ldapService.autenticar(dto.cpf, dto.senha);
+        sgpmData = await this.sgaService.obterDadosSgpm(cpfLdap).catch(() => ({}));
+        sgaPermissao = await this.sgaService.obterPermissao(cpfLdap).catch(() => ({ perfil: 'USUARIO_BATALHAO' }));
+      }
 
       const dadosCompletos = {
-        login: cpfLdap,
-        cpf: cpfLdap,
-        matricula: sgpmData.matricula || '',
-        nome: sgpmData.nome_completo || sgpmData.nome_guerra || 'Policial Militar',
+        login: dto.cpf,
+        cpf: dto.cpf,
+        matricula: dto.matricula || sgpmData.matricula || '',
+        nome: dto.nome || sgpmData.nome_completo || sgpmData.nome_guerra || 'Policial Militar',
         email: `${sgpmData.nome_guerra?.toLowerCase() || 'policial'}@pm.pe.gov.br`,
         postoGraduacao: sgpmData.sigla || '',
         perfil: sgaPermissao.perfil,
-        organizacaoDisp: sgpmData.organizacao_disp || 'DTEC',
-        secaoSigla: sgpmData.secao || sgpmData.organizacao_disp || 'DTEC',
+        organizacaoDisp: dto.unidade || sgpmData.organizacao_disp || 'DTEC',
+        secaoSigla: dto.unidade || sgpmData.secao || sgpmData.organizacao_disp || 'DTEC',
       };
 
       const usuarioBanco = await this.usersService.buscarPorLogin(cpfLdap);

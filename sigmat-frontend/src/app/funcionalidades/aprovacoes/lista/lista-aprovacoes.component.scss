@@ -238,6 +238,24 @@ $glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   font-size: 0.7rem;
   font-weight: bold;
   margin-left: 8px;
+
+  &--indigo { background: #4f46e5; }
+  &--amber  { background: #d97706; }
+}
+
+.ap-btn-reject {
+  &--amber {
+    color: #92400e;
+    border-color: #fde68a;
+    &:hover { background: #fef9c3; border-color: #d97706; }
+  }
+
+  &--icon {
+    padding: 7px;
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+  }
 }
 
 .ap-tab-desc {

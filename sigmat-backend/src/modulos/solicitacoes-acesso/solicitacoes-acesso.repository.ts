@@ -13,4 +13,12 @@ export class AccessRequestsRepository {
   async findFirst(args: Prisma.SolicitacaoAcessoFindFirstArgs) {
     return this.prisma.solicitacaoAcesso.findFirst(args);
   }
+
+  async findMany(args: Prisma.SolicitacaoAcessoFindManyArgs) {
+    return this.prisma.solicitacaoAcesso.findMany(args);
+  }
+
+  async update(args: Prisma.SolicitacaoAcessoUpdateArgs) {
+    return this.prisma.solicitacaoAcesso.update(args);
+  }
 }

@@ -5,50 +5,48 @@
 >
   <!-- Cabeçalho -->
   <div header-title>
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <h1>Ordens de Serviço</h1>
-    </div>
+    <h1>Ordens de Serviço</h1>
     <p>Gerenciamento de manutenção e reparo dos equipamentos da unidade</p>
   </div>
 
   <div header-actions>
-    <button class="mn-btn-primary" (click)="abrirNovaOS()" id="btn-nova-os" style="display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: #fff; border: none; padding: 12px 22px; border-radius: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">
+    <button class="mn-btn-primary" (click)="abrirNovaOS()" id="btn-nova-os">
       <i class="pi pi-plus"></i> Nova OS
     </button>
   </div>
 
   <!-- Cards Estatísticas/Resumo -->
-  <div class="mn-summary" stats style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem;">
-    <div class="mn-sum-card" [class.active]="filtroStatus === null" (click)="filtrarPorStatus(null)" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" [style.borderColor]="filtroStatus === null ? '#2563eb' : '#e2e8f0'">
-      <span class="mn-sum-card__val" style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">{{ contadorStatus.total }}</span>
-      <span class="mn-sum-card__label" style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Total</span>
+  <div class="mn-summary" stats>
+    <div class="mn-sum-card" [class.active]="filtroStatus === null" (click)="filtrarPorStatus(null)">
+      <span class="mn-sum-card__val">{{ contadorStatus.total }}</span>
+      <span class="mn-sum-card__label">Total</span>
     </div>
-    <div class="mn-sum-card aberta" [class.active]="filtroStatus === 'ABERTA'" (click)="filtrarPorStatus('ABERTA')" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" [style.borderColor]="filtroStatus === 'ABERTA' ? '#3b82f6' : '#e2e8f0'">
-      <span class="mn-sum-card__val" style="font-size: 1.5rem; font-weight: 800; color: #3b82f6;">{{ contadorStatus.abertas }}</span>
-      <span class="mn-sum-card__label" style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Abertas</span>
+    <div class="mn-sum-card aberta" [class.active]="filtroStatus === 'ABERTA'" (click)="filtrarPorStatus('ABERTA')">
+      <span class="mn-sum-card__val">{{ contadorStatus.abertas }}</span>
+      <span class="mn-sum-card__label">Abertas</span>
     </div>
-    <div class="mn-sum-card em_andamento" [class.active]="filtroStatus === 'EM_ANDAMENTO'" (click)="filtrarPorStatus('EM_ANDAMENTO')" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" [style.borderColor]="filtroStatus === 'EM_ANDAMENTO' ? '#f59e0b' : '#e2e8f0'">
-      <span class="mn-sum-card__val" style="font-size: 1.5rem; font-weight: 800; color: #f59e0b;">{{ contadorStatus.emAndamento }}</span>
-      <span class="mn-sum-card__label" style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Em Andamento</span>
+    <div class="mn-sum-card em_andamento" [class.active]="filtroStatus === 'EM_ANDAMENTO'" (click)="filtrarPorStatus('EM_ANDAMENTO')">
+      <span class="mn-sum-card__val">{{ contadorStatus.emAndamento }}</span>
+      <span class="mn-sum-card__label">Em Andamento</span>
     </div>
-    <div class="mn-sum-card aguardando_peca" [class.active]="filtroStatus === 'AGUARDANDO_PECA'" (click)="filtrarPorStatus('AGUARDANDO_PECA')" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" [style.borderColor]="filtroStatus === 'AGUARDANDO_PECA' ? '#6366f1' : '#e2e8f0'">
-      <span class="mn-sum-card__val" style="font-size: 1.5rem; font-weight: 800; color: #6366f1;">{{ contadorStatus.aguardando }}</span>
-      <span class="mn-sum-card__label" style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Aguardando Peça</span>
+    <div class="mn-sum-card aguardando_peca" [class.active]="filtroStatus === 'AGUARDANDO_PECA'" (click)="filtrarPorStatus('AGUARDANDO_PECA')">
+      <span class="mn-sum-card__val">{{ contadorStatus.aguardando }}</span>
+      <span class="mn-sum-card__label">Aguardando Peça</span>
     </div>
-    <div class="mn-sum-card concluida" [class.active]="filtroStatus === 'CONCLUIDA'" (click)="filtrarPorStatus('CONCLUIDA')" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" [style.borderColor]="filtroStatus === 'CONCLUIDA' ? '#10b981' : '#e2e8f0'">
-      <span class="mn-sum-card__val" style="font-size: 1.5rem; font-weight: 800; color: #10b981;">{{ contadorStatus.concluidas }}</span>
-      <span class="mn-sum-card__label" style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Concluídas</span>
+    <div class="mn-sum-card concluida" [class.active]="filtroStatus === 'CONCLUIDA'" (click)="filtrarPorStatus('CONCLUIDA')">
+      <span class="mn-sum-card__val">{{ contadorStatus.concluidas }}</span>
+      <span class="mn-sum-card__label">Concluídas</span>
     </div>
-    <div class="mn-sum-card cancelada" [class.active]="filtroStatus === 'CANCELADA'" (click)="filtrarPorStatus('CANCELADA')" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" [style.borderColor]="filtroStatus === 'CANCELADA' ? '#ef4444' : '#e2e8f0'">
-      <span class="mn-sum-card__val" style="font-size: 1.5rem; font-weight: 800; color: #ef4444;">{{ contadorStatus.canceladas }}</span>
-      <span class="mn-sum-card__label" style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Canceladas</span>
+    <div class="mn-sum-card cancelada" [class.active]="filtroStatus === 'CANCELADA'" (click)="filtrarPorStatus('CANCELADA')">
+      <span class="mn-sum-card__val">{{ contadorStatus.canceladas }}</span>
+      <span class="mn-sum-card__label">Canceladas</span>
     </div>
   </div>
 
   <!-- Busca e Filtros -->
-  <div class="mn-toolbar" search-filters style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #f1f5f9; background: #f8fafc;">
-    <div class="mn-search" style="display: flex; align-items: center; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 2px 12px; width: 350px;">
-      <i class="pi pi-search mn-search__icon" style="color: #94a3b8; margin-right: 8px;"></i>
+  <div class="mn-toolbar" search-filters>
+    <div class="mn-search">
+      <i class="pi pi-search mn-search__icon"></i>
       <input
         id="mn-busca"
         type="text"
@@ -56,15 +54,14 @@
         placeholder="Buscar por patrimônio, técnico, problema..."
         [(ngModel)]="buscaTexto"
         (ngModelChange)="onBuscaChange()"
-        style="border: none; outline: none; font-size: 0.85rem; padding: 6px 0; color: #334155; width: 100%;"
       />
-      <button *ngIf="buscaTexto" class="mn-search__clear" (click)="buscaTexto=''; onBuscaChange()" style="border: none; background: transparent; cursor: pointer; color: #94a3b8;">
+      <button *ngIf="buscaTexto" class="mn-search__clear" (click)="buscaTexto=''; onBuscaChange()">
         <i class="pi pi-times"></i>
       </button>
     </div>
-    <div class="mn-toolbar__right" style="display: flex; align-items: center; gap: 12px;">
-      <span class="mn-count" style="font-size: 0.85rem; color: #64748b;">{{ ordensFiltradas.length }} resultado(s)</span>
-      <button class="mn-btn-ghost" (click)="carregarDados()" pTooltip="Recarregar" tooltipPosition="top" style="background: white; border: 1px solid #e2e8f0; border-radius: 6px; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+    <div class="mn-toolbar__right">
+      <span class="mn-count">{{ ordensFiltradas.length }} resultado(s)</span>
+      <button class="mn-btn-ghost" (click)="carregarDados()" pTooltip="Recarregar" tooltipPosition="top">
         <i class="pi pi-sync" [class.pi-spin]="carregando"></i>
       </button>
     </div>
@@ -99,18 +96,18 @@
       <ng-template pTemplate="body" let-os>
         <tr [class.mn-row-atrasada]="isAtrasada(os)">
           <td style="text-align:center">
-            <span class="mn-os-num" style="font-weight: 700; color: #64748b;">#{{ os.id }}</span>
+            <span class="mn-os-num">#{{ os.id }}</span>
           </td>
           <td>
-            <div class="mn-equip" style="display: flex; flex-direction: column; gap: 2px;">
-              <span class="mn-equip__pat" style="font-weight: 700;">{{ os.equipamento?.patrimonio }}</span>
-              <span class="mn-equip__tipo" style="font-size: 0.8rem; color: #64748b;">{{ os.equipamento?.tipoEquipamento?.nome }}</span>
-              <span class="mn-equip__marca" *ngIf="os.equipamento?.marca" style="font-size: 0.75rem; color: #94a3b8;">{{ os.equipamento?.marca?.nome }}</span>
+            <div class="mn-equip">
+              <span class="mn-equip__pat">{{ os.equipamento?.patrimonio }}</span>
+              <span class="mn-equip__tipo">{{ os.equipamento?.tipoEquipamento?.nome }}</span>
+              <span class="mn-equip__marca" *ngIf="os.equipamento?.marca">{{ os.equipamento?.marca?.nome }}</span>
             </div>
           </td>
           <td>
             <span *ngIf="os.tecnicoResponsavel" class="mn-tecnico">{{ os.tecnicoResponsavel }}</span>
-            <span *ngIf="!os.tecnicoResponsavel" class="mn-nd" style="color: #cbd5e1; font-style: italic;">— não definido</span>
+            <span *ngIf="!os.tecnicoResponsavel" class="mn-nd">— não definido</span>
           </td>
           <td>
             <span class="mn-problema" [pTooltip]="os.descricaoProblema" tooltipPosition="top">
@@ -118,33 +115,33 @@
             </span>
           </td>
           <td>
-            <div class="mn-date-cell" style="display: flex; align-items: center; gap: 6px;">
+            <div class="mn-date-cell">
               <i class="pi pi-calendar"></i>
               {{ os.dataAbertura | date:'dd/MM/yyyy' }}
             </div>
           </td>
           <td>
-            <div class="mn-date-cell" *ngIf="os.dataPrevisao; else semPrevisao" style="display: flex; align-items: center; gap: 6px;">
+            <div class="mn-date-cell" *ngIf="os.dataPrevisao; else semPrevisao">
               <i class="pi pi-flag" [style.color]="isAtrasada(os) ? '#ef4444' : '#64748b'"></i>
               <span [style.color]="isAtrasada(os) ? '#ef4444' : 'inherit'" [style.font-weight]="isAtrasada(os) ? '700' : 'normal'">
                 {{ os.dataPrevisao | date:'dd/MM/yyyy' }}
               </span>
             </div>
             <ng-template #semPrevisao>
-              <span class="mn-nd" style="color: #cbd5e1; font-style: italic;">— não estimada</span>
+              <span class="mn-nd">— não estimada</span>
             </ng-template>
           </td>
           <td style="text-align:center">
-            <span *ngIf="!isStatusFinal(os.status)" class="mn-dias-badge" [class.mn-dias-badge--warn]="diasAberta(os.dataAbertura) > 7" [class.mn-dias-badge--danger]="diasAberta(os.dataAbertura) > 30" style="padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; background: #f1f5f9; color: #475569;">
+            <span *ngIf="!isStatusFinal(os.status)" class="mn-dias-badge" [class.mn-dias-badge--warn]="diasAberta(os.dataAbertura) > 7" [class.mn-dias-badge--danger]="diasAberta(os.dataAbertura) > 30">
               {{ diasAberta(os.dataAbertura) }}d
             </span>
-            <span *ngIf="isStatusFinal(os.status)" class="mn-nd" style="color: #cbd5e1;">—</span>
+            <span *ngIf="isStatusFinal(os.status)" class="mn-nd">—</span>
           </td>
           <td style="text-align:center">
-            <span class="mn-status-badge" [ngClass]="os.status | lowercase" style="padding: 4px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 700;">
+            <span class="mn-status-badge" [ngClass]="os.status | lowercase">
               {{ formatarStatusLabel(os.status) }}
             </span>
-            <div *ngIf="isAtrasada(os)" class="mn-atrasada-tag" style="color: #ef4444; font-size: 0.7rem; font-weight: 700; margin-top: 4px;">
+            <div *ngIf="isAtrasada(os)" class="mn-atrasada-tag">
               <i class="pi pi-exclamation-triangle"></i> Atrasada
             </div>
           </td>
@@ -152,7 +149,7 @@
             <div class="mn-actions">
               <button class="mn-btn-icon edit"
                 (click)="abrirAssistencia(os, ehAdmin)"
-                pTooltip="Abrir Assistência" tooltipPosition="left" style="width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; cursor: pointer; color: #475569;">
+                pTooltip="Abrir Assistência" tooltipPosition="left">
                 <i class="pi pi-briefcase"></i>
               </button>
             </div>
@@ -163,10 +160,10 @@
       <ng-template pTemplate="emptymessage">
         <tr>
           <td colspan="9">
-            <div class="mn-empty" style="text-align: center; padding: 2rem 0; color: #94a3b8;">
-              <i class="pi pi-search" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+            <div class="mn-empty">
+              <i class="pi pi-search"></i>
               <p>Nenhuma ordem de serviço encontrada.</p>
-              <button class="mn-btn-ghost" (click)="filtrarPorStatus(null); buscaTexto=''; onBuscaChange()" style="margin-top: 10px; background: white; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+              <button class="mn-btn-ghost" (click)="filtrarPorStatus(null); buscaTexto=''; onBuscaChange()">
                 Limpar filtros
               </button>
             </div>
@@ -189,10 +186,10 @@
       [resizable]="false"
       id="modal-nova-os"
     >
-      <form [formGroup]="novaOsForm" (ngSubmit)="confirmarNovaOS()" class="mn-form" style="display: flex; flex-direction: column; gap: 1rem;">
+      <form [formGroup]="novaOsForm" (ngSubmit)="confirmarNovaOS()" class="mn-form">
         <!-- Equipamento (AutoComplete) -->
-        <div class="mn-form__field" style="display: flex; flex-direction: column; gap: 4px;">
-          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Equipamento <span class="req" style="color: #ef4444;">*</span></label>
+        <div class="mn-form__field">
+          <label>Equipamento <span class="req">*</span></label>
           <p-autoComplete
             [(ngModel)]="equipamentoNovaOs"
             [ngModelOptions]="{standalone: true}"
@@ -215,7 +212,7 @@
           </p-autoComplete>
 
           <!-- Preview do equipamento selecionado -->
-          <div *ngIf="equipamentoNovaOs?.id" class="mn-equip-preview" style="display: flex; gap: 8px; align-items: center; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-top: 8px;">
+          <div *ngIf="equipamentoNovaOs?.id" class="mn-equip-preview">
             <i class="pi pi-check-circle"></i>
             <div>
               <strong>{{ equipamentoNovaOs.patrimonio }}</strong>
@@ -225,8 +222,8 @@
         </div>
 
         <!-- Problema -->
-        <div class="mn-form__field" style="display: flex; flex-direction: column; gap: 4px;">
-          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Descrição do Problema / Defeito <span class="req" style="color: #ef4444;">*</span></label>
+        <div class="mn-form__field">
+          <label>Descrição do Problema / Defeito <span class="req">*</span></label>
           <textarea
             pTextarea
             formControlName="descricaoProblema"
@@ -237,20 +234,20 @@
         </div>
 
         <!-- Técnico + Previsão (apenas admin vê) -->
-        <div class="mn-form__row" *ngIf="ehAdmin" style="display: flex; gap: 1rem;">
-          <div class="mn-form__field flex-1" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
-            <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Técnico / Empresa Responsável</label>
+        <div class="mn-form__row" *ngIf="ehAdmin">
+          <div class="mn-form__field flex-1">
+            <label>Técnico / Empresa Responsável</label>
             <input type="text" pInputText formControlName="tecnicoResponsavel" class="w-full" placeholder="Nome ou empresa..." />
           </div>
-          <div class="mn-form__field flex-1" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
-            <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Previsão de Retorno</label>
+          <div class="mn-form__field flex-1">
+            <label>Previsão de Retorno</label>
             <p-datepicker formControlName="dataPrevisao" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body" class="w-full" styleClass="w-full"></p-datepicker>
           </div>
         </div>
 
-        <div class="mn-form__footer" style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 15px; border-top: 1px solid #f1f5f9; margin-top: 10px;">
-          <button type="button" class="mn-btn-ghost" (click)="exibirModalNovaOS = false" style="background: white; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 8px; font-weight: 600; color: #64748b; cursor: pointer;">Cancelar</button>
-          <button type="submit" class="mn-btn-warning" [disabled]="novaOsForm.invalid || !equipamentoNovaOs?.id" style="background: #f59e0b; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+        <div class="mn-form__footer">
+          <button type="button" class="mn-btn-ghost" (click)="exibirModalNovaOS = false">Cancelar</button>
+          <button type="submit" class="mn-btn-warning" [disabled]="novaOsForm.invalid || !equipamentoNovaOs?.id">
             <i class="pi pi-check"></i> Abrir Ordem de Serviço
           </button>
         </div>
@@ -270,71 +267,71 @@
       (onHide)="fecharAssistencia()"
     >
       <div *ngIf="osSelecionada" class="assistance-layout">
-        <div class="assistance-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+        <div class="assistance-grid">
           <!-- COLUNA 1 -->
-          <div class="assistance-col triage-panel" style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <div class="panel-section-title" style="font-weight: 700; color: #0f172a; margin-bottom: 1rem;"><i class="pi pi-file-edit"></i> Triagem & Diagnóstico</div>
-            <div class="triage-card" style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
-              <div class="triage-card__header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <span class="equipment-pat" style="font-weight: 800; font-size: 1.1rem;">{{ osSelecionada.equipamento?.patrimonio }}</span>
-                <span class="status-indicator" style="font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 99px;">
+          <div class="assistance-col triage-panel">
+            <div class="panel-section-title"><i class="pi pi-file-edit"></i> Triagem & Diagnóstico</div>
+            <div class="triage-card">
+              <div class="triage-card__header">
+                <span class="equipment-pat">{{ osSelecionada.equipamento?.patrimonio }}</span>
+                <span class="status-indicator" [ngClass]="osSelecionada.status | lowercase">
                   {{ formatarStatusLabel(osSelecionada.status) }}
                 </span>
               </div>
-              <div class="triage-details" style="font-size: 0.85rem; color: #475569; display: flex; flex-direction: column; gap: 6px;">
-                <div class="detail-row" style="display: flex; justify-content: space-between;"><span class="detail-label">Equipamento:</span><strong>{{ osSelecionada.equipamento?.tipoEquipamento?.nome }}</strong></div>
-                <div class="detail-row" style="display: flex; justify-content: space-between;" *ngIf="osSelecionada.equipamento?.marca"><span class="detail-label">Marca/Modelo:</span><span>{{ osSelecionada.equipamento?.marca?.nome }}</span></div>
-                <div class="detail-row" style="display: flex; justify-content: space-between;"><span class="detail-label">Origem:</span><span>{{ osSelecionada.equipamento?.secao?.sigla }}</span></div>
-                <div class="detail-row" style="display: flex; justify-content: space-between;"><span class="detail-label">Aberto em:</span><span>{{ osSelecionada.dataAbertura | date:'dd/MM/yyyy' }}</span></div>
+              <div class="triage-details">
+                <div class="detail-row"><span class="detail-label">Equipamento:</span><strong>{{ osSelecionada.equipamento?.tipoEquipamento?.nome }}</strong></div>
+                <div class="detail-row" *ngIf="osSelecionada.equipamento?.marca"><span class="detail-label">Marca/Modelo:</span><span>{{ osSelecionada.equipamento?.marca?.nome }}</span></div>
+                <div class="detail-row"><span class="detail-label">Origem:</span><span>{{ osSelecionada.equipamento?.secao?.sigla }}</span></div>
+                <div class="detail-row"><span class="detail-label">Aberto em:</span><span>{{ osSelecionada.dataAbertura | date:'dd/MM/yyyy' }}</span></div>
               </div>
             </div>
             <div class="triage-problem">
               <label style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Problema Relatado</label>
-              <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; font-size: 0.85rem; color: #334155; min-height: 80px; overflow-y: auto;">
+              <div style="background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; font-size: 0.85rem; color: #cbd5e1; min-height: 80px; overflow-y: auto;">
                 {{ osSelecionada.descricaoProblema }}
               </div>
             </div>
           </div>
 
           <!-- COLUNA 2 -->
-          <div class="assistance-col action-panel" style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <div class="panel-section-title" style="font-weight: 700; color: #0f172a; margin-bottom: 1rem;"><i class="pi pi-cog"></i> Processamento & Ações</div>
+          <div class="assistance-col action-panel">
+            <div class="panel-section-title"><i class="pi pi-cog"></i> Processamento & Ações</div>
             <form [formGroup]="statusForm" (ngSubmit)="salvarStatus()" style="display: flex; flex-direction: column; gap: 1rem;">
-              <div class="form-group-field" style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Alterar Status</label>
+              <div class="mn-form__field">
+                <label>Alterar Status</label>
                 <p-select [options]="statusOpcoes" formControlName="status" optionLabel="label" optionValue="value" styleClass="w-full" appendTo="body" [disabled]="!ehAdmin || !modoEdicao"></p-select>
               </div>
-              <div class="form-group-field" style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Técnico Encarregado</label>
+              <div class="mn-form__field">
+                <label>Técnico Encarregado</label>
                 <input type="text" pInputText formControlName="tecnicoResponsavel" class="w-full" [readonly]="!ehAdmin || !modoEdicao" />
               </div>
-              <div class="form-group-field" style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Previsão de Saída</label>
+              <div class="mn-form__field">
+                <label>Previsão de Saída</label>
                 <p-datepicker formControlName="dataPrevisao" dateFormat="dd/mm/yy" appendTo="body" styleClass="w-full" [disabled]="!ehAdmin || !modoEdicao"></p-datepicker>
               </div>
-              <div *ngIf="statusForm.get('status')?.value === 'CONCLUIDA' || statusForm.get('status')?.value === 'CANCELADA'" style="background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
-                <div class="form-group-field" style="display: flex; flex-direction: column; gap: 4px;">
-                  <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">{{ statusForm.get('status')?.value === 'CONCLUIDA' ? 'Solução Técnica' : 'Justificativa' }}</label>
+              <div *ngIf="statusForm.get('status')?.value === 'CONCLUIDA' || statusForm.get('status')?.value === 'CANCELADA'" style="background: rgba(15,23,42,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                <div class="mn-form__field">
+                  <label>{{ statusForm.get('status')?.value === 'CONCLUIDA' ? 'Solução Técnica' : 'Justificativa' }}</label>
                   <textarea pTextarea formControlName="solucaoAplicada" rows="2" class="w-full" [readonly]="!ehAdmin || !modoEdicao"></textarea>
                 </div>
-                <div class="form-group-field" style="display: flex; flex-direction: column; gap: 4px;" *ngIf="statusForm.get('status')?.value === 'CONCLUIDA'">
-                  <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Custo (R$)</label>
+                <div class="mn-form__field" *ngIf="statusForm.get('status')?.value === 'CONCLUIDA'">
+                  <label>Custo (R$)</label>
                   <p-inputNumber formControlName="valorGasto" mode="currency" currency="BRL" locale="pt-BR" class="w-full" styleClass="w-full" [disabled]="!ehAdmin || !modoEdicao"></p-inputNumber>
                 </div>
               </div>
-              <button type="submit" *ngIf="ehAdmin && modoEdicao" style="background: #1e293b; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;"><i class="pi pi-save"></i> Atualizar Processo</button>
+              <button type="submit" *ngIf="ehAdmin && modoEdicao" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;"><i class="pi pi-save"></i> Atualizar Processo</button>
             </form>
           </div>
 
           <!-- COLUNA 3 -->
-          <div class="assistance-col history-panel" style="background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column;">
-            <div class="panel-section-title" style="font-weight: 700; color: #0f172a; margin-bottom: 1rem;"><i class="pi pi-history"></i> Linha do Tempo</div>
+          <div class="assistance-col history-panel" style="display: flex; flex-direction: column;">
+            <div class="panel-section-title"><i class="pi pi-history"></i> Linha do Tempo</div>
             <div class="timeline-wrapper" style="flex: 1; overflow-y: auto; max-height: 380px;">
               <div *ngIf="carregandoHistorico" style="text-align: center; color: #94a3b8; padding: 1rem 0;"><i class="pi pi-spinner pi-spin"></i></div>
               <div *ngIf="!carregandoHistorico && historicoOS.length > 0" style="display: flex; flex-direction: column; gap: 12px;">
-                <div *ngFor="let log of historicoOS" style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; font-size: 0.8rem; color: #475569;">
-                  <span style="font-size: 0.75rem; color: #94a3b8;">{{ log.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
-                  <p style="margin: 4px 0; font-weight: 500;">{{ log.descricao }}</p>
+                <div *ngFor="let log of historicoOS" style="background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 8px; font-size: 0.8rem; color: #94a3b8;">
+                  <span style="font-size: 0.75rem; color: #64748b;">{{ log.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                  <p style="margin: 4px 0; font-weight: 500; color: #cbd5e1;">{{ log.descricao }}</p>
                 </div>
               </div>
             </div>
@@ -342,7 +339,7 @@
         </div>
       </div>
       <ng-template pTemplate="footer">
-        <button type="button" (click)="fecharAssistencia()" style="background: white; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 8px; font-weight: 600; color: #64748b; cursor: pointer;">Fechar Oficina</button>
+        <button type="button" (click)="fecharAssistencia()" class="mn-btn-ghost">Fechar Oficina</button>
       </ng-template>
     </p-dialog>
 

@@ -450,3 +450,88 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+.admin-trigger {
+  cursor: pointer;
+  margin-left: 8px;
+  font-size: 14px;
+  color: #475569;
+  transition: color 0.3s ease, transform 0.3s ease;
+  vertical-align: middle;
+
+  &:hover {
+    color: #94a3b8;
+    transform: rotate(90deg);
+  }
+}
+
+.advanced-menu-container {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  animation: fadeIn 0.4s ease-out;
+
+  .advanced-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    h4 {
+      margin: 0;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .close-adv-btn {
+      background: transparent;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      padding: 4px;
+      font-size: 14px;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #ef4444;
+      }
+    }
+  }
+
+  .advanced-menu-content {
+    padding: 16px;
+
+    .mock-mode-toggle {
+      margin-bottom: 16px;
+    }
+    
+    .mock-banner {
+      margin-bottom: 8px;
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+.input-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.input-group.half {
+  flex: 1;
+}
+
+:host ::ng-deep .login-access-dialog .input-group {
+  margin-bottom: 16px;
+}
+
