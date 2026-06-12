@@ -72,9 +72,16 @@ export class SgaService {
     try {
       this.logger.log(`Consultando SGPM para o CPF: ${cpf}`);
       const query = `
-        SELECT cpf, matricula, sigla, nome_completo, nome_guerra, rg_funcional, organizacao_disp, secao, id_organizacao_disp
-        FROM "ViewSgpm"
-        WHERE cpf = $1
+        SELECT 
+          str_cpf as cpf, 
+          str_matricula as matricula, 
+          cargo as sigla, 
+          str_nome as nome_completo, 
+          str_nome_guerra as nome_guerra, 
+          ome as organizacao_disp, 
+          ome as secao
+        FROM "pessoa_cadastro_view"
+        WHERE str_cpf = $1
         LIMIT 1;
       `;
       const res = await pool.query(query, [cpf]);
@@ -136,10 +143,10 @@ export class SgaService {
           p.id_perfil, 
           s.id_sistema, 
           s.nome AS sistema
-        FROM "Usuario_Perfil" up
-        JOIN "Usuario" u ON up.id_usuario = u.id_usuario
-        JOIN "Perfil" p ON up.id_perfil = p.id_perfil
-        JOIN "Sistema" s ON up.id_sistema = s.id_sistema
+        FROM mseg.usuario_perfil up
+        JOIN mseg.usuario u ON up.id_usuario = u.id_usuario
+        JOIN mseg.perfil p ON up.id_perfil = p.id_perfil
+        JOIN mseg.sistema s ON up.id_sistema = s.id_sistema
         WHERE u.cpf = $1;
       `;
       const res = await pool.query(query, [cpf]);
@@ -177,6 +184,38 @@ export class SgaService {
       await pool.end();
       if (err instanceof UnauthorizedException) throw err;
       throw new UnauthorizedException('Falha de conexão com a base de segurança (SGA).');
+    }
+  }
+
+  /**
+   * Lista todas as unidades (OMEs) disponíveis no banco SGPM para preencher o select do formulário.
+   */
+  async listarUnidades(): Promise<string[]> {
+    const useMock = this.configService.get<string>('USE_MOCK_AUTH') === 'true';
+    if (useMock) {
+      return ['DTEC', 'DIM', 'BPCHOQUE', 'BPTUR', 'BPGD', '1º BPM', '2º BPM', 'BOPE', 'CPM', 'EMG'];
+    }
+
+    const pool = new Pool({
+      host: this.configService.get<string>('SGPM_DB_HOST'),
+      port: Number(this.configService.get<number>('SGPM_DB_PORT') || 5432),
+      user: this.configService.get<string>('SGPM_DB_USER'),
+      password: this.configService.get<string>('SGPM_DB_PASSWORD'),
+      database: this.configService.get<string>('SGPM_DB_DATABASE'),
+      connectionTimeoutMillis: 5000
+    });
+
+    try {
+      const res = await pool.query(
+        `SELECT DISTINCT ome FROM "pessoa_cadastro_view" WHERE ome IS NOT NULL ORDER BY ome;`
+      );
+      await pool.end();
+      return res.rows.map((r) => r.ome as string);
+    } catch (err) {
+      await pool.end();
+      this.logger.error(`Erro ao listar unidades do SGPM: ${err}`);
+      // Retorna lista padrão em caso de falha de conexão
+      return ['DTEC', 'DIM', 'BPCHOQUE', 'BPTUR', 'BPGD', 'BOPE', 'CPM', 'EMG'];
     }
   }
 

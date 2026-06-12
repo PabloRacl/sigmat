@@ -128,8 +128,12 @@ export class AuthService {
       );
   }
 
-  solicitarAcesso(dados: { matricula: string, cpf: string, nome: string, unidade: string, senha: string }) {
+  solicitarAcesso(dados: { usuario: string, matricula: string, cpf: string, nome: string, unidade: string, senha: string }) {
     return this.http.post<any>(`${this.API_URL}/solicitar-acesso`, dados);
+  }
+
+  buscarUnidades() {
+    return this.http.get<{ unidades: string[] }>(`${this.API_URL}/unidades`);
   }
 
   logout() {

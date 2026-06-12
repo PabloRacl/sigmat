@@ -1,14 +1,16 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../banco-dados/prisma.service';
-import { AcaoLog, PerfilUsuario } from '@prisma/client';
-
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject } from '@nestjs/common';
+import { PerfilUsuario } from '@prisma/client';
+import { I_APROVACAO_REPOSITORIO } from './repositorios/aprovacoes.repository.interface';
+import type { IAprovacaoRepositorio } from './repositorios/aprovacoes.repository.interface';
 import { AuditService } from '../../compartilhado/servicos/audit.service';
 import { NotificationsService } from '../notificacoes/notificacoes.service';
+import { AcaoLog } from '@prisma/client';
 
 @Injectable()
 export class ApprovalsService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(I_APROVACAO_REPOSITORIO)
+    private readonly repository: IAprovacaoRepositorio,
     private readonly auditService: AuditService,
     private readonly notificationsService: NotificationsService,
   ) {}
@@ -22,15 +24,7 @@ export class ApprovalsService {
       return { message: 'Nenhuma alteração detectada' };
     }
 
-    const pendencia = await this.prisma.alteracaoPendente.create({
-      data: {
-        equipamentoId,
-        solicitanteId,
-        dadosAntigos,
-        dadosNovos,
-        camposAlterados,
-      },
-    });
+    const pendencia = await this.repository.criar(equipamentoId, solicitanteId, dadosNovos, dadosAntigos, camposAlterados);
 
     const diff = await this.auditService.gerarDiffComLabels(dadosAntigos, dadosNovos);
     if (diff) {
@@ -49,36 +43,15 @@ export class ApprovalsService {
   }
 
   async listarPendentesPorUnidade(batalhaoId?: number) {
-    return this.prisma.alteracaoPendente.findMany({
-      where: {
-        aprovado: null,
-        equipamento: batalhaoId ? { secao: { batalhaoId: batalhaoId } } : {},
-      },
-      include: {
-        equipamento: true,
-        solicitante: true,
-      },
-    });
+    return this.repository.listarPendentesPorUnidade(batalhaoId);
   }
 
   async contarPendentes(batalhaoId?: number) {
-    return this.prisma.alteracaoPendente.count({
-      where: {
-        aprovado: null,
-        equipamento: batalhaoId ? { secao: { batalhaoId: batalhaoId } } : {},
-      },
-    });
+    return this.repository.contarPendentes(batalhaoId);
   }
 
   async obterPendencia(id: number) {
-    const pendencia = await this.prisma.alteracaoPendente.findUnique({
-      where: { id },
-      include: {
-        equipamento: true,
-        solicitante: true,
-        aprovadoPor: true,
-      },
-    });
+    const pendencia = await this.repository.obterPendencia(id);
 
     if (!pendencia) {
       throw new NotFoundException('Solicitação de aprovação não encontrada');
@@ -92,14 +65,7 @@ export class ApprovalsService {
       throw new ForbiddenException('Apenas Comandantes ou Administradores podem processar aprovações.');
     }
 
-    const solicitacao = await this.prisma.alteracaoPendente.findUnique({
-      where: { id },
-      include: { equipamento: { include: { secao: true } } }
-    });
-
-    if (!solicitacao) {
-      throw new NotFoundException('Solicitação não encontrada');
-    }
+    const solicitacao = await this.obterPendencia(id);
 
     if (solicitacao.aprovado !== null) {
       throw new BadRequestException('Solicitação já foi processada');
@@ -112,61 +78,8 @@ export class ApprovalsService {
       }
     }
 
-    const aprovadoPorId = usuario.id;
+    const resultado = await this.repository.processarDecisao(id, aprovado, usuario.id, motivoNegacao, { solicitacao });
 
-    const resultado = await this.prisma.$transaction(async (tx) => {
-      const pendencia = await tx.alteracaoPendente.update({
-        where: { id },
-        data: {
-          aprovado,
-          aprovadoPorId,
-          motivoNegacao,
-          dataAprovacao: new Date(),
-        },
-      });
-
-      if (aprovado) {
-        const novos = solicitacao.dadosNovos as any;
-        if (solicitacao.camposAlterados.includes('_acao') && novos._acao === 'DELETE') {
-          await tx.equipamento.delete({
-            where: { id: solicitacao.equipamentoId },
-          });
-        } else {
-          const dadosParaAtualizar: any = {};
-          solicitacao.camposAlterados.forEach(campo => {
-            if (novos[campo] !== undefined) {
-              dadosParaAtualizar[campo] = novos[campo];
-            }
-          });
-
-          await tx.equipamento.update({
-            where: { id: solicitacao.equipamentoId },
-            data: dadosParaAtualizar,
-          });
-        }
-      }
-
-      // Log direto no TX para evitar deadlock
-      const dadosAlteradosNormalizados = await this.auditService.normalizarDadosParaLog({
-        campos: solicitacao.camposAlterados,
-        dadosNovos: solicitacao.dadosNovos,
-        motivoNegacao: motivoNegacao || undefined
-      });
-
-      await tx.logOperacao.create({
-        data: {
-          usuarioId: aprovadoPorId,
-          equipamentoId: solicitacao.equipamentoId,
-          acao: aprovado ? AcaoLog.APPROVE : AcaoLog.REJECT,
-          descricao: `${aprovado ? 'Aprovada' : 'Negada'} alteração para o equipamento ${solicitacao.equipamento.patrimonio}.`,
-          dadosAlterados: dadosAlteradosNormalizados,
-        }
-      });
-
-      return pendencia;
-    });
-
-    // Notificações APÓS a transação ter sucesso
     this.notificationsService.notificarAtualizacaoGlobal();
     this.notificationsService.notificarDecisaoAlteracao(
       solicitacao.solicitanteId,
@@ -177,6 +90,3 @@ export class ApprovalsService {
     return resultado;
   }
 }
-
-
-

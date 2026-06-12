@@ -19,15 +19,15 @@ export class ApprovalsController {
     return this.ApprovalsService.listarPendentesPorUnidade(batalhaoId);
   }
 
-  @Get(':id')
-  async obterPendencia(@Param('id', ParseIntPipe) id: number) {
-    return this.ApprovalsService.obterPendencia(id);
-  }
-
   @Get('contagem')
   async contarPendentes(@LoggedUser() usuario: any) {
     const batalhaoId = usuario.perfil === 'ADMIN_DTEC' ? undefined : usuario.batalhaoId;
     return { total: await this.ApprovalsService.contarPendentes(batalhaoId) };
+  }
+
+  @Get(':id')
+  async obterPendencia(@Param('id', ParseIntPipe) id: number) {
+    return this.ApprovalsService.obterPendencia(id);
   }
 
   @Post(':id/decisao')

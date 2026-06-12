@@ -40,6 +40,36 @@ export class UsersRepository {
     return this.prisma.usuario.delete(args);
   }
 
+  async deleteCascade(id: number) {
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Remove apenas acessos e tokens (para impedir login futuro)
+      await tx.refreshToken.deleteMany({ where: { usuarioId: id } });
+      await tx.usuarioSecao.deleteMany({ where: { usuarioId: id } });
+      await tx.usuarioTipoEquipamento.deleteMany({ where: { usuarioId: id } });
+      
+      // 2. Remove a responsabilidade de equipamentos atuais
+      await tx.equipamento.updateMany({
+        where: { usuarioResponsavelId: id },
+        data: { usuarioResponsavelId: null }
+      });
+
+      // 3. Em vez de deletar fisicamente, marcamos como "Removido" (Soft Delete).
+      // Isso mantém todos os logs, alterações pendentes e ordens de serviço intactos,
+      // mas libera o CPF/Login para caso a pessoa precise ser recadastrada no futuro.
+      const user = await tx.usuario.findUnique({ where: { id } });
+      if (!user) throw new Error('Usuário não encontrado');
+
+      return tx.usuario.update({
+        where: { id },
+        data: {
+          login: `removido_${id}_${user.login}`,
+          nome: `[REMOVIDO] ${user.nome}`,
+          autorizado: false,
+        }
+      });
+    });
+  }
+
   async upsert(args: Prisma.UsuarioUpsertArgs) {
     return this.prisma.usuario.upsert(args);
   }

@@ -47,25 +47,30 @@ export class LdapService {
       return cpfMock;
     }
 
-    const apiBase = this.configService.get<string>('API_LDAP');
-    if (!apiBase) {
-      this.logger.error('A variável API_LDAP não está definida no arquivo .env');
-      throw new Error('Configuração de autenticação LDAP ausente.');
-    }
+    // Build full LDAP endpoint URL using base and endpoint variables
+const apiBase = this.configService.get<string>('API_LDAP');
+if (!apiBase) {
+  this.logger.error('A variável API_LDAP não está definida no .env');
+  throw new Error('Configuração de autenticação LDAP ausente.');
+}
+// LDAP_AUTH_ENDPOINT não deve ser concatenado, pois a API raiz já é o endpoint de auth
+const apiUrl = apiBase;
+
+
 
     const headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
     };
 
-    const data = new URLSearchParams();
-    data.append('usuario', usuario);
-    data.append('senha', senha);
+    const payload = new URLSearchParams();
+    payload.append('usuario', usuario);
+    payload.append('senha', senha);
 
     const httpsAgent = new https.Agent({ family: 4 });
 
     try {
-      this.logger.log(`Disparando requisição real para o LDAP corporativo: ${apiBase}`);
-      const response = await axios.post(apiBase, data, { headers, httpsAgent });
+      this.logger.log(`Disparando requisição real para o LDAP corporativo: ${apiUrl}`);
+      const response = await axios.post(apiUrl, payload, { headers, httpsAgent });
 
       if (!response.data || response.data === 'Usuário nao encontrado' || response.data.status !== 'success') {
         throw new UnauthorizedException('Usuário ou senha do LDAP incorretos.');
@@ -87,9 +92,18 @@ export class LdapService {
       }
 
       return responseReturn[0];
-    } catch (error) {
-      const message = (error as any)?.message || String(error);
+    } catch (error: any) {
+      // Se o erro já é uma UnauthorizedException nossa, re-lança sem alterar
+      if (error?.status === 401 && error?.response?.message) {
+        throw error;
+      }
+      // Tenta extrair a mensagem de erro retornada pela API LDAP
+      const apiErrorMessage = error?.response?.data?.error || error?.response?.data?.message;
+      const message = apiErrorMessage || error?.message || String(error);
       this.logger.error(`Erro na autenticação LDAP real para ${usuario}: ${message}`);
+      if (apiErrorMessage) {
+        throw new UnauthorizedException(`LDAP: ${apiErrorMessage}`);
+      }
       throw new UnauthorizedException('Matrícula ou senha incorretas no LDAP corporativo.');
     }
   }

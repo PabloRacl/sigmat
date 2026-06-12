@@ -12,6 +12,7 @@ import { ApprovalsService } from '../aprovacoes/aprovacoes.service';
 import { PerfilUsuario, AcaoLog } from '@prisma/client';
 
 import { AuditService } from '../../compartilhado/servicos/audit.service';
+import { EquipamentoFiltroBuilder } from './comum/equipamento-filtro.builder';
 
 @Injectable()
 export class EquipmentService {
@@ -47,89 +48,11 @@ export class EquipmentService {
 
     if (!userFull) throw new NotFoundException('Usuário não encontrado');
 
-    const where: any = {};
-    const and: any[] = [];
-
-    if (userFull.perfil === PerfilUsuario.ADMIN_DTEC) {
-      // Vê tudo
-    } else {
-      const secoesIds = [userFull.secaoId, ...userFull.secoesPermitidas.map(s => s.secaoId)].filter(Boolean);
-      const userBatalhaoId = userFull.batalhaoId || userFull.secao?.batalhaoId;
-
-      if (userFull.perfil === PerfilUsuario.DIRETORIA) {
-        const diretoriaId = userFull.secao?.diretoriaId || userFull.batalhao?.diretoriaId;
-        const diretoriasOr: any[] = [];
-
-        if (secoesIds.length > 0) {
-          diretoriasOr.push({ secaoId: { in: secoesIds } });
-        }
-
-        if (diretoriaId) {
-          diretoriasOr.push({ secao: { diretoriaId } });
-          diretoriasOr.push({ secao: { batalhao: { diretoriaId } } });
-        }
-
-        if (diretoriasOr.length === 0) {
-          and.push({ secaoId: -1 });
-        } else {
-          and.push({ OR: diretoriasOr });
-        }
-      } else if (userBatalhaoId) {
-        const or: any[] = [];
-        if (secoesIds.length > 0) {
-          or.push({ secaoId: { in: secoesIds } });
-        }
-        // filtrar por batalhão do usuário (direto ou via seção)
-        or.push({ secao: { batalhaoId: userBatalhaoId } });
-        and.push({ OR: or });
-      } else {
-        if (secoesIds.length > 0) {
-          and.push({ secaoId: { in: secoesIds } });
-        } else {
-          and.push({ secaoId: -1 });
-        }
-      }
-    }
-
-    if (search) {
-      and.push({
-        OR: [
-          { patrimonio: { contains: search, mode: 'insensitive' } },
-          { numeroSerie: { contains: search, mode: 'insensitive' } },
-          { sei: { contains: search, mode: 'insensitive' } },
-          { tipoEquipamento: { nome: { contains: search, mode: 'insensitive' } } },
-          { marca: { nome: { contains: search, mode: 'insensitive' } } },
-          { secao: { sigla: { contains: search, mode: 'insensitive' } } },
-          { observacao: { contains: search, mode: 'insensitive' } },
-          { solicitante: { contains: search, mode: 'insensitive' } },
-          { especificacoes: { path: [], string_contains: search } },
-        ]
-      });
-    }
-
-    if (params.tipoId) and.push({ tipoEquipamentoId: Number(params.tipoId) });
-    if (params.statusId) and.push({ statusId: Number(params.statusId) });
-    if (params.disponibilidadeId) and.push({ disponibilidadeId: Number(params.disponibilidadeId) });
-    if (params.secaoId) and.push({ secaoId: Number(params.secaoId) });
-    if (params.marcaId) and.push({ marcaId: Number(params.marcaId) });
-
-    if (params.patrimonio) and.push({ patrimonio: { contains: params.patrimonio, mode: 'insensitive' } });
-    if (params.sei) and.push({ sei: { contains: params.sei, mode: 'insensitive' } });
-    if (params.numeroSerie) and.push({ numeroSerie: { contains: params.numeroSerie, mode: 'insensitive' } });
-    if (params.observacao) and.push({ observacao: { contains: params.observacao, mode: 'insensitive' } });
-    
-    if (params.dataAquisicao) {
-      const data = new Date(params.dataAquisicao);
-      if (!isNaN(data.getTime())) {
-        const startOfDay = new Date(data.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(data.setHours(23, 59, 59, 999));
-        and.push({ dataAquisicao: { gte: startOfDay, lte: endOfDay } });
-      }
-    }
-
-    if (and.length > 0) {
-      where.AND = and;
-    }
+    const where = new EquipamentoFiltroBuilder(userFull)
+      .aplicarPermissoes()
+      .aplicarBuscaGeral(search)
+      .aplicarFiltrosAvancados(params)
+      .build();
 
     this.logger.log(`Listando equipamentos para usuário: ${userFull.login}`);
 

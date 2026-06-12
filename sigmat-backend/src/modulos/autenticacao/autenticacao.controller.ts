@@ -15,16 +15,22 @@ import { AuthService } from './autenticacao.service';
 import { LoginDto, SolicitarAcessoDto } from './dto/entrada.dto';
 import { Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from './guardas/jwt-autenticacao.guard';
+import { LocalAuthGuard } from './guardas/local-auth.guard';
+import { SgaService } from '../../integracoes/sga/sga.service';
 
 @Controller('autenticacao')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly sgaService: SgaService,
+  ) {}
 
   @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @UseGuards(LocalAuthGuard)
   @Post('login-sei')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() body: LoginDto) {
-    return this.authService.loginCorporativo(body.usuario, body.senha);
+  async login(@Req() req: any) {
+    return req.user;
   }
 
   @Throttle({ default: { limit: 3, ttl: 60000 } })
@@ -34,9 +40,12 @@ export class AuthController {
     return this.authService.solicitarAcessoCorporativo(body);
   }
 
-  @Get('debug-ping')
-  async ping() {
-    return { status: "Code Version: 1.0.1 - Debug Enabled", time: new Date().toISOString() };
+
+
+  @Get('unidades')
+  async listarUnidades() {
+    const unidades = await this.sgaService.listarUnidades();
+    return { unidades };
   }
 
   @Post('refresh')

@@ -12,6 +12,10 @@ export class LoginDto {
 
 export class SolicitarAcessoDto {
   @IsString()
+  @IsNotEmpty({ message: 'O usuário é obrigatório' })
+  usuario: string = '';
+
+  @IsString()
   @IsNotEmpty({ message: 'A matrícula é obrigatória' })
   matricula: string = '';
 

@@ -28,6 +28,7 @@ export class UsersService {
 
     if (userFull.perfil === PerfilUsuario.ADMIN_DTEC) {
       return this.repository.findMany({
+        where: { login: { not: { startsWith: 'removido_' } } },
         include: {
           secao: { include: { batalhao: true } },
           batalhao: true,
@@ -83,6 +84,7 @@ export class UsersService {
 
   private buildVisibilityWhere(userFull: any): any {
     const secoesIds = [userFull.secaoId, ...userFull.secoesPermitidas.map((s: any) => s.secaoId)].filter(Boolean);
+    const baseCondition = { login: { not: { startsWith: 'removido_' } } };
 
     if (userFull.perfil === PerfilUsuario.DIRETORIA) {
       const diretoriaId = userFull.secao?.diretoriaId || userFull.batalhao?.diretoriaId;
@@ -96,7 +98,7 @@ export class UsersService {
         or.push({ batalhao: { diretoriaId } });
       }
 
-      return or.length > 0 ? { OR: or } : { secaoId: -1 };
+      return or.length > 0 ? { ...baseCondition, OR: or } : { secaoId: -1 };
     }
 
     const batalhaoId = userFull.batalhaoId || userFull.secao?.batalhaoId;
@@ -104,7 +106,7 @@ export class UsersService {
     if (secoesIds.length > 0) or.push({ secaoId: { in: secoesIds } });
     if (batalhaoId) or.push({ batalhaoId });
 
-    return or.length > 0 ? { OR: or } : { secaoId: -1 };
+    return or.length > 0 ? { ...baseCondition, OR: or } : { secaoId: -1 };
   }
 
   async buscarPorId(id: number) {
@@ -196,7 +198,7 @@ export class UsersService {
 
   async remover(id: number) {
     await this.buscarPorId(id);
-    return this.repository.delete({ where: { id } });
+    return this.repository.deleteCascade(id);
   }
 
   async upsertUsuarioCorporativo(dadosUsuario: any) {
@@ -256,6 +258,7 @@ export class UsersService {
         ...(secaoId ? { secaoId } : {}),
         ...(batalhaoId ? { batalhaoId } : {}),
         ...(perfil ? { perfil } : {}),
+        ...(dadosUsuario.autorizado !== undefined ? { autorizado: dadosUsuario.autorizado } : {}),
       },
       create: {
         login: dadosUsuario.login || dadosUsuario.matricula,
@@ -266,6 +269,7 @@ export class UsersService {
         perfil,
         ...(secaoId ? { secaoId } : {}),
         ...(batalhaoId ? { batalhaoId } : {}),
+        autorizado: dadosUsuario.autorizado !== undefined ? dadosUsuario.autorizado : true,
       },
     });
   }

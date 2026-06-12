@@ -58,28 +58,15 @@ export class AuthService {
         secaoSigla: sgpmData.secao || sgpmData.organizacao_disp || 'DTEC',
       };
 
-      const usuarioBanco = await this.usersService.buscarPorLogin(cpfLdap);
-      if (!usuarioBanco) {
-        throw new UnauthorizedException(
-          'Usuário válido no SGA, mas sem autorização no SIGMAT. Solicite acesso para ser liberado.'
-        );
-      }
-
-      if (usuarioBanco.autorizado === false) {
-        throw new UnauthorizedException(
-          'Seu acesso está pendente de aprovação. Aguarde o retorno da DTEC.'
-        );
-      }
-
-      const usuarioAtualizado: any = await this.usersService.atualizar(usuarioBanco.id, {
-        nome: dadosCompletos.nome,
-        email: dadosCompletos.email,
-        postoGraduacao: dadosCompletos.postoGraduacao,
-        matricula: dadosCompletos.matricula,
-        perfil: dadosCompletos.perfil,
-        ...(usuarioBanco.secaoId != null ? { secaoId: usuarioBanco.secaoId } : {}),
-        ...(usuarioBanco.batalhaoId != null ? { batalhaoId: usuarioBanco.batalhaoId } : {}),
+      // Se a execução chegou até aqui sem exceções, significa que o usuário:
+      // 1. Passou pela autenticação de senha no LDAP
+      // 2. Existe e está ATIVO no sistema de segurança SGA com permissão para o SIGMAT.
+      // A regra de negócio é: O SGA é a fonte da verdade. Se ele liberou lá, o SIGMAT libera e sincroniza os dados locais.
+      const usuarioAtualizado: any = await this.usersService.upsertUsuarioCorporativo({
+        ...dadosCompletos,
+        autorizado: true, // O SGA diz que está ativo
       });
+
 
       const usuarioDetalhado: any = await this.usersService.buscarPorId(usuarioAtualizado.id);
 
@@ -148,21 +135,22 @@ export class AuthService {
       let sgaPermissao: any = { perfil: 'USUARIO_BATALHAO' };
 
       if (!isMock) {
-        cpfLdap = await this.ldapService.autenticar(dto.cpf, dto.senha);
+        // Usa o campo 'usuario' diretamente, igual ao login principal
+        cpfLdap = await this.ldapService.autenticar(dto.usuario, dto.senha);
         sgpmData = await this.sgaService.obterDadosSgpm(cpfLdap).catch(() => ({}));
         sgaPermissao = await this.sgaService.obterPermissao(cpfLdap).catch(() => ({ perfil: 'USUARIO_BATALHAO' }));
       }
 
       const dadosCompletos = {
-        login: dto.cpf,
-        cpf: dto.cpf,
-        matricula: dto.matricula || sgpmData.matricula || '',
-        nome: dto.nome || sgpmData.nome_completo || sgpmData.nome_guerra || 'Policial Militar',
-        email: `${sgpmData.nome_guerra?.toLowerCase() || 'policial'}@pm.pe.gov.br`,
+        login: cpfLdap, // CPF real retornado pelo LDAP
+        cpf: cpfLdap,
+        matricula: sgpmData.matricula || dto.matricula || '',
+        nome: sgpmData.nome_completo || sgpmData.nome_guerra || dto.nome || 'Policial Militar',
+        email: `${(sgpmData.nome_guerra || dto.nome)?.toLowerCase().replace(/ /g, '.')}@pm.pe.gov.br`,
         postoGraduacao: sgpmData.sigla || '',
         perfil: sgaPermissao.perfil,
-        organizacaoDisp: dto.unidade || sgpmData.organizacao_disp || 'DTEC',
-        secaoSigla: dto.unidade || sgpmData.secao || sgpmData.organizacao_disp || 'DTEC',
+        organizacaoDisp: sgpmData.organizacao_disp || dto.unidade || 'DTEC',
+        secaoSigla: sgpmData.secao || sgpmData.organizacao_disp || dto.unidade || 'DTEC',
       };
 
       const usuarioBanco = await this.usersService.buscarPorLogin(cpfLdap);

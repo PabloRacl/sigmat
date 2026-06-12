@@ -319,10 +319,10 @@
   }
 
   :host ::ng-deep .login-access-dialog .p-dialog-content {
-    padding: 1.5rem 1.5rem 1.25rem;
+    padding: 1rem 1.5rem 1.25rem;
     background: transparent !important;
     color: #e2e8f0;
-    overflow: hidden !important;
+    overflow-y: auto !important;
   }
 
   :host ::ng-deep .login-access-dialog .p-dialog-header {
@@ -349,7 +349,7 @@
   .request-dialog-content {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 10px;
   }
 
   .dialog-intro {
@@ -532,6 +532,65 @@
 }
 
 :host ::ng-deep .login-access-dialog .input-group {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
+
+  label {
+    margin-bottom: 5px;
+    font-size: 13px;
+  }
+
+  .input-wrapper input {
+    padding: 10px 16px 10px 42px;
+    font-size: 14px;
+  }
 }
 
+// Select nativo estilizado para unidade
+.unidade-native-select {
+  width: 100%;
+  padding: 10px 16px 10px 42px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: #60a5fa;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
+  }
+
+  option {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 8px;
+  }
+}
+
+.unidade-input-with-datalist {
+  width: 100%;
+  padding: 10px 16px 10px 42px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #60a5fa;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
+  }
+
+  &::placeholder {
+    color: #64748b;
+  }
+}
