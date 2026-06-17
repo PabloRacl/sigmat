@@ -1,0 +1,163 @@
+<app-layout-pagina 
+  [hasStats]="true" 
+  [hasSearch]="false" 
+  [noContentPadding]="false"
+>
+  <!-- Cabeçalho da Página -->
+  <div header-title>
+    <h1>Dashboard ATLAS</h1>
+    <p>Bem-vindo ao centro de comando do patrimônio da PMPE</p>
+  </div>
+  
+  <div header-actions>
+    <div class="dh-quick-search" style="display: inline-flex; align-items: center; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 2px 2px 2px 12px; margin-right: 12px;">
+      <i class="pi pi-search" style="color: #94a3b8; margin-right: 8px;"></i>
+      <input type="text" placeholder="Busca rápida de patrimônio..." #quickSearch (keyup.enter)="irParaEquipamentos(quickSearch.value)" style="border: none; outline: none; font-size: 0.85rem; padding: 6px 0; color: #334155;">
+      <button class="dh-quick-search__btn" (click)="irParaEquipamentos(quickSearch.value)" title="Pesquisar" style="background: #2563eb; color: white; border: none; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+        <i class="pi pi-arrow-right" style="color: white !important;"></i>
+      </button>
+    </div>
+    <button class="dh-btn-refresh" [class.spinning]="loading" (click)="carregarDados()" title="Atualizar dados" style="display: inline-flex; align-items: center; gap: 8px; background: white; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; color: #475569;">
+      <i class="pi pi-refresh" [class.pi-spin]="loading"></i>
+      Atualizar
+    </button>
+  </div>
+
+  <!-- Cards de Resumo Estatístico -->
+  <div class="dh-stats" *ngIf="summary" stats>
+    <div class="dh-stat-card">
+      <div class="dh-stat-card__icon blue"><i class="pi pi-box"></i></div>
+      <div class="dh-stat-card__info">
+        <span class="dh-stat-card__val">{{ summary.total }}</span>
+        <span class="dh-stat-card__label">Total Geral</span>
+      </div>
+    </div>
+    <div class="dh-stat-card">
+      <div class="dh-stat-card__icon green"><i class="pi pi-check-circle"></i></div>
+      <div class="dh-stat-card__info">
+        <span class="dh-stat-card__val">{{ summary.ativos }}</span>
+        <span class="dh-stat-card__label">Equipamentos Ativos</span>
+      </div>
+    </div>
+    <div class="dh-stat-card">
+      <div class="dh-stat-card__icon amber"><i class="pi pi-sync"></i></div>
+      <div class="dh-stat-card__info">
+        <span class="dh-stat-card__val">{{ summary.emprestados }}</span>
+        <span class="dh-stat-card__label">Materiais Acautelados</span>
+      </div>
+    </div>
+    <div class="dh-stat-card">
+      <div class="dh-stat-card__icon orange"><i class="pi pi-cog"></i></div>
+      <div class="dh-stat-card__info">
+        <span class="dh-stat-card__val">{{ summary.manutencao }}</span>
+        <span class="dh-stat-card__label">Em Manutenção</span>
+      </div>
+    </div>
+    <div class="dh-stat-card">
+      <div class="dh-stat-card__icon red"><i class="pi pi-ban"></i></div>
+      <div class="dh-stat-card__info">
+        <span class="dh-stat-card__val">{{ summary.inativos }}</span>
+        <span class="dh-stat-card__label">Inativos / Baixados</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid de Gráficos e Logs Principais -->
+  <div content>
+    <!-- Estado de Carregamento -->
+    <div class="dh-loading" *ngIf="loading" style="display: flex; flex-direction: column; align-items: center; padding: 4rem 0; color: #64748b;">
+      <i class="pi pi-spinner pi-spin" style="font-size: 2.5rem; color: #2563eb; margin-bottom: 1rem;"></i>
+      <p>Consolidando indicadores em tempo real...</p>
+    </div>
+
+    <div class="dh-grid" *ngIf="!loading && charts" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; @media (max-width: 1024px) { grid-template-columns: 1fr; }">
+      <!-- Painel Principal -->
+      <div class="dh-card main-chart" style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <div class="dh-card__head" style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+          <div class="dh-card__icon indigo" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #eef2ff; color: #6366f1; font-size: 1.2rem;"><i class="pi pi-chart-line"></i></div>
+          <div class="dh-card__titles" style="flex: 1;">
+            <h3 class="dh-card__label" style="font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0;">Distribuição Detalhada</h3>
+            <span class="dh-card__sub" style="font-size: 0.8rem; color: #64748b;">Análise multidimensional do inventário atual</span>
+          </div>
+          <div class="dh-card__actions">
+            <p-select
+              [options]="opcoesGrafico"
+              [(ngModel)]="graficoSelecionado"
+              optionLabel="label"
+              [style]="{ minWidth: '220px' }"
+              appendTo="body"
+              styleClass="dh-dropdown"
+            ></p-select>
+          </div>
+        </div>
+
+        <div class="dh-card__content">
+          <div class="dh-chart-wrapper" *ngIf="dadosGraficoAtual" style="position: relative; height: 350px; width: 100%;">
+            <p-chart
+              [type]="tipoGraficoAtual"
+              [data]="dadosGraficoAtual"
+              [options]="opcoesGraficoAtual"
+              width="100%"
+              height="350px"
+            ></p-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- Atividades Recentes -->
+      <div class="dh-card activities" style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column;">
+        <div class="dh-card__head" style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+          <div class="dh-card__icon slate" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #f1f5f9; color: #475569; font-size: 1.2rem;"><i class="pi pi-history"></i></div>
+          <div class="dh-card__titles">
+            <h3 class="dh-card__label" style="font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0;">Log de Operações</h3>
+            <span class="dh-card__sub" style="font-size: 0.8rem; color: #64748b;">Últimas movimentações no sistema</span>
+          </div>
+        </div>
+
+        <div class="dh-card__content no-padding scrollable" style="flex: 1; overflow-y: auto; max-height: 350px; padding: 0;">
+          <div class="dh-activity-list" *ngIf="activities.length > 0">
+            <div class="dh-activity-item" *ngFor="let act of activities" style="display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+              <div class="dh-activity-item__icon" style="width: 28px; height: 28px; border-radius: 50%; background: #f8fafc; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: #64748b; flex-shrink: 0;"><i class="pi pi-pencil"></i></div>
+              <div class="dh-activity-item__info" style="flex: 1;">
+                <p class="dh-activity-item__desc" style="font-size: 0.85rem; color: #334155; margin: 0; font-weight: 500;">{{ act.descricao || act.acao }}</p>
+                <div class="dh-activity-item__meta" style="display: flex; gap: 6px; font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">
+                  <span class="user">{{ act.usuario?.nome }}</span>
+                  <span class="dot">•</span>
+                  <span class="date">{{ act.createdAt | date:'dd/MM HH:mm' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="dh-empty-activities" *ngIf="activities.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #94a3b8; padding: 2rem 0;">
+            <i class="pi pi-calendar-times" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+            <p style="margin: 0; font-size: 0.85rem;">Sem atividades registradas hoje.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção de Gráficos Secundários -->
+    <div class="dh-grid secondary" *ngIf="!loading && charts" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+      <div class="dh-card mini" style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <div class="dh-card__head sm" style="margin-bottom: 1rem;"><h3 class="dh-card__label" style="font-size: 0.9rem; font-weight: 700; color: #0f172a; margin: 0;">Situação do Material</h3></div>
+        <div class="dh-card__content">
+          <p-chart type="polarArea" [data]="charts.porStatus" [options]="opcoesPolar"></p-chart>
+        </div>
+      </div>
+
+      <div class="dh-card mini" style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <div class="dh-card__head sm" style="margin-bottom: 1rem;"><h3 class="dh-card__label" style="font-size: 0.9rem; font-weight: 700; color: #0f172a; margin: 0;">Disponibilidade Imediata</h3></div>
+        <div class="dh-card__content">
+          <p-chart type="pie" [data]="charts.porDisponibilidade" [options]="opcoesPie" height="200px"></p-chart>
+        </div>
+      </div>
+
+      <div class="dh-card mini" style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <div class="dh-card__head sm" style="margin-bottom: 1rem;"><h3 class="dh-card__label" style="font-size: 0.9rem; font-weight: 700; color: #0f172a; margin: 0;">Tipos Predominantes</h3></div>
+        <div class="dh-card__content">
+          <p-chart type="bar" [data]="charts.porTipo" [options]="opcoesBar" height="200px"></p-chart>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-layout-pagina>

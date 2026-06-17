@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const projectRoot = path.resolve(__dirname);
-const frontendRoot = path.join(projectRoot, 'sigmat-frontend', 'src', 'app');
-const backendRoot = path.join(projectRoot, 'sigmat-backend', 'src');
+const frontendRoot = path.join(projectRoot, 'atlas-frontend', 'src', 'app');
+const backendRoot = path.join(projectRoot, 'atlas-backend', 'src');
 
 const renameItems = [
   // frontend files
@@ -237,7 +237,7 @@ for (const [oldPath, newPath] of renameItems) {
 }
 
 console.log('Updating references in frontend and backend source files...');
-walkFiles(path.join(projectRoot, 'sigmat-frontend', 'src'));
-walkFiles(path.join(projectRoot, 'sigmat-backend', 'src'));
+walkFiles(path.join(projectRoot, 'atlas-frontend', 'src'));
+walkFiles(path.join(projectRoot, 'atlas-backend', 'src'));
 
 console.log('Finished migration script.');

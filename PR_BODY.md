@@ -24,7 +24,7 @@ Instruções de teste rápido
 1. Instalar dependências:
 
 ```bash
-cd sigmat-frontend
+cd atlas-frontend
 npm ci
 ```
 

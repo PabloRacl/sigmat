@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const root = path.join(process.cwd(), 'sigmat-frontend', 'src', 'app');
+const root = path.join(process.cwd(), 'atlas-frontend', 'src', 'app');
 const mappings = [
   ['features/autenticacao/login','features/autenticacao/entrada'],
   ['features/aprovacoes/approvals-list','features/aprovacoes/lista'],

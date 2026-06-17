@@ -38,7 +38,7 @@ Garantir que a visibilidade de equipamentos e relatórios respeite as regras de 
 ## Implementação técnica
 
 ### Backend
-1. Adicionar endpoints de CRUD para seções em `sigmat-backend/src/modules/settings`.
+1. Adicionar endpoints de CRUD para seções em `atlas-backend/src/modules/settings`.
 2. Atualizar `SettingsService.listarSecoes()` para retornar apenas seções permitidas ao usuário:
    - ADMIN: todas.
    - DIRETORIA: seções da diretoria e seções de batalhões subordinados.

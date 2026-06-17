@@ -1,0 +1,422 @@
+<app-layout-pagina 
+  [hasStats]="true" 
+  [hasSearch]="false" 
+  [noContentPadding]="false"
+>
+  <!-- Cabeçalho -->
+  <div header-title>
+    <h1>Cautelas Diárias</h1>
+    <p>Controle de empréstimos, saídas e retornos de material na sua Unidade</p>
+  </div>
+
+  <div header-actions>
+    <button class="cd-btn-primary" (click)="abrirSaida()" 
+      pTooltip="Registrar o acautelamento de um material (saída diária)" tooltipPosition="left">
+      <i class="pi pi-external-link"></i>
+      Acautelar Material
+    </button>
+  </div>
+
+  <!-- Estatísticas -->
+  <div class="cd-stats" stats>
+    <div class="cd-stat-card">
+      <div class="cd-stat-card__icon blue"><i class="pi pi-box"></i></div>
+      <div class="cd-stat-card__info">
+        <span class="cd-stat-card__val">{{ emprestados.length }}</span>
+        <span class="cd-stat-card__label">Emprestados</span>
+      </div>
+    </div>
+    <div class="cd-stat-card">
+      <div class="cd-stat-card__icon red"><i class="pi pi-exclamation-triangle"></i></div>
+      <div class="cd-stat-card__info">
+        <span class="cd-stat-card__val">{{ vencidos.length }}</span>
+        <span class="cd-stat-card__label">Vencidos</span>
+      </div>
+    </div>
+    <div class="cd-stat-card">
+      <div class="cd-stat-card__icon gray"><i class="pi pi-history"></i></div>
+      <div class="cd-stat-card__info">
+        <span class="cd-stat-card__val">{{ historico.length }}</span>
+        <span class="cd-stat-card__label">Histórico</span>
+      </div>
+    </div>
+    <div class="cd-stat-card">
+      <div class="cd-stat-card__icon green"><i class="pi pi-check-circle"></i></div>
+      <div class="cd-stat-card__info">
+        <span class="cd-stat-card__val">{{ equipamentos.length }}</span>
+        <span class="cd-stat-card__label">Disponíveis</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Abas e Tabela Grid Principal -->
+  <div content>
+    <!-- Navegação de Abas -->
+    <div class="cd-tabs" style="display: flex; gap: 4px; border-bottom: 1px solid #e2e8f0; margin-bottom: 1rem;">
+      <button class="cd-tabs__btn" [class.active]="abaAtiva === '0'" (click)="abaAtiva = '0'" style="padding: 10px 20px; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 8px; color: #64748b;" [style.borderBottomColor]="abaAtiva === '0' ? '#2563eb' : 'transparent'" [style.color]="abaAtiva === '0' ? '#2563eb' : '#64748b'">
+        <i class="pi pi-arrow-up-right"></i>
+        Ativos
+        <span class="cd-tabs__badge blue" *ngIf="emprestados.length" style="background: #eff6ff; color: #2563eb; font-size: 0.75rem; padding: 2px 6px; border-radius: 99px; font-weight: 700;">{{ emprestados.length }}</span>
+      </button>
+      <button class="cd-tabs__btn" [class.active]="abaAtiva === '1'" (click)="abaAtiva = '1'" style="padding: 10px 20px; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 8px; color: #64748b;" [style.borderBottomColor]="abaAtiva === '1' ? '#2563eb' : 'transparent'" [style.color]="abaAtiva === '1' ? '#2563eb' : '#64748b'">
+        <i class="pi pi-clock"></i>
+        Vencidos
+        <span class="cd-tabs__badge red" *ngIf="vencidos.length" style="background: #fef2f2; color: #ef4444; font-size: 0.75rem; padding: 2px 6px; border-radius: 99px; font-weight: 700;">{{ vencidos.length }}</span>
+      </button>
+      <button class="cd-tabs__btn" [class.active]="abaAtiva === '2'" (click)="abaAtiva = '2'" style="padding: 10px 20px; border: none; background: transparent; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 8px; color: #64748b;" [style.borderBottomColor]="abaAtiva === '2' ? '#2563eb' : 'transparent'" [style.color]="abaAtiva === '2' ? '#2563eb' : '#64748b'">
+        <i class="pi pi-list"></i>
+        Histórico Completo
+      </button>
+    </div>
+
+    <!-- LOADING -->
+    <div class="cd-loading" *ngIf="carregando" style="display: flex; flex-direction: column; align-items: center; padding: 3rem 0; color: #64748b;">
+      <i class="pi pi-spinner pi-spin" style="font-size: 2rem; color: #2563eb; margin-bottom: 0.5rem;"></i>
+      <p>Carregando movimentações...</p>
+    </div>
+
+    <!-- ABA 0: EMPRESTADOS ATIVOS -->
+    <div *ngIf="!carregando && abaAtiva === '0'">
+      <!-- Toolbar de Ações em Massa -->
+      <div class="cd-table-actions" *ngIf="selecionados.length > 0" style="display: flex; justify-content: space-between; align-items: center; background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px;">
+        <div class="cd-table-actions__info" style="display: flex; align-items: center; gap: 8px; color: #1e40af; font-size: 0.9rem;">
+          <i class="pi pi-check-square"></i>
+          <span><strong>{{ selecionados.length }}</strong> itens selecionados</span>
+        </div>
+        <div class="cd-table-actions__btns" style="display: flex; gap: 8px;">
+          <button class="cd-btn-bulk-sei" (click)="abrirModalSEI()" style="background: white; border: 1px solid #bfdbfe; color: #2563eb; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <i class="pi pi-external-link"></i> Gerar Termo SEI
+          </button>
+          <button class="cd-btn-bulk-print" (click)="imprimirCautelaMassa()" style="background: #2563eb; border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <i class="pi pi-file-pdf"></i> Gerar Cautela Coletiva
+          </button>
+          <button class="cd-btn-bulk-return" (click)="confirmarRetornoMassa()" style="background: #10b981; border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <i class="pi pi-arrow-down-left"></i> Baixar Retorno em Lote
+          </button>
+        </div>
+      </div>
+
+      <div class="cd-empty" *ngIf="emprestados.length === 0" style="text-align: center; padding: 3rem 0; color: #94a3b8;">
+        <i class="pi pi-inbox" style="font-size: 2.5rem; margin-bottom: 0.5rem;"></i>
+        <p>Nenhum equipamento emprestado no momento.</p>
+      </div>
+
+      <p-table 
+        *ngIf="emprestados.length > 0"
+        [value]="emprestados" 
+        [(selection)]="selecionados"
+        dataKey="id"
+        [rows]="10" 
+        [paginator]="true"
+        styleClass="cd-table"
+        [globalFilterFields]="['patrimonio', 'solicitante', 'tipoEquipamento.nome']"
+        #dtAtivos
+      >
+        <ng-template pTemplate="caption">
+          <div class="cd-table-header" style="padding-bottom: 12px;">
+            <span class="p-input-icon-left" style="position: relative; display: inline-flex; align-items: center;">
+              <i class="pi pi-search" style="position: absolute; left: 12px; color: #94a3b8;"></i>
+              <input pInputText type="text" style="padding-left: 36px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" (input)="dtAtivos.filterGlobal($any($event.target).value, 'contains')" placeholder="Pesquisar ativos..." />
+            </span>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 4rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+            <th>Patrimônio</th>
+            <th>Tipo</th>
+            <th>Solicitante</th>
+            <th>Saída</th>
+            <th>Retorno</th>
+            <th style="text-align: center">Ações</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-e>
+          <tr [class.vencido]="isVencido(e)">
+            <td><p-tableCheckbox [value]="e"></p-tableCheckbox></td>
+            <td>
+              <div class="cd-pat-cell" style="display: flex; flex-direction: column; gap: 2px;">
+                <span class="cd-patrimonio" style="font-weight: 700;">{{ e.patrimonio }}</span>
+                <span class="cd-vencido-tag" *ngIf="isVencido(e)" style="color: #ef4444; font-size: 0.65rem; font-weight: 800;">VENCIDO</span>
+              </div>
+            </td>
+            <td>{{ e.tipoEquipamento?.nome }}</td>
+            <td><strong>{{ e.solicitante }}</strong></td>
+            <td>{{ e.dataSolicitacao | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <span [class.text-red]="isVencido(e)">
+                {{ e.dataRetornoEmprestimo ? (e.dataRetornoEmprestimo | date:'dd/MM/yyyy') : '—' }}
+              </span>
+            </td>
+            <td style="text-align: center">
+              <div class="cd-actions-cell" style="display: flex; gap: 4px; justify-content: center;">
+                <button class="cd-btn-icon" (click)="imprimirCautela(e)" pTooltip="Imprimir Cautela" style="width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; cursor: pointer; color: #475569;">
+                  <i class="pi pi-print"></i>
+                </button>
+                <button class="cd-btn-icon-return" (click)="abrirRetorno(e)" pTooltip="Baixar Retorno" style="width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ecfdf5; border-color: #a7f3d0; color: #059669; cursor: pointer;">
+                  <i class="pi pi-arrow-down-left"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <!-- ABA 1: VENCIDOS -->
+    <div *ngIf="!carregando && abaAtiva === '1'">
+      <div class="cd-empty" *ngIf="vencidos.length === 0" style="text-align: center; padding: 3rem 0; color: #94a3b8;">
+        <i class="pi pi-check-circle text-green" style="font-size: 2.5rem; color: #10b981; margin-bottom: 0.5rem;"></i>
+        <p>Nenhum empréstimo vencido. Tudo em ordem!</p>
+      </div>
+      <div class="cd-grid" *ngIf="vencidos.length > 0" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+        <div class="cd-item-card vencido" *ngFor="let e of vencidos" style="background: #fff; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+          <div class="cd-item-card__head" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div style="display: flex; flex-direction: column;">
+              <span class="cd-patrimonio" style="font-weight: 700; font-size: 1.1rem; color: #0f172a;">{{ e.patrimonio }}</span>
+              <span class="cd-tipo" style="font-size: 0.8rem; color: #64748b;">{{ e.tipoEquipamento?.nome }}</span>
+            </div>
+            <span class="cd-vencido-tag" style="background: #fef2f2; color: #ef4444; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+              <i class="pi pi-exclamation-circle"></i> {{ diasAtraso(e) }}d atraso
+            </span>
+          </div>
+          <div class="cd-item-card__body" style="font-size: 0.85rem; color: #475569; display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem;">
+            <div class="cd-info-row" style="display: flex; justify-content: space-between;"><span class="label">Solicitante</span><span class="val" style="font-weight: 600; color: #0f172a;">{{ e.solicitante }}</span></div>
+            <div class="cd-info-row" style="display: flex; justify-content: space-between;"><span class="label">Vencido em</span><span class="val text-red" style="color: #ef4444; font-weight: 600;">{{ e.dataRetornoEmprestimo | date:'dd/MM/yyyy' }}</span></div>
+          </div>
+          <div class="cd-item-card__footer" style="display: flex; gap: 8px;">
+            <button class="cd-btn-ghost flex-1" (click)="imprimirCautela(e)" style="flex: 1; padding: 8px; border: 1px solid #e2e8f0; background: white; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; color: #475569;"><i class="pi pi-print"></i> Cautela</button>
+            <button class="cd-btn-danger flex-1" (click)="abrirRetorno(e)" style="flex: 1; padding: 8px; border: none; background: #ef4444; color: white; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;"><i class="pi pi-arrow-down-left"></i> Retorno</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA 2: HISTÓRICO -->
+    <div *ngIf="!carregando && abaAtiva === '2'">
+      <p-table 
+        [value]="historicoFiltrado" 
+        styleClass="cd-table" 
+        [rows]="10" 
+        [paginator]="true"
+        [globalFilterFields]="['patrimonio', 'solicitante', 'tipoEquipamento.nome']"
+        #dtHist
+      >
+        <ng-template pTemplate="caption">
+          <div class="cd-table-header" style="display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding-bottom: 12px;">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span style="font-size: 0.85rem; font-weight: 600; color: #64748b;">Filtrar Período:</span>
+              <p-datepicker 
+                [(ngModel)]="filtroData" 
+                selectionMode="range" 
+                [showIcon]="true" 
+                placeholder="00/00/0000 - 00/00/0000"
+                dateFormat="dd/mm/yy"
+                [readonlyInput]="true"
+                styleClass="cd-calendar-filter"
+                appendTo="body"
+              ></p-datepicker>
+              <button *ngIf="filtroData && filtroData.length" class="cd-btn-icon" (click)="filtroData = []" title="Limpar Filtro" style="width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">
+                <i class="pi pi-times"></i>
+              </button>
+            </div>
+            <span class="p-input-icon-left" style="position: relative; display: inline-flex; align-items: center;">
+              <i class="pi pi-search" style="position: absolute; left: 12px; color: #94a3b8;"></i>
+              <input pInputText type="text" style="padding-left: 36px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;" (input)="dtHist.filterGlobal($any($event.target).value, 'contains')" placeholder="Buscar por Patrimônio ou Nome..." />
+            </span>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Patrimônio</th>
+            <th>Tipo</th>
+            <th>Solicitante</th>
+            <th>Data Saída</th>
+            <th>Status</th>
+            <th style="text-align: center">Ações</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-e>
+          <tr>
+            <td><span class="cd-patrimonio" style="font-weight: 700;">{{ e.patrimonio }}</span></td>
+            <td>{{ e.tipoEquipamento?.nome }}</td>
+            <td>{{ e.solicitante }}</td>
+            <td>{{ e.dataSolicitacao | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <span class="eq-status-badge" [ngClass]="isVencido(e) ? 'vermelho' : 'verde'">
+                {{ e.disponibilidade?.nome }}
+              </span>
+            </td>
+            <td style="text-align: center">
+              <button class="cd-btn-icon" (click)="imprimirCautela(e)" pTooltip="Reimprimir Cautela" style="width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; cursor: pointer; color: #475569;">
+                <i class="pi pi-print"></i>
+              </button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+  <!-- Modais -->
+  <div dialogs>
+    <!-- MODAL: REGISTRAR SAÍDA -->
+    <p-dialog
+      [(visible)]="exibirModalSaida"
+      header="Acautelar Material (Saída Diária)"
+      [modal]="true"
+      [style]="{ width: '520px' }"
+      styleClass="cd-dialog"
+      [draggable]="false"
+      [resizable]="false"
+    >
+      <form [formGroup]="formSaida" (ngSubmit)="confirmarSaida()" class="cd-form" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div class="cd-form__field" style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Equipamento Disponível <span class="req" style="color: #ef4444;">*</span></label>
+          <p-select
+            [options]="equipamentos"
+            formControlName="equipamentoId"
+            optionLabel="patrimonio"
+            optionValue="id"
+            [filter]="true"
+            (onFilter)="onFiltrarEquipamento($event)"
+            filterBy="patrimonio"
+            placeholder="Selecione pelo patrimônio..."
+            appendTo="body"
+            styleClass="w-full"
+          ></p-select>
+        </div>
+        <div class="cd-form__field" style="display: flex; flex-direction: column; gap: 4px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Nome do Solicitante <span class="req" style="color: #ef4444;">*</span></label>
+          <input type="text" pInputText formControlName="solicitante" placeholder="Ex: Cap PM Silva" class="w-full" />
+        </div>
+        <div class="cd-form__row" style="display: flex; gap: 1rem;">
+          <div class="cd-form__field flex-1" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Data de Saída <span class="req" style="color: #ef4444;">*</span></label>
+            <p-datepicker formControlName="dataSolicitacao" [showIcon]="true" appendTo="body" styleClass="w-full"></p-datepicker>
+          </div>
+          <div class="cd-form__field flex-1" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Retorno Previsto</label>
+            <p-datepicker formControlName="dataRetornoEmprestimo" [showIcon]="true" appendTo="body" styleClass="w-full"></p-datepicker>
+          </div>
+        </div>
+        <div class="cd-dialog-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 15px; border-top: 1px solid #f1f5f9; margin-top: 10px;">
+          <button type="button" class="cd-btn-ghost" (click)="exibirModalSaida = false" style="background: white; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 8px; font-weight: 600; color: #64748b; cursor: pointer;">Cancelar</button>
+          <button type="submit" class="cd-btn-primary" [disabled]="formSaida.invalid" style="background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer;">Gerar Cautela / Saída</button>
+        </div>
+      </form>
+    </p-dialog>
+
+    <!-- MODAL: CONFIRMAR RETORNO -->
+    <p-dialog
+      [(visible)]="exibirModalRetorno"
+      header="Confirmar Retorno de Material"
+      [modal]="true"
+      [style]="{ width: '420px' }"
+      styleClass="cd-dialog"
+      [draggable]="false"
+      [resizable]="false"
+    >
+      <div class="cd-retorno" *ngIf="itemRetorno" style="text-align: center; padding: 1rem 0;">
+        <div class="cd-retorno__icon" style="font-size: 3rem; color: #2563eb; margin-bottom: 1rem;"><i class="pi pi-box"></i></div>
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Confirmar retorno ao inventário?</h3>
+        <p style="font-size: 0.9rem; color: #64748b;">O equipamento <strong>{{ itemRetorno.patrimonio }}</strong> voltará para o status <strong>Disponível</strong>.</p>
+        <div class="cd-retorno__details" style="background: #f8fafc; padding: 10px; border-radius: 8px; margin-top: 1rem; border: 1px solid #e2e8f0; font-size: 0.85rem; color: #475569;">
+          <span>Solicitante: <strong>{{ itemRetorno.solicitante }}</strong></span>
+        </div>
+      </div>
+      <div class="cd-dialog-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 15px; border-top: 1px solid #f1f5f9;">
+        <button class="cd-btn-ghost" (click)="exibirModalRetorno = false" style="background: white; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 8px; font-weight: 600; color: #64748b; cursor: pointer;">Cancelar</button>
+        <button class="cd-btn-receive" (click)="confirmarRetorno()" style="background: #10b981; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer;">Confirmar Retorno</button>
+      </div>
+    </p-dialog>
+
+    <p-toast position="bottom-right"></p-toast>
+
+    <!-- MODAL GERAR TEXTO SEI -->
+    <p-dialog [(visible)]="exibirModalSEI" header="Termo para o SEI" [modal]="true" [style]="{ width: '750px' }" styleClass="cd-dialog">
+      <div class="cd-sei-container">
+        <p class="cd-sei-info" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;"><i class="pi pi-info-circle"></i> O texto abaixo está formatado para o editor do SEI. Clique no botão copiar para levar a formatação (tabelas e negritos).</p>
+        
+        <div class="cd-sei-paper" #seiContent style="border: 1px solid #e2e8f0; max-height: 400px; overflow-y: auto; border-radius: 8px;">
+          <div id="termo-sei-content" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.4; color: #000; padding: 40px; background: white;">
+            <!-- CABEÇALHO OFICIAL SEI -->
+            <div style="text-align: center; margin-bottom: 30px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="width: 100%; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Bras%C3%A3o_de_Pernambuco.svg/1200px-Bras%C3%A3o_de_Pernambuco.svg.png" 
+                         alt="Brasão PE" style="width: 80px; margin-bottom: 5px;">
+                    <br>
+                    <img src="https://www.gov.br/consea/pt-br/assuntos/historico/planejamento-estrategico-2024-2027/LOGO_PE_2024-2027_-_SEM_FUNDO.png" 
+                         alt="Governo PE" style="width: 180px; margin-bottom: 10px;">
+                  </td>
+                </tr>
+              </table>
+              <div style="font-weight: bold; font-size: 14px; margin-top: 5px; text-transform: uppercase;">
+                SECRETARIA DE DEFESA SOCIAL<br>
+                POLÍCIA MILITAR DE PERNAMBUCO<br>
+                DTEC - ATLAS
+              </div>
+            </div>
+            
+            <p style="text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 25px; text-decoration: underline;">
+              TERMO DE RECEBIMENTO E RESPONSABILIDADE DE MATERIAL - DTEC
+            </p>
+            
+            <p style="text-align: justify; margin-bottom: 15px;">
+              Pelo presente termo, a <strong>Diretoria de Tecnologia (DTEC/PMPE)</strong> realiza a entrega do(s) material(is) abaixo relacionado(s) ao(à) 
+              <strong>{{ selecionados[0]?.solicitante || 'SOLICITANTE' }}</strong>, 
+              que assume plena responsabilidade pela guarda, conservação e uso estritamente profissional dos mesmos, comprometendo-se a zelar por sua integridade.
+            </p>
+
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid black;">
+              <thead>
+                <tr style="background-color: #f2f2f2;">
+                  <th style="border: 1px solid black; padding: 8px; text-align: center;">Item</th>
+                  <th style="border: 1px solid black; padding: 8px; text-align: left;">Patrimônio</th>
+                  <th style="border: 1px solid black; padding: 8px; text-align: left;">Descrição / Marca / Modelo</th>
+                  <th style="border: 1px solid black; padding: 8px; text-align: left;">Número de Série</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let it of selecionados; let i = index">
+                  <td style="border: 1px solid black; padding: 8px; text-align: center;">{{ i + 1 }}</td>
+                  <td style="border: 1px solid black; padding: 8px; font-weight: bold;">{{ it.patrimonio }}</td>
+                  <td style="border: 1px solid black; padding: 8px;">{{ it.tipoEquipamento?.nome }} - {{ it.marca?.nome }}</td>
+                  <td style="border: 1px solid black; padding: 8px;">{{ it.numeroSerie || 'N/A' }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p style="text-align: justify; font-size: 11px; margin-top: 20px; color: #333;">
+              <strong>Nota:</strong> O recebedor declara-se ciente das obrigações constantes no Regulamento de Administração Geral da PMPE, assumindo o compromisso de ressarcimento ao erário em caso de dano, extravio ou furto por negligência ou mau uso do equipamento.
+            </p>
+
+            <p style="margin-top: 30px; text-align: center;">
+              Recife/PE, {{ dataHoje | date:'dd/MM/yyyy' }}
+            </p>
+
+            <!-- RODAPÉ OFICIAL SEI -->
+            <div style="margin-top: 40px; text-align: center;">
+              <p style="margin-bottom: 25px;">Respeitosamente,</p>
+              
+              <p style="font-weight: bold; margin-bottom: 0;">&#64;nome_interessado&#64;</p>
+              <p style="margin-top: 0; font-size: 13px;">&#64;cargo_interessado&#64; do(a) PMPE - DTEC-SISTEMAS</p>
+              
+              <p style="margin-top: 50px; font-style: italic; font-size: 13px; color: #555;">
+                "Nossa Presença, Sua Segurança."
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cd-dialog-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 15px; border-top: 1px solid #f1f5f9; margin-top: 10px;">
+        <button class="cd-btn-ghost" (click)="exibirModalSEI = false" style="background: white; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 8px; font-weight: 600; color: #64748b; cursor: pointer;">Fechar</button>
+        <button class="cd-btn-primary" (click)="copiarTextoSEI()" style="background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+          <i class="pi pi-copy"></i> Copiar para o SEI
+        </button>
+      </div>
+    </p-dialog>
+  </div>
+</app-layout-pagina>

@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const roots = [
-  path.join(process.cwd(), 'sigmat-frontend', 'src', 'app'),
-  path.join(process.cwd(), 'sigmat-backend', 'src'),
-  path.join(process.cwd(), 'sigmat-backend', 'test')
+  path.join(process.cwd(), 'atlas-frontend', 'src', 'app'),
+  path.join(process.cwd(), 'atlas-backend', 'src'),
+  path.join(process.cwd(), 'atlas-backend', 'test')
 ];
 const replacements = [
   ['\.\/interceptors\/', './interceptadores/'],
