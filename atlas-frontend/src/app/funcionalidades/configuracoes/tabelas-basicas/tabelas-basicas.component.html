@@ -83,27 +83,17 @@
   </div>
 </div>
 
-<!-- Modal Premium -->
-<p-dialog [(visible)]="modalVisivel" [header]="(modoEdicao ? 'Editar ' : 'Novo(a) ') + titulo" [modal]="true" [style]="{width: '500px'}" [draggable]="false" [resizable]="false" styleClass="premium-modal" [closable]="false">
-  <ng-template pTemplate="header">
-    <div class="modal-header-custom">
-      <div class="modal-icon"><i class="pi" [ngClass]="modoEdicao ? 'pi-pencil' : 'pi-file-edit'"></i></div>
-      <h3>{{ modoEdicao ? 'Editar' : 'Criar' }} {{ titulo }}</h3>
-    </div>
-  </ng-template>
-  
-  <div class="p-fluid mt-2 modal-content-custom">
+<!-- Modal -->
+<p-dialog [(visible)]="modalVisivel" [header]="(modoEdicao ? 'Editar ' : 'Novo(a) ') + titulo" [modal]="true" [style]="{width: '450px'}" [draggable]="false" [resizable]="false">
+  <div class="p-fluid mt-3">
     <div class="field">
       <label for="nome" class="font-medium">Nome / Descrição</label>
-      <span class="p-input-icon-left">
-        <i class="pi pi-tag"></i>
-        <input id="nome" type="text" pInputText [(ngModel)]="novoRegistro.nome" placeholder="Digite o nome..." autofocus class="premium-input" />
-      </span>
+      <input id="nome" type="text" pInputText [(ngModel)]="novoRegistro.nome" placeholder="Digite o nome..." autofocus />
     </div>
     
     <div class="field" *ngIf="entidade === 'modelos'">
       <label for="marca" class="font-medium">Vincular a uma Marca</label>
-      <p-dropdown id="marca" [options]="marcas" [(ngModel)]="novoRegistro.marcaId" optionLabel="nome" optionValue="id" placeholder="Selecione uma marca existente..." [filter]="true" styleClass="premium-dropdown">
+      <p-dropdown id="marca" [options]="marcas" [(ngModel)]="novoRegistro.marcaId" optionLabel="nome" optionValue="id" placeholder="Selecione uma marca existente..." [filter]="true">
         <ng-template let-marca pTemplate="item">
           <div class="flex align-items-center gap-2">
             <i class="pi pi-briefcase text-color-secondary"></i>
@@ -115,9 +105,7 @@
   </div>
   
   <ng-template pTemplate="footer">
-    <div class="modal-footer-custom">
-      <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="fecharModal()"></button>
-      <button pButton pRipple label="Salvar Registro" icon="pi pi-check" class="p-button-primary" (click)="salvar()" [loading]="salvando"></button>
-    </div>
+    <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="fecharModal()"></button>
+    <button pButton pRipple label="Salvar Registro" icon="pi pi-check" class="p-button-primary" (click)="salvar()" [loading]="salvando"></button>
   </ng-template>
 </p-dialog>
