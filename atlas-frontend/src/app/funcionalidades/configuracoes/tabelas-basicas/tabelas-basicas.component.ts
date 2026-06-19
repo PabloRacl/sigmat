@@ -36,10 +36,11 @@ export class TabelasBasicasComponent implements OnInit {
   marcas: any[] = [];
 
   ngOnInit() {
-    // Escuta mudanças de rota para recarregar a tabela correta
-    this.route.url.subscribe(url => {
-      if (url.length > 0) {
-        this.entidade = url[0].path;
+    // Escuta mudanças de parâmetros de rota para recarregar a tabela correta
+    this.route.paramMap.subscribe(params => {
+      const entidade = params.get('entidade');
+      if (entidade) {
+        this.entidade = entidade;
         this.configurarEntidade();
         this.carregarDados();
       }
