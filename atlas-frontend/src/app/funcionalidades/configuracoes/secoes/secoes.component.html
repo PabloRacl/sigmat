@@ -1,0 +1,442 @@
+<app-layout-pagina 
+  [hasStats]="abaAtiva === 'secoes'" 
+  [hasSearch]="false" 
+  [noContentPadding]="true"
+>
+  <!-- Cabeçalho Dinâmico -->
+  <div header-title>
+    <ng-container [ngSwitch]="abaAtiva">
+      <div *ngSwitchCase="'secoes'">
+        <h1>Seções da Unidade</h1>
+        <p>Gerencie seções da unidade, visualize totais e movimente equipamentos com clareza.</p>
+      </div>
+      <div *ngSwitchCase="'tipos'">
+        <h1>Tipos de Equipamento</h1>
+        <p>Gerencie a lista de tipos de equipamento disponíveis no inventário.</p>
+      </div>
+      <div *ngSwitchCase="'marcas'">
+        <h1>Marcas de Equipamentos</h1>
+        <p>Gerencie as marcas cadastradas e homologadas no sistema.</p>
+      </div>
+      <div *ngSwitchCase="'modelos'">
+        <h1>Modelos de Equipamentos</h1>
+        <p>Gerencie os modelos e suas respectivas associações de marcas.</p>
+      </div>
+      <div *ngSwitchCase="'status'">
+        <h1>Status de Equipamento</h1>
+        <p>Gerencie os estados possíveis para os equipamentos.</p>
+      </div>
+    </ng-container>
+  </div>
+
+  <div header-actions>
+    <ng-container [ngSwitch]="abaAtiva">
+      <div *ngSwitchCase="'secoes'" class="sections-header__actions">
+        <button pButton type="button" icon="pi pi-exchange" label="Transferência Interna" class="eq-btn-secondary" (click)="abrirModalTransferencia()"></button>
+        <button pButton type="button" icon="pi pi-plus" label="Nova Seção" class="eq-btn-primary" (click)="abrirDialog()"></button>
+      </div>
+      <div *ngSwitchCase="'status'">
+        <button pButton type="button" icon="pi pi-plus" label="Novo Status" class="eq-btn-primary" (click)="abrirDialogStatus()"></button>
+      </div>
+      <div *ngSwitchCase="'tipos'">
+        <button pButton type="button" icon="pi pi-plus" label="Novo Tipo" class="eq-btn-primary" (click)="abrirDialogTipo()"></button>
+      </div>
+      <div *ngSwitchCase="'marcas'">
+        <button pButton type="button" icon="pi pi-plus" label="Nova Marca" class="eq-btn-primary" (click)="abrirDialogMarca()"></button>
+      </div>
+      <div *ngSwitchCase="'modelos'">
+        <button pButton type="button" icon="pi pi-plus" label="Novo Modelo" class="eq-btn-primary" (click)="abrirDialogModelo()"></button>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Cards Estatísticas (Apenas na aba de Seções) -->
+  <div class="eq-stats" *ngIf="abaAtiva === 'secoes'">
+    <div class="eq-stat-card">
+      <div class="eq-stat-card__icon blue"><i class="pi pi-th-large"></i></div>
+      <div class="eq-stat-card__info">
+        <span class="eq-stat-card__val">{{ secoes.length }}</span>
+        <span class="eq-stat-card__label">Seções</span>
+      </div>
+    </div>
+    <div class="eq-stat-card">
+      <div class="eq-stat-card__icon green"><i class="pi pi-box"></i></div>
+      <div class="eq-stat-card__info">
+        <span class="eq-stat-card__val">{{ totalEquipamentos | number }}</span>
+        <span class="eq-stat-card__label">Equipamentos</span>
+      </div>
+    </div>
+    <div class="eq-stat-card">
+      <div class="eq-stat-card__icon indigo"><i class="pi pi-briefcase"></i></div>
+      <div class="eq-stat-card__info">
+        <span class="eq-stat-card__val">{{ batalhoes.length }}</span>
+        <span class="eq-stat-card__label">Batalhões</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo Principal com Tabs -->
+  <div content class="page-content-wrapper">
+    
+    <!-- Barra de Navegação por Abas -->
+    <div class="sub-nav-tabs" *ngIf="!isSecoesRoute">
+      <button class="sub-nav-btn" [class.active]="abaAtiva === 'secoes'" (click)="abaAtiva = 'secoes'">Seções</button>
+      <button class="sub-nav-btn" [class.active]="abaAtiva === 'tipos'" (click)="abaAtiva = 'tipos'" *ngIf="!isSecoesRoute">Tipos</button>
+      <button class="sub-nav-btn" [class.active]="abaAtiva === 'marcas'" (click)="abaAtiva = 'marcas'" *ngIf="!isSecoesRoute">Marcas</button>
+      <button class="sub-nav-btn" [class.active]="abaAtiva === 'modelos'" (click)="abaAtiva = 'modelos'" *ngIf="!isSecoesRoute">Modelos</button>
+      <button class="sub-nav-btn" [class.active]="abaAtiva === 'status'" (click)="abaAtiva = 'status'" *ngIf="!isSecoesRoute">Status</button>
+    </div>
+
+    <!-- Tabela Dinâmica -->
+    <div class="table-container">
+      
+      <!-- ABA 1: SEÇÕES -->
+      <div *ngIf="abaAtiva === 'secoes'">
+        <p-table
+          [value]="secoes"
+          [loading]="carregando"
+          [responsiveLayout]="'scroll'"
+          [paginator]="true"
+          [rows]="10"
+          [rowsPerPageOptions]="[10,20,50]"
+          styleClass="p-datatable-sm p-datatable-gridlines"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="min-width: 120px">Sigla</th>
+              <th style="min-width: 220px">Nome</th>
+              <th style="min-width: 180px">Batalhão</th>
+              <th style="min-width: 110px; text-align:center">Equipamentos</th>
+              <th style="min-width: 170px; text-align:center">Ações</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>{{ item.sigla }}</td>
+              <td>{{ item.nome }}</td>
+              <td>{{ getBatalhaoNome(item.batalhaoId) }}</td>
+              <td style="text-align:center">{{ item._count?.equipamentos || 0 }}</td>
+              <td style="text-align:center">
+                <div class="eq-action-btns-inline">
+                  <button pButton type="button" icon="pi pi-pencil" class="p-button-text p-button-primary" title="Editar" (click)="abrirDialog(item)"></button>
+                  <button pButton type="button" icon="pi pi-exchange" class="p-button-text p-button-primary" title="Transferir" (click)="abrirModalTransferencia(item)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- ABA 5: STATUS -->
+      <div *ngIf="abaAtiva === 'status'">
+        <p-table
+          [value]="statusList"
+          [loading]="carregando"
+          [responsiveLayout]="'scroll'"
+          [paginator]="true"
+          [rows]="10"
+          [rowsPerPageOptions]="[10,20,50]"
+          styleClass="p-datatable-sm p-datatable-gridlines">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="min-width: 80px">ID</th>
+              <th style="min-width: 200px">Nome</th>
+              <th style="min-width: 120px; text-align:center">Ações</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>{{ item.id }}</td>
+              <td>{{ item.nome }}</td>
+              <td style="text-align:center">
+                <div class="eq-action-btns-inline">
+                  <button pButton type="button" icon="pi pi-pencil" class="p-button-text p-button-primary" title="Editar" (click)="abrirDialogStatus(item)"></button>
+                  <button pButton type="button" icon="pi pi-trash" class="p-button-text p-button-danger" title="Excluir" (click)="excluirStatus(item.id, item.nome)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- ABA 2: TIPOS -->
+      <div *ngIf="abaAtiva === 'tipos'">
+        <p-table
+          [value]="tipos"
+          [loading]="carregando"
+          [responsiveLayout]="'scroll'"
+          [paginator]="true"
+          [rows]="10"
+          [rowsPerPageOptions]="[10,20,50]"
+          styleClass="p-datatable-sm p-datatable-gridlines"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="min-width: 80px">ID</th>
+              <th style="min-width: 300px">Nome do Tipo</th>
+              <th *ngIf="userPerfil === 'ADMIN_DTEC'" style="min-width: 100px; text-align:center">Ações</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>{{ item.id }}</td>
+              <td>{{ item.nome }}</td>
+              <td *ngIf="userPerfil === 'ADMIN_DTEC'" style="text-align:center">
+                <div class="eq-action-btns-inline">
+                  <button pButton type="button" icon="pi pi-trash" class="p-button-text p-button-danger" title="Excluir" (click)="excluirTipo(item.id, item.nome)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- ABA 3: MARCAS -->
+      <div *ngIf="abaAtiva === 'marcas'">
+        <p-table
+          [value]="marcas"
+          [loading]="carregando"
+          [responsiveLayout]="'scroll'"
+          [paginator]="true"
+          [rows]="10"
+          [rowsPerPageOptions]="[10,20,50]"
+          styleClass="p-datatable-sm p-datatable-gridlines"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="min-width: 80px">ID</th>
+              <th style="min-width: 300px">Nome da Marca</th>
+              <th *ngIf="userPerfil === 'ADMIN_DTEC'" style="min-width: 100px; text-align:center">Ações</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>{{ item.id }}</td>
+              <td>{{ item.nome }}</td>
+              <td *ngIf="userPerfil === 'ADMIN_DTEC'" style="text-align:center">
+                <div class="eq-action-btns-inline">
+                  <button pButton type="button" icon="pi pi-trash" class="p-button-text p-button-danger" title="Excluir" (click)="excluirMarca(item.id, item.nome)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- ABA 4: MODELOS -->
+      <div *ngIf="abaAtiva === 'modelos'">
+        <p-table
+          [value]="modelos"
+          [loading]="carregando"
+          [responsiveLayout]="'scroll'"
+          [paginator]="true"
+          [rows]="10"
+          [rowsPerPageOptions]="[10,20,50]"
+          styleClass="p-datatable-sm p-datatable-gridlines"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="min-width: 80px">ID</th>
+              <th style="min-width: 250px">Nome do Modelo</th>
+              <th style="min-width: 200px">Marca Associada</th>
+              <th *ngIf="userPerfil === 'ADMIN_DTEC'" style="min-width: 100px; text-align:center">Ações</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>{{ item.id }}</td>
+              <td>{{ item.nome }}</td>
+              <td>{{ getMarcaNome(item.marcaId) }}</td>
+              <td *ngIf="userPerfil === 'ADMIN_DTEC'" style="text-align:center">
+                <div class="eq-action-btns-inline">
+                  <button pButton type="button" icon="pi pi-trash" class="p-button-text p-button-danger" title="Excluir" (click)="excluirModelo(item.id, item.nome)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modais -->
+  <div dialogs>
+    
+    <!-- Modal Seção -->
+    <p-dialog header="{{ editando ? 'Editar Seção' : 'Nova Seção' }}" [(visible)]="dialogVisivel" modal="true" [style]="{ width: '560px' }" [closable]="true" [dismissableMask]="true">
+      <div class="dialog-header-note">
+        <span>Defina a seção e o batalhão vinculado. Usuário de batalhão não pode alterar o batalhão.</span>
+      </div>
+      <form [formGroup]="form" class="section-form">
+        <div class="form-grid">
+          <div class="p-field">
+            <label>Sigla</label>
+            <input pInputText formControlName="sigla" />
+          </div>
+          <div class="p-field">
+            <label>Nome</label>
+            <input pInputText formControlName="nome" />
+          </div>
+          <div class="p-field">
+            <label>Batalhão</label>
+            <p-select
+              [options]="batalhoes"
+              formControlName="batalhaoId"
+              optionLabel="sigla"
+              optionValue="id"
+              [showClear]="true"
+              [disabled]="userPerfil === 'USUARIO_BATALHAO'"
+              placeholder="Selecione um batalhão"
+            ></p-select>
+          </div>
+        </div>
+      </form>
+      <p-footer>
+        <button pButton type="button" label="Sair" class="p-button-text" (click)="fecharDialog()"></button>
+        <button pButton type="button" label="Salvar" icon="pi pi-save" class="p-button-primary" (click)="salvar()"></button>
+      </p-footer>
+    </p-dialog>
+
+    <!-- Modal Novo Tipo -->
+    <p-dialog header="Novo Tipo de Equipamento" [(visible)]="tipoDialogVisivel" modal="true" [style]="{ width: '400px' }" [closable]="true" [dismissableMask]="true">
+      <div class="dialog-header-note">
+        <span>Informe o nome do novo tipo de equipamento.</span>
+      </div>
+      <form [formGroup]="tipoForm" class="section-form">
+        <div class="p-fluid">
+          <div class="p-field">
+            <label style="margin-bottom: 0.5rem; display: block; font-weight: 600;">Nome do Tipo</label>
+            <input pInputText formControlName="nome" placeholder="Ex: Roteador, Teclado..." />
+          </div>
+        </div>
+      </form>
+      <p-footer>
+        <button pButton type="button" label="Cancelar" class="p-button-text" (click)="tipoDialogVisivel = false"></button>
+        <button pButton type="button" label="Salvar" icon="pi pi-save" class="p-button-primary" (click)="salvarTipo()"></button>
+      </p-footer>
+    </p-dialog>
+
+    <!-- Modal Nova Marca -->
+    <p-dialog header="Nova Marca" [(visible)]="marcaDialogVisivel" modal="true" [style]="{ width: '400px' }" [closable]="true" [dismissableMask]="true">
+      <div class="dialog-header-note">
+        <span>Informe o nome da nova marca.</span>
+      </div>
+      <form [formGroup]="marcaForm" class="section-form">
+        <div class="p-fluid">
+          <div class="p-field">
+            <label style="margin-bottom: 0.5rem; display: block; font-weight: 600;">Nome da Marca</label>
+            <input pInputText formControlName="nome" placeholder="Ex: Cisco, Logitech..." />
+          </div>
+        </div>
+      </form>
+      <p-footer>
+        <button pButton type="button" label="Cancelar" class="p-button-text" (click)="marcaDialogVisivel = false"></button>
+        <button pButton type="button" label="Salvar" icon="pi pi-save" class="p-button-primary" (click)="salvarMarca()"></button>
+      </p-footer>
+    </p-dialog>
+
+    <!-- Modal Novo Modelo -->
+    <p-dialog header="Novo Modelo" [(visible)]="modeloDialogVisivel" modal="true" [style]="{ width: '450px' }" [closable]="true" [dismissableMask]="true">
+      <div class="dialog-header-note">
+        <span>Selecione a marca e informe o nome do novo modelo.</span>
+      </div>
+      <form [formGroup]="modeloForm" class="section-form">
+        <div class="p-fluid" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="p-field">
+            <label style="margin-bottom: 0.5rem; display: block; font-weight: 600;">Marca</label>
+            <p-select
+              [options]="marcas"
+              formControlName="marcaId"
+              optionLabel="nome"
+              optionValue="id"
+              placeholder="Selecione a marca"
+            ></p-select>
+          </div>
+          <div class="p-field">
+            <label style="margin-bottom: 0.5rem; display: block; font-weight: 600;">Nome do Modelo</label>
+            <input pInputText formControlName="nome" placeholder="Ex: Catalyst 2960, MX Anywhere..." />
+          </div>
+        </div>
+      </form>
+      <p-footer>
+        <button pButton type="button" label="Cancelar" class="p-button-text" (click)="modeloDialogVisivel = false"></button>
+        <button pButton type="button" label="Salvar" icon="pi pi-save" class="p-button-primary" (click)="salvarModelo()"></button>
+      </p-footer>
+    </p-dialog>
+
+    <!-- Modal Transferência -->
+    <p-dialog header="Transferência Interna de Equipamentos" [(visible)]="exibirModalTransferencia" modal="true" [style]="{ width: '680px' }" [closable]="true" [dismissableMask]="true">
+      <div class="dialog-header-note">
+        <span>Transfira equipamentos entre seções internas. A regra de autorização segue as regras do sistema.</span>
+      </div>
+      <div class="p-fluid transfer-form">
+        <div class="form-grid">
+          <div class="p-field">
+            <label>Seção de Origem</label>
+            <p-select
+              [options]="secoes"
+              [(ngModel)]="origemSecaoId"
+              optionLabel="sigla"
+              optionValue="id"
+              [showClear]="false"
+              placeholder="Selecione a seção de origem"
+              (onChange)="filtrarDestinosPorOrigem()"
+            ></p-select>
+          </div>
+          <div class="p-field">
+            <label>Seção de Destino</label>
+            <p-select
+              [options]="destinosDisponiveis"
+              [(ngModel)]="destinoSecaoId"
+              optionLabel="sigla"
+              optionValue="id"
+              [showClear]="false"
+              placeholder="Selecione a seção de destino"
+            ></p-select>
+          </div>
+          <div class="p-field">
+            <label>Equipamento</label>
+            <p-select
+              [options]="equipamentosOrigem"
+              [(ngModel)]="equipamentoSelecionadoId"
+              optionLabel="patrimonio"
+              optionValue="id"
+              [showClear]="false"
+              placeholder="Selecione o equipamento"
+            ></p-select>
+          </div>
+        </div>
+        <div class="p-field">
+          <label>Observação</label>
+          <textarea pInputTextarea rows="4" [(ngModel)]="observacaoTransferencia" placeholder="Detalhes opcionais"></textarea>
+        </div>
+      </div>
+      <p-footer>
+        <button pButton type="button" label="Cancelar" class="p-button-text" (click)="exibirModalTransferencia = false"></button>
+        <button pButton type="button" label="Solicitar Transferência" icon="pi pi-exchange" class="p-button-primary" (click)="confirmarTransferenciaInterna()"></button>
+      </p-footer>
+    </p-dialog>
+
+    <!-- Modal Status -->
+    <p-dialog [header]="editandoStatus ? 'Editar Status' : 'Novo Status'" [(visible)]="statusDialogVisivel" modal="true" [style]="{ width: '400px' }" [closable]="true" [dismissableMask]="true">
+      <div class="dialog-header-note">
+        <span>Informe o nome do status do equipamento.</span>
+      </div>
+      <form [formGroup]="statusForm" class="section-form">
+        <div class="p-fluid">
+          <div class="p-field">
+            <label style="margin-bottom: 0.5rem; display: block; font-weight: 600;">Nome do Status</label>
+            <input pInputText formControlName="nome" placeholder="Ex: Em uso, Disponível, Em manutenção..." />
+          </div>
+        </div>
+      </form>
+      <p-footer>
+        <button pButton type="button" label="Cancelar" class="p-button-text" (click)="statusDialogVisivel = false"></button>
+        <button pButton type="button" label="Salvar" icon="pi pi-save" class="p-button-primary" (click)="salvarStatus()"></button>
+      </p-footer>
+    </p-dialog>
+
+  </div>
+  <p-confirmDialog></p-confirmDialog>
+</app-layout-pagina>

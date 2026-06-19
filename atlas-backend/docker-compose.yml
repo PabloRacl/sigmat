@@ -1,0 +1,16 @@
+﻿services:
+  db:
+    image: postgres:15
+    container_name: atlas-postgres
+    environment:
+      POSTGRES_USER: atlas_user
+      POSTGRES_PASSWORD: atlas_password
+      POSTGRES_DB: atlas_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:

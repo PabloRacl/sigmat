@@ -1,0 +1,29 @@
+node_modules/
+dist/
+.env
+.angular/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
+
+# Personal and Temp Files
+Arquivos/
+Meus Pensamentos Sigmat/.obsidian/
+Meus Pensamentos Sigmat/Sem título.base
+Meus Pensamentos Sigmat/Sem título.canvas
+Meus Pensamentos Sigmat/Sem título.md
+Obsidian/
+*.docx
+*.csv
+*.pdf
+
+# Ignore TypeScript incremental build info
+*.tsbuildinfo
+
+# Angular cache
+.angular/
+
+# Arquivos grandes / instaladores
+*.exe
+implantar-login/Roo-Code-main.zip
