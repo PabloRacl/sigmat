@@ -1,0 +1,63 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-titles">
+      <h1 class="page-title">{{ titulo }}</h1>
+      <p class="page-subtitle">Gerenciamento de {{ titulo | lowercase }} do sistema</p>
+    </div>
+    <div class="header-actions">
+      <button pButton pRipple type="button" icon="pi pi-plus" label="Novo Registro" class="p-button-primary" (click)="abrirModalNovo()" *ngIf="entidade !== 'disponibilidades'"></button>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="card p-0">
+      <p-table [value]="itens" [loading]="carregando" [rowHover]="true" styleClass="p-datatable-striped" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 100px;">ID</th>
+            <th>Nome</th>
+            <th *ngIf="entidade === 'modelos'">Marca Associada</th>
+            <th style="width: 100px; text-align: center;" *ngIf="entidade !== 'disponibilidades'">Ações</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td class="font-medium text-color-secondary">#{{ item.id }}</td>
+            <td class="font-semibold">{{ item.nome }}</td>
+            <td *ngIf="entidade === 'modelos'">{{ item.marca?.nome || '-' }}</td>
+            <td style="text-align: center;" *ngIf="entidade !== 'disponibilidades'">
+              <button pButton pRipple type="button" icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text" (click)="excluir(item.id)" pTooltip="Excluir" tooltipPosition="left"></button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="entidade === 'modelos' ? 4 : 3" class="text-center py-5">
+              <i class="pi pi-inbox text-5xl text-color-secondary mb-3"></i>
+              <p class="m-0 text-color-secondary">Nenhum registro encontrado para {{ titulo | lowercase }}.</p>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<p-dialog [(visible)]="modalVisivel" [header]="'Novo(a) ' + titulo" [modal]="true" [style]="{width: '450px'}" [draggable]="false" [resizable]="false">
+  <div class="p-fluid mt-3">
+    <div class="field">
+      <label for="nome" class="font-medium">Nome / Descrição</label>
+      <input id="nome" type="text" pInputText [(ngModel)]="novoRegistro.nome" placeholder="Ex: Câmera Corporal, Motorola..." autofocus />
+    </div>
+    
+    <div class="field" *ngIf="entidade === 'modelos'">
+      <label for="marca" class="font-medium">Marca</label>
+      <p-dropdown id="marca" [options]="marcas" [(ngModel)]="novoRegistro.marcaId" optionLabel="nome" optionValue="id" placeholder="Selecione uma marca..." [filter]="true"></p-dropdown>
+    </div>
+  </div>
+  
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="fecharModal()"></button>
+    <button pButton pRipple label="Salvar" icon="pi pi-check" class="p-button-primary" (click)="salvar()" [loading]="salvando"></button>
+  </ng-template>
+</p-dialog>

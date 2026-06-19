@@ -81,10 +81,39 @@
       </div>
 
       <!-- TABELAS BÁSICAS -->
-      <a *ngIf="podeVerSecoes" [routerLink]="ROTAS_RELATIVAS.CONFIGURACOES" routerLinkActive="active" class="nav-item" pTooltip="Tabelas Básicas" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
-        <i class="pi pi-sliders-h icon"></i>
-        <span class="text" *ngIf="!isSidebarCollapsed">Tabelas Básicas</span>
-      </a>
+      <div class="nav-group" *ngIf="podeVerSecoes" [class.active]="menuExpandido === 'tabelas'">
+        <div class="nav-group-header" (click)="toggleMenu('tabelas')" pTooltip="Tabelas Básicas (Cadastros estruturais)" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
+          <i class="pi pi-sliders-h group-icon"></i>
+          <span class="nav-group-title" *ngIf="!isSidebarCollapsed">TABELAS BÁSICAS</span>
+          <i class="pi pi-angle-down chevron" *ngIf="!isSidebarCollapsed" [class.rotated]="menuExpandido === 'tabelas'"></i>
+        </div>
+        <div class="nav-submenu" [class.expanded]="menuExpandido === 'tabelas'">
+          <a [routerLink]="ROTAS_RELATIVAS.TABELAS_TIPOS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-tags icon"></i>
+            <span class="text">Tipos</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.TABELAS_MARCAS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-briefcase icon"></i>
+            <span class="text">Marcas</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.TABELAS_MODELOS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-tablet icon"></i>
+            <span class="text">Modelos</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.TABELAS_STATUS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-flag icon"></i>
+            <span class="text">Status</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.TABELAS_DISPONIBILIDADES" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-calendar-clock icon"></i>
+            <span class="text">Disponibilidade</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.SECOES" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-sitemap icon"></i>
+            <span class="text">Seções Internas</span>
+          </a>
+        </div>
+      </div>
 
       <!-- CONFIGURAÇÕES -->
       <div class="nav-group" *ngIf="podeVerSecoes" [class.active]="menuExpandido === 'configuracoes'">
@@ -95,10 +124,7 @@
         </div>
         <div class="nav-submenu" [class.expanded]="menuExpandido === 'configuracoes'">
 
-          <a [routerLink]="ROTAS_RELATIVAS.SECOES" routerLinkActive="active" class="nav-item">
-            <i class="pi pi-sitemap icon"></i>
-            <span class="text">Seções Internas</span>
-          </a>
+
           <a [routerLink]="ROTAS_RELATIVAS.USUARIOS" routerLinkActive="active" class="nav-item">
             <i class="pi pi-users icon"></i>
             <span class="text">Usuários & Notificações</span>

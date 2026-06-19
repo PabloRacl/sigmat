@@ -62,6 +62,12 @@ export const routes: Routes = [
         data: { perfis: ['ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE'] }
       },
       {
+        path: 'tabelas-basicas/:entidade',
+        loadComponent: () => import('./funcionalidades/configuracoes/tabelas-basicas/tabelas-basicas.component').then(m => m.TabelasBasicasComponent),
+        canActivate: [RoleGuard],
+        data: { perfis: ['ADMIN_DTEC'] }
+      },
+      {
         path: 'manutencao',
         loadComponent: () => import('./funcionalidades/manutencao/lista/lista-manutencao.component').then(m => m.MaintenanceListComponent),
         canActivate: [RoleGuard],
