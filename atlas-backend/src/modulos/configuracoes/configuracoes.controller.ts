@@ -155,4 +155,10 @@ export class SettingsController {
   atualizarStatus(@Param('id') id: string, @Body() dados: { nome: string }) {
     return this.SettingsService.atualizarStatus(Number(id), dados);
   }
+
+  @Delete('status/:id')
+  @Roles('ADMIN_DTEC')
+  excluirStatus(@Param('id') id: string) {
+    return this.SettingsService.excluirStatus(Number(id));
+  }
 }

@@ -264,6 +264,18 @@ export class SettingsService {
     });
   }
 
+  async excluirStatus(id: number) {
+    const equipamentosCount = await this.prisma.equipamento.count({
+      where: { statusId: id },
+    });
+    if (equipamentosCount > 0) {
+      throw new ConflictException(
+        `Não é possível excluir este status porque existem ${equipamentosCount} equipamento(s) vinculados a ele.`,
+      );
+    }
+    return this.prisma.statusEquipamento.delete({ where: { id } });
+  }
+
   async listarTiposAquisicao() {
     return this.prisma.tipoAquisicao.findMany({ orderBy: { nome: 'asc' } });
   }
