@@ -65,108 +65,52 @@
 
   <!-- Busca e Filtros -->
   <div class="eq-search-wrap" search-filters>
-    <div class="eq-search" [style.margin-bottom]="exibirFiltrosAvancados ? '1rem' : '0'">
-      <i class="pi pi-search eq-search__icon"></i>
-      <input
-        type="text"
-        pInputText
-        class="eq-search__input"
-        placeholder="Buscar por patrimônio, série, SEI, tipo, marca..."
-        [(ngModel)]="filtroGlobal"
-        (keyup.enter)="pesquisar()"
-      />
-      <div class="eq-search__actions">
+    <!-- Busca Premium (Glassmorphism e Glow) -->
+    <div class="eq-search-premium">
+      <div class="search-input-wrapper">
+        <i class="pi pi-search search-icon"></i>
+        <input
+          type="text"
+          pInputText
+          class="search-input"
+          placeholder="Buscar patrimônio, série, SEI, tipo..."
+          [(ngModel)]="filtroGlobal"
+          (keyup.enter)="pesquisar()"
+        />
+        <button *ngIf="filtroGlobal" class="clear-btn" (click)="filtroGlobal=''; pesquisar()" pTooltip="Limpar busca" tooltipPosition="top">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+      <div class="search-actions">
         <button 
-          pButton 
-          icon="pi pi-filter" 
-          class="p-button-text eq-search-action-btn filter" 
-          [ngClass]="{'active': (filtroTipo || filtroStatus || filtroDisponibilidade || filtroSecao || filtroMarca || filtroPatrimonio || filtroSei || filtroNumeroSerie || filtroDataAquisicao)}"
-          (click)="exibirFiltrosAvancados = !exibirFiltrosAvancados" 
+          class="btn-action filter-btn" 
+          [ngClass]="{'active': exibirFiltrosAvancados || (filtroAtivo && !filtroGlobal)}"
+          (click)="exibirFiltrosAvancados = true; cestaAberta = false" 
           pTooltip="Filtros Avançados"
           tooltipPosition="top">
+          <i class="pi pi-filter"></i>
+          <span *ngIf="filtroAtivo && !filtroGlobal" class="filter-badge"></span>
         </button>
         <button 
-          pButton 
-          icon="pi pi-sync" 
-          class="p-button-text eq-search-action-btn refresh" 
+          class="btn-action refresh-btn" 
           (click)="recarregar()" 
           pTooltip="Recarregar Dados"
           tooltipPosition="top">
-        </button>
-        <button 
-          *ngIf="filtroAtivo"
-          pButton 
-          icon="pi pi-eraser" 
-          class="p-button-text eq-search-action-btn clear" 
-          (click)="limparFiltros()" 
-          pTooltip="Limpar Filtros"
-          tooltipPosition="top">
-        </button>
-      </div>
-      <button class="eq-search__btn" (click)="pesquisar()" title="Pesquisar">
-        <i class="pi pi-arrow-right"></i>
-      </button>
-    </div>
-
-    <!-- Painel de Filtros Avançados -->
-    <div class="eq-advanced-filters" *ngIf="exibirFiltrosAvancados" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; background: #f8fafc; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
-      <div class="filter-field">
-        <label class="filter-label">Tipo de Equipamento</label>
-        <p-select [options]="tipos" [(ngModel)]="filtroTipo" optionLabel="nome" optionValue="id" [showClear]="true" placeholder="Todos os Tipos" styleClass="w-full" (onChange)="pesquisar()" [filter]="true"></p-select>
-      </div>
-      <div class="filter-field">
-        <label class="filter-label">Status</label>
-        <p-select [options]="status" [(ngModel)]="filtroStatus" optionLabel="nome" optionValue="id" [showClear]="true" placeholder="Todos os Status" styleClass="w-full" (onChange)="pesquisar()"></p-select>
-      </div>
-      <div class="filter-field">
-        <label class="filter-label">Disponibilidade</label>
-        <p-select [options]="disponibilidades" [(ngModel)]="filtroDisponibilidade" optionLabel="nome" optionValue="id" [showClear]="true" placeholder="Todas" styleClass="w-full" (onChange)="pesquisar()"></p-select>
-      </div>
-      <div class="filter-field">
-        <label class="filter-label">Seção Atual</label>
-        <p-select [options]="secoes" [(ngModel)]="filtroSecao" optionLabel="sigla" optionValue="id" [showClear]="true" placeholder="Todas as Seções" styleClass="w-full" (onChange)="pesquisar()" [filter]="true"></p-select>
-      </div>
-      <div class="filter-field">
-        <label class="filter-label">Marca</label>
-        <p-select [options]="marcas" [(ngModel)]="filtroMarca" optionLabel="nome" optionValue="id" [showClear]="true" placeholder="Todas as Marcas" styleClass="w-full" (onChange)="pesquisar()" [filter]="true"></p-select>
-      </div>
-      <div class="filter-field">
-        <label class="filter-label">Patrimônio</label>
-        <input type="text" pInputText [(ngModel)]="filtroPatrimonio" (keyup.enter)="pesquisar()" placeholder="Ex: S-PAT-123" class="w-full" />
-      </div>
-      <div class="filter-field">
-        <label class="filter-label">Nº SEI</label>
-        <input type="text" pInputText [(ngModel)]="filtroSei" (keyup.enter)="pesquisar()" placeholder="Ex: 00123.000..." class="w-full" />
-      </div>
-      <div class="filter-field">
-        <label class="filter-label">Nº de Série</label>
-        <input type="text" pInputText [(ngModel)]="filtroNumeroSerie" (keyup.enter)="pesquisar()" placeholder="Ex: ABC12345" class="w-full" />
-      </div>
-      <div class="filter-field">
-        <label class="filter-label">Data de Aquisição</label>
-        <p-datepicker [(ngModel)]="filtroDataAquisicao" [showIcon]="true" placeholder="dd/mm/aaaa" styleClass="w-full" (onSelect)="pesquisar()" (onClear)="pesquisar()" dateFormat="dd/mm/yy"></p-datepicker>
-      </div>
-      <div class="filter-field">
-        <label class="filter-label">Observação</label>
-        <input type="text" pInputText [(ngModel)]="filtroObservacao" (keyup.enter)="pesquisar()" placeholder="Buscar em observações..." class="w-full" />
-      </div>
-
-      <!-- Botões de Ação do Painel (Alinhados) -->
-      <div class="eq-advanced-filters__footer" style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
-        <button pButton 
-          label="Limpar Todos os Filtros" 
-          icon="pi pi-eraser" 
-          class="p-button-outlined p-button-danger" 
-          (click)="limparFiltros()">
-        </button>
-        <button pButton 
-          label="Filtrar Agora" 
-          icon="pi pi-search" 
-          class="p-button-primary eq-btn-search-advanced" 
-          (click)="pesquisar()">
+          <i class="pi pi-sync"></i>
         </button>
       </div>
     </div>
+
+    <!-- Novo Filtro Lateral Genérico -->
+    <app-filtro-lateral
+      titulo="Filtros de Equipamentos"
+      [config]="configFiltros"
+      [(visible)]="exibirFiltrosAvancados"
+      [modelo]="modeloFiltros"
+      (aplicar)="pesquisar()"
+      (limpar)="limparFiltros()"
+    ></app-filtro-lateral>
   </div>
 
   <!-- Barra Unificada de Seleção e Ações em Lote -->
@@ -175,7 +119,7 @@
       <i class="pi pi-objects-column"></i>
       <span class="eq-basket-bubble">{{ selecionados.length }}</span>
       <span>equipamento(s) selecionado(s)</span>
-      <button class="eq-basket-preview-btn" (click)="cestaAberta = !cestaAberta">
+      <button class="eq-basket-preview-btn" (click)="cestaAberta = !cestaAberta; exibirFiltrosAvancados = false">
         <i class="pi" [ngClass]="cestaAberta ? 'pi-chevron-down' : 'pi-chevron-up'"></i>
         {{ cestaAberta ? 'Ocultar detalhes' : 'Ver lista' }}
       </button>

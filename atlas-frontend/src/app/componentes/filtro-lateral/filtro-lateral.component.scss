@@ -1,0 +1,125 @@
+::ng-deep .filtro-lateral-drawer {
+  background: rgba(15, 23, 42, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #f8fafc !important;
+  width: 380px !important;
+
+  .p-drawer-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    color: white;
+
+    .p-drawer-close {
+      color: #94a3b8;
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+    }
+  }
+
+  .p-drawer-content {
+    padding: 0;
+    overflow-y: auto;
+    
+    /* Scrollbar minimalista */
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+  }
+
+  .p-drawer-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.25rem 1.5rem;
+    background: rgba(0, 0, 0, 0.2);
+  }
+}
+
+.filtro-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.5px;
+
+  i {
+    font-size: 1.1rem;
+    color: #6366f1;
+  }
+}
+
+.filtro-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filtro-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .filtro-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* Customizações internas pros inputs do PrimeNG em ambiente dark */
+  ::ng-deep {
+    .p-inputtext, .p-select, .p-datepicker {
+      width: 100%;
+    }
+    
+    .p-inputtext {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: white !important;
+      border-radius: 8px !important;
+      padding: 0.75rem 1rem !important;
+
+      &:enabled:focus {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+      }
+    }
+  }
+}
+
+.filtro-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+
+  .btn-limpar {
+    color: #ef4444;
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    &:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+  }
+
+  .btn-aplicar {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    border: none;
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    }
+  }
+}

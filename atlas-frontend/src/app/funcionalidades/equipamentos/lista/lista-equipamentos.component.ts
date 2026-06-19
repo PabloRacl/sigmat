@@ -48,6 +48,7 @@ import { EquipmentDetailsComponent } from '../detalhes/detalhes-equipamento.comp
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
 import { IndicadorStatusComponent } from '../../../componentes/indicador-status/indicador-status.component';
 import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
+import { FiltroLateralComponent, FiltroConfig } from '../../../componentes/filtro-lateral/filtro-lateral.component';
 
 @Component({
   selector: 'app-lista-equipamentos',
@@ -71,7 +72,8 @@ import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-v
     LayoutPaginaComponent,
     IndicadorStatusComponent,
     EstadoVazioComponent,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    FiltroLateralComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './lista-equipamentos.component.html',
@@ -118,18 +120,10 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
 
   ready = true; // Restaurando para true por padrÃ£o para evitar o loading-init que nÃ£o existia
 
-  // Filtros AvanÃ§ados
-  filtroTipo: number | null = null;
-  filtroStatus: number | null = null;
-  filtroDisponibilidade: number | null = null;
-  filtroSecao: number | null = null;
-  filtroMarca: number | null = null;
-  filtroPatrimonio: string = '';
-  filtroSei: string = '';
-  filtroNumeroSerie: string = '';
-  filtroDataAquisicao: Date | null = null;
-  filtroObservacao: string = '';
+  // Modelos do Filtro
   exibirFiltrosAvancados = false;
+  modeloFiltros: any = {};
+  configFiltros: FiltroConfig[] = [];
 
   // EstatÃ­sticas para os cards
   stats: any = { total: 0, ativos: 0, manutencao: 0, emprestados: 0 };
@@ -208,12 +202,27 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   }
 
   carregarDadosAuxiliares() {
-    this.configService.listarTipos().subscribe(res => this.tipos = res);
-    this.configService.listarStatus().subscribe(res => this.status = res);
-    this.configService.listarDisponibilidades().subscribe(res => this.disponibilidades = res);
-    this.configService.listarTiposAquisicao().subscribe(res => this.tiposAquisicao = res);
-    this.configService.listarSecoes().subscribe(res => this.secoes = res);
-    this.configService.listarMarcas().subscribe(res => this.marcas = res);
+    this.configService.listarTipos().subscribe(res => { this.tipos = res; this.atualizarConfigFiltros(); });
+    this.configService.listarStatus().subscribe(res => { this.status = res; this.atualizarConfigFiltros(); });
+    this.configService.listarDisponibilidades().subscribe(res => { this.disponibilidades = res; this.atualizarConfigFiltros(); });
+    this.configService.listarTiposAquisicao().subscribe(res => { this.tiposAquisicao = res; });
+    this.configService.listarSecoes().subscribe(res => { this.secoes = res; this.atualizarConfigFiltros(); });
+    this.configService.listarMarcas().subscribe(res => { this.marcas = res; this.atualizarConfigFiltros(); });
+  }
+
+  atualizarConfigFiltros() {
+    this.configFiltros = [
+      { key: 'tipoId', label: 'Tipo de Equipamento', tipo: 'select', opcoes: this.tipos, optionLabel: 'nome', optionValue: 'id', placeholder: 'Todos os Tipos' },
+      { key: 'statusId', label: 'Status', tipo: 'select', opcoes: this.status, optionLabel: 'nome', optionValue: 'id', placeholder: 'Todos os Status' },
+      { key: 'disponibilidadeId', label: 'Disponibilidade', tipo: 'select', opcoes: this.disponibilidades, optionLabel: 'nome', optionValue: 'id', placeholder: 'Todas' },
+      { key: 'secaoId', label: 'Seção Atual', tipo: 'select', opcoes: this.secoes, optionLabel: 'sigla', optionValue: 'id', placeholder: 'Todas as Seções' },
+      { key: 'marcaId', label: 'Marca', tipo: 'select', opcoes: this.marcas, optionLabel: 'nome', optionValue: 'id', placeholder: 'Todas as Marcas' },
+      { key: 'patrimonio', label: 'Patrimônio', tipo: 'text', placeholder: 'Ex: S-PAT-123' },
+      { key: 'sei', label: 'Nº SEI', tipo: 'text', placeholder: 'Ex: 00123.000...' },
+      { key: 'numeroSerie', label: 'Nº de Série', tipo: 'text', placeholder: 'Ex: ABC12345' },
+      { key: 'dataAquisicao', label: 'Data de Aquisição', tipo: 'date', placeholder: 'dd/mm/aaaa' },
+      { key: 'observacao', label: 'Observação', tipo: 'text', placeholder: 'Buscar em observações...' }
+    ];
   }
 
   carregarStats() {
@@ -225,7 +234,7 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   filtrarPorStatusNome(nome: string) {
     const status = this.status.find(s => s.nome?.toUpperCase() === nome.toUpperCase());
     if (!status) return;
-    this.filtroStatus = status.id;
+    this.modeloFiltros['statusId'] = status.id;
     this.exibirFiltrosAvancados = true;
     this.pesquisar();
   }
@@ -234,16 +243,15 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
     this.carregando = true;
 
     const filtrosAtivos: any = {};
-    if (this.filtroTipo) filtrosAtivos.tipoId = this.filtroTipo;
-    if (this.filtroStatus) filtrosAtivos.statusId = this.filtroStatus;
-    if (this.filtroDisponibilidade) filtrosAtivos.disponibilidadeId = this.filtroDisponibilidade;
-    if (this.filtroSecao) filtrosAtivos.secaoId = this.filtroSecao;
-    if (this.filtroMarca) filtrosAtivos.marcaId = this.filtroMarca;
-    if (this.filtroPatrimonio) filtrosAtivos.patrimonio = this.filtroPatrimonio;
-    if (this.filtroSei) filtrosAtivos.sei = this.filtroSei;
-    if (this.filtroNumeroSerie) filtrosAtivos.numeroSerie = this.filtroNumeroSerie;
-    if (this.filtroObservacao) filtrosAtivos.observacao = this.filtroObservacao;
-    if (this.filtroDataAquisicao) filtrosAtivos.dataAquisicao = this.filtroDataAquisicao.toISOString();
+    for (const key in this.modeloFiltros) {
+      if (this.modeloFiltros[key] !== null && this.modeloFiltros[key] !== '') {
+        if (this.modeloFiltros[key] instanceof Date) {
+          filtrosAtivos[key] = this.modeloFiltros[key].toISOString();
+        } else {
+          filtrosAtivos[key] = this.modeloFiltros[key];
+        }
+      }
+    }
 
     this.equipmentService.listarTodos(page, limit, search, filtrosAtivos).subscribe({
       next: (res) => {
@@ -273,16 +281,7 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
 
   limparFiltros() {
     this.filtroGlobal = '';
-    this.filtroTipo = null;
-    this.filtroStatus = null;
-    this.filtroDisponibilidade = null;
-    this.filtroSecao = null;
-    this.filtroMarca = null;
-    this.filtroPatrimonio = '';
-    this.filtroSei = '';
-    this.filtroNumeroSerie = '';
-    this.filtroDataAquisicao = null;
-    this.filtroObservacao = '';
+    this.modeloFiltros = {};
     this.first = 0;
     this.selecionados = [];
     this.cestaAberta = false;
@@ -291,12 +290,8 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   }
 
   get filtroAtivo(): boolean {
-    return !!(
-      this.filtroTipo || this.filtroStatus || this.filtroDisponibilidade || 
-      this.filtroSecao || this.filtroGlobal || this.filtroMarca || 
-      this.filtroPatrimonio || this.filtroSei || this.filtroNumeroSerie || 
-      this.filtroDataAquisicao || this.filtroObservacao
-    );
+    const temModelo = Object.values(this.modeloFiltros).some(val => val !== null && val !== '');
+    return temModelo || !!this.filtroGlobal;
   }
 
   atualizarStatsFiltro(total?: number) {
@@ -315,10 +310,10 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
     // Caso precise forÃ§ar uma atualizaÃ§Ã£o manual sem ter o total em mÃ£os
     this.contandoFiltro = true;
     const filtrosAtivos: any = {};
-    if (this.filtroTipo) filtrosAtivos.tipoId = this.filtroTipo;
-    if (this.filtroStatus) filtrosAtivos.statusId = this.filtroStatus;
-    if (this.filtroDisponibilidade) filtrosAtivos.disponibilidadeId = this.filtroDisponibilidade;
-    if (this.filtroSecao) filtrosAtivos.secaoId = this.filtroSecao;
+    // Para simplificar na contagem rápida
+    ['tipoId', 'statusId', 'disponibilidadeId', 'secaoId'].forEach(key => {
+      if (this.modeloFiltros[key]) filtrosAtivos[key] = this.modeloFiltros[key];
+    });
 
     this.equipmentService.listarTodos(1, 1, this.filtroGlobal, filtrosAtivos).subscribe({
       next: (res) => {
