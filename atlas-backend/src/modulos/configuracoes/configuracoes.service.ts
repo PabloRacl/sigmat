@@ -71,9 +71,8 @@ export class SettingsService {
     }
 
     if (
-      [PerfilUsuario.COMANDANTE, PerfilUsuario.USUARIO_BATALHAO].includes(
-        userFull.perfil,
-      )
+      userFull.perfil === PerfilUsuario.COMANDANTE ||
+      userFull.perfil === PerfilUsuario.USUARIO_BATALHAO
     ) {
       if (!userBatalhaoId) {
         throw new ForbiddenException(
