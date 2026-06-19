@@ -1,4 +1,12 @@
-import { IsInt, IsString, IsNotEmpty, IsOptional, IsEnum, IsNumber, IsDateString } from 'class-validator';
+import {
+  IsInt,
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  IsNumber,
+  IsDateString,
+} from 'class-validator';
 import { StatusManutencao } from '@prisma/client';
 
 export class CriarOrdemServicoDto {
@@ -44,8 +52,3 @@ export class AtualizarStatusOsDto {
   @IsOptional()
   dataConclusao?: string;
 }
-
-
-
-
-

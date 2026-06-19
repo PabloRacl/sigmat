@@ -5,7 +5,7 @@
 >
   <!-- Cabeçalho -->
   <div header-title>
-    <h1>Relatórios ATLAS</h1>
+    <h1>Relatórios atlas</h1>
     <p>Extração de dados e histórico de movimentações do sistema</p>
   </div>
 
@@ -113,9 +113,7 @@
               <ng-template pTemplate="body" let-e>
                 <tr>
                   <td style="text-align: center">
-                    <span class="re-badge" [ngClass]="obterCorDisponibilidade(e.disponibilidade?.nome)">
-                      {{ e.disponibilidade?.nome || '—' }}
-                    </span>
+                    <app-indicador-status [valor]="e.disponibilidade?.nome || '—'" tipo="disponibilidade"></app-indicador-status>
                   </td>
                   <td><strong>{{ e.secao?.sigla || '—' }}</strong></td>
                   <td>{{ e.secao?.diretoria?.sigla || '—' }}</td>
@@ -126,9 +124,7 @@
                   <td>{{ e.marca?.nome || '—' }}</td>
                   <td>{{ e.modelo?.nome || '—' }}</td>
                   <td style="text-align: center">
-                    <span class="re-badge" [ngClass]="obterCorStatus(e.status?.nome)">
-                      {{ e.status?.nome || '—' }}
-                    </span>
+                    <app-indicador-status [valor]="e.status?.nome || '—'" tipo="status"></app-indicador-status>
                   </td>
                   <td>{{ formatarData(e.dataAquisicao) || '—' }}</td>
                   <td>{{ e.tipoAquisicao?.nome || '—' }}</td>
@@ -250,11 +246,7 @@
                   <td>{{ t.solicitante?.nome || '—' }}</td>
                   <td>{{ t.recebedor?.nome || '—' }}</td>
                   <td style="text-align: center">
-                    <span class="re-badge" [ngClass]="{
-                      'verde': t.status === 'CONCLUIDA',
-                      'amarelo': t.status === 'PENDENTE',
-                      'vermelho': t.status === 'CANCELADA'
-                    }">{{ t.status }}</span>
+                    <app-indicador-status [valor]="t.status" tipo="transferencia"></app-indicador-status>
                   </td>
                   <td>{{ formatarData(t.dataRecebimento) || '—' }}</td>
                   <td>

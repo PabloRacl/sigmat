@@ -1,18 +1,19 @@
 /**
- * [Estado Atual]: Componente de apresentação/formulário (Dumb Component) para criação/edição de Equipamentos.
- * [Dependências Técnicas]:
+ * [Estado Atual]: Componente de apresenta��o/formul�rio (Dumb Component) para cria��o/edi��o de Equipamentos.
+ * [Depend�ncias T�cnicas]:
  *   - Services: EquipmentService, SettingsService, UploadService, MessageService
- * [Histórico de Modificações]:
+ * [Hist�rico de Modifica��es]:
  *   - Movido para /feature./equipamentos/formulario-equipamento.
- *   - Adicionado cabeçalho de contexto arquitetural de alta eficiência de tokens.
- * [Regras de Negócio Imutáveis]:
- *   - Submissão e validação estritas de dados do formulário de Equipamento.
- *   - Campos dinâmicos baseados no Tipo de Equipamento selecionado.
+ *   - Adicionado cabe�alho de contexto arquitetural de alta efici�ncia de tokens.
+ * [Regras de Neg�cio Imut�veis]:
+ *   - Submiss�o e valida��o estritas de dados do formul�rio de Equipamento.
+ *   - Campos din�micos baseados no Tipo de Equipamento selecionado.
  */
 
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
 import { EquipmentService } from '../../../nucleo/servicos/equipamentos.service';
 import { SettingsService } from '../../../nucleo/servicos/configuracoes.service';
 import { UploadService } from '../../../nucleo/servicos/carregamento.service';
@@ -43,7 +44,8 @@ import { DatePickerModule } from 'primeng/datepicker';
   templateUrl: './formulario-equipamento.component.html',
   styleUrls: ['./formulario-equipamento.component.scss']
 })
-export class EquipmentFormComponent implements OnInit {
+export class EquipmentFormComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   private fb = inject(FormBuilder);
   private equipmentService = inject(EquipmentService);
   private configService = inject(SettingsService);
@@ -65,38 +67,62 @@ export class EquipmentFormComponent implements OnInit {
   modelosFiltrados: any[] = [];
   status: any[] = [];
   disponibilidades: any[] = [];
+  batalhoes: any[] = [];
   secoes: any[] = [];
+  secoesFiltradas: any[] = [];
   chipsDisponiveis: any[] = [];
   
-  // VÃ­nculo Celular/Chip
+  // Vínculo Celular/Chip
   chipSelecionado: any = null;
   campoIMEI: string = '';
   campoTelefone: string = '';
   
-  // Campos DinÃ¢micos
+  // Dialogo para criar registros inline (status, tipo, marca, modelo)
+  exibirDialogoPrompt = false;
+  rotuloPrompt = '';
+  valorPrompt = '';
+  callbackPrompt: ((valor: string) => void) | null = null;
+
+  abrirPrompt(rotulo: string, callback: (valor: string) => void) {
+    this.rotuloPrompt = rotulo;
+    this.valorPrompt = '';
+    this.callbackPrompt = callback;
+    this.exibirDialogoPrompt = true;
+  }
+
+  confirmarPrompt() {
+    if (this.valorPrompt?.trim() && this.callbackPrompt) {
+      this.callbackPrompt(this.valorPrompt.trim());
+    }
+    this.exibirDialogoPrompt = false;
+    this.callbackPrompt = null;
+    this.valorPrompt = '';
+  }
+
+  // Campos Dinâmicos
   mapaCampos: any = {
     'CPU': [
-      { label: 'Processador', key: 'processador', placeholder: 'Ex: Intel i7 12Âª Gen' },
-      { label: 'MemÃ³ria RAM', key: 'memoria_ram', placeholder: 'Ex: 16GB DDR4' },
+      { label: 'Processador', key: 'processador', placeholder: 'Ex: Intel i7 12ª Gen' },
+      { label: 'Memória RAM', key: 'memoria_ram', placeholder: 'Ex: 16GB DDR4' },
       { label: 'Armazenamento', key: 'armazenamento', placeholder: 'Ex: SSD 512GB' },
       { label: 'SO', key: 'sistema_operacional', placeholder: 'Ex: Windows 11 Pro' }
     ],
     'MONITOR': [
       { label: 'Tamanho (Pol)', key: 'tamanho_tela', placeholder: 'Ex: 24"' },
-      { label: 'ResoluÃ§Ã£o', key: 'resolucao', placeholder: 'Ex: 1920x1080' }
+      { label: 'Resolução', key: 'resolucao', placeholder: 'Ex: 1920x1080' }
     ],
     'RADIO': [
-      { label: 'FrequÃªncia', key: 'frequencia', placeholder: 'Ex: UHF / VHF' },
+      { label: 'Frequência', key: 'frequencia', placeholder: 'Ex: UHF / VHF' },
       { label: 'Modelo Bateria', key: 'modelo_bateria', placeholder: 'Ex: NNTN4497' },
       { label: 'Antena', key: 'antena', placeholder: 'Ex: Stubby' }
     ],
     'NOTEBOOK': [
       { label: 'Processador', key: 'processador', placeholder: 'Ex: Ryzen 5' },
-      { label: 'MemÃ³ria RAM', key: 'memoria_ram', placeholder: 'Ex: 8GB' },
+      { label: 'Memória RAM', key: 'memoria_ram', placeholder: 'Ex: 8GB' },
       { label: 'Tamanho Tela', key: 'tamanho_tela', placeholder: 'Ex: 15.6"' }
     ],
     'IMPRESSORA': [
-      { label: 'Tipo de ImpressÃ£o', key: 'tipo_impressao', placeholder: 'Ex: Laser / TÃ©rmica' },
+      { label: 'Tipo de Impressão', key: 'tipo_impressao', placeholder: 'Ex: Laser / Térmica' },
       { label: 'Modelo Suprimento', key: 'modelo_suprimento', placeholder: 'Ex: Toner TN-660' }
     ]
   };
@@ -110,6 +136,7 @@ export class EquipmentFormComponent implements OnInit {
       patrimonio: ['', Validators.required],
       numeroSerie: [''],
       sei: [''],
+      batalhaoId: [null],
       tipoEquipamentoId: [null, Validators.required],
       marcaId: [null],
       modeloId: [null],
@@ -121,12 +148,16 @@ export class EquipmentFormComponent implements OnInit {
       especificacoes: this.fb.group({})
     });
 
-    this.form.get('tipoEquipamentoId')?.valueChanges.subscribe(id => {
+    this.form.get('tipoEquipamentoId')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(id => {
       this.atualizarCamposDinamicos(id);
     });
 
-    this.form.get('marcaId')?.valueChanges.subscribe(id => {
+    this.form.get('marcaId')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(id => {
       this.atualizarModelosPorMarca(id);
+    });
+
+    this.form.get('batalhaoId')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(id => {
+      this.filtrarSecoesPorBatalhao(id);
     });
   }
 
@@ -156,7 +187,13 @@ export class EquipmentFormComponent implements OnInit {
       this.status = res;
     });
     this.configService.listarDisponibilidades().subscribe(res => this.disponibilidades = res);
-    this.configService.listarSecoes().subscribe(res => this.secoes = res);
+    this.configService.listarBatalhoes().subscribe(res => {
+      this.batalhoes = res;
+    });
+    this.configService.listarSecoes().subscribe(res => {
+      this.secoes = res;
+      this.filtrarSecoesPorBatalhao(this.form.get('batalhaoId')?.value);
+    });
     this.carregarChips();
   }
 
@@ -180,53 +217,53 @@ export class EquipmentFormComponent implements OnInit {
   }
 
   solicitarNovoStatus() {
-    const nome = prompt('Informe o nome do novo status:');
-    if (!nome?.trim()) return;
-    const payload = { nome: nome.trim() };
-    this.configService.criarStatus(payload).subscribe({
-      next: (res: any) => {
-        this.messageService.add({ severity: 'success', summary: 'Status criado', detail: 'Status cadastrado com sucesso.' });
-        this.refreshStatus();
-      },
-      error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Não foi possível criar o status.' })
+    this.abrirPrompt('Informe o nome do novo status:', nome => {
+      const payload = { nome };
+      this.configService.criarStatus(payload).subscribe({
+        next: () => {
+          this.messageService.add({ severity: 'success', summary: 'Status criado', detail: 'Status cadastrado com sucesso.' });
+          this.refreshStatus();
+        },
+        error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'N�o foi poss�vel criar o status.' })
+      });
     });
   }
 
   excluirStatus(id: number) {
     this.configService.excluirStatus(id).subscribe({
       next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Status excluído', detail: 'Status removido com sucesso.' });
+        this.messageService.add({ severity: 'success', summary: 'Status exclu�do', detail: 'Status removido com sucesso.' });
         this.refreshStatus();
       },
-      error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Não foi possível excluir o status.' })
+      error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'N�o foi poss�vel excluir o status.' })
     });
   }
 
   solicitarNovoTipo() {
-    const nome = prompt('Informe o nome do novo tipo de equipamento:');
-    if (!nome?.trim()) return;
-    const payload = { nome: nome.trim() };
-    this.configService.criarTipo(payload).subscribe({
-      next: (res: any) => {
-        this.messageService.add({ severity: 'success', summary: 'Tipo criado', detail: 'Tipo de equipamento cadastrado com sucesso.' });
-        this.refreshTipos();
-        this.form.patchValue({ tipoEquipamentoId: res.id });
-      },
-      error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Não foi possível criar o tipo.' })
+    this.abrirPrompt('Informe o nome do novo tipo de equipamento:', nome => {
+      const payload = { nome };
+      this.configService.criarTipo(payload).subscribe({
+        next: (res: any) => {
+          this.messageService.add({ severity: 'success', summary: 'Tipo criado', detail: 'Tipo de equipamento cadastrado com sucesso.' });
+          this.refreshTipos();
+          this.form.patchValue({ tipoEquipamentoId: res.id });
+        },
+        error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'N�o foi poss�vel criar o tipo.' })
+      });
     });
   }
 
   solicitarNovaMarca() {
-    const nome = prompt('Informe o nome da nova marca:');
-    if (!nome?.trim()) return;
-    const payload = { nome: nome.trim() };
-    this.configService.criarMarca(payload).subscribe({
-      next: (res: any) => {
-        this.messageService.add({ severity: 'success', summary: 'Marca criada', detail: 'Marca cadastrada com sucesso.' });
-        this.refreshMarcas();
-        this.form.patchValue({ marcaId: res.id });
-      },
-      error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Não foi possível criar a marca.' })
+    this.abrirPrompt('Informe o nome da nova marca:', nome => {
+      const payload = { nome };
+      this.configService.criarMarca(payload).subscribe({
+        next: (res: any) => {
+          this.messageService.add({ severity: 'success', summary: 'Marca criada', detail: 'Marca cadastrada com sucesso.' });
+          this.refreshMarcas();
+          this.form.patchValue({ marcaId: res.id });
+        },
+        error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'N�o foi poss�vel criar a marca.' })
+      });
     });
   }
 
@@ -236,16 +273,16 @@ export class EquipmentFormComponent implements OnInit {
       this.messageService.add({ severity: 'warn', summary: 'Escolha a marca', detail: 'Selecione a marca antes de cadastrar um novo modelo.' });
       return;
     }
-    const nome = prompt('Informe o nome do novo modelo:');
-    if (!nome?.trim()) return;
-    const payload = { nome: nome.trim(), marcaId };
-    this.configService.criarModelo(payload).subscribe({
-      next: (res: any) => {
-        this.messageService.add({ severity: 'success', summary: 'Modelo criado', detail: 'Modelo cadastrado com sucesso.' });
-        this.refreshModelos();
-        this.form.patchValue({ modeloId: res.id });
-      },
-      error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Não foi possível criar o modelo.' })
+    this.abrirPrompt('Informe o nome do novo modelo:', nome => {
+      const payload = { nome, marcaId };
+      this.configService.criarModelo(payload).subscribe({
+        next: (res: any) => {
+          this.messageService.add({ severity: 'success', summary: 'Modelo criado', detail: 'Modelo cadastrado com sucesso.' });
+          this.refreshModelos();
+          this.form.patchValue({ modeloId: res.id });
+        },
+        error: (err: any) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'N�o foi poss�vel criar o modelo.' })
+      });
     });
   }
 
@@ -253,6 +290,25 @@ export class EquipmentFormComponent implements OnInit {
     this.equipmentService.listarTodos(1, 100, 'CHIP').subscribe(res => {
       this.chipsDisponiveis = res.itens || [];
     });
+  }
+
+  private extrairBatalhaoId(secao: any): number | null {
+    if (!secao) return null;
+    if (secao.batalhaoId) return secao.batalhaoId;
+    if (secao.batalhao?.id) return secao.batalhao.id;
+    return null;
+  }
+
+  filtrarSecoesPorBatalhao(batalhaoId: number | null) {
+    if (!batalhaoId) {
+      this.secoesFiltradas = [...this.secoes];
+      return;
+    }
+    this.secoesFiltradas = this.secoes.filter(s => this.extrairBatalhaoId(s) === batalhaoId);
+    const secaoAtual = this.form.get('secaoId')?.value;
+    if (secaoAtual && !this.secoesFiltradas.some(s => s.id === secaoAtual)) {
+      this.form.patchValue({ secaoId: null });
+    }
   }
 
   resetarForm() {
@@ -263,6 +319,7 @@ export class EquipmentFormComponent implements OnInit {
     this.valoresDinamicos = {};
     this.camposDinamicos = [];
     this.form.reset();
+    this.secoesFiltradas = [...this.secoes];
   }
 
   preencherForm(eq: any) {
@@ -275,10 +332,13 @@ export class EquipmentFormComponent implements OnInit {
     this.atualizarCamposDinamicos(eq.tipoEquipamentoId);
     this.atualizarModelosPorMarca(eq.marcaId);
 
+    const batalhaoId = this.extrairBatalhaoId(eq.secao);
     this.form.patchValue({
       ...eq,
+      batalhaoId,
       dataAquisicao: eq.dataAquisicao ? new Date(eq.dataAquisicao) : null
     });
+    if (batalhaoId) this.filtrarSecoesPorBatalhao(batalhaoId);
   }
 
   atualizarCamposDinamicos(tipoId: number) {
@@ -346,7 +406,7 @@ export class EquipmentFormComponent implements OnInit {
     acao.subscribe({
       next: (res: any) => {
         if (res && res.dadosNovos) {
-          this.messageService.add({ severity: 'info', summary: 'AprovaÃ§Ã£o Solicitada', detail: 'Sua alteraÃ§Ã£o foi enviada para o DTEC. VocÃª pode acompanhÃ¡-la na tela de AprovaÃ§Ãµes.', life: 5000 });
+          this.messageService.add({ severity: 'info', summary: 'Aprovação Solicitada', detail: 'Sua alteração foi enviada para o DTEC. Você pode acompanhá-la na tela de Aprovações.', life: 5000 });
         } else {
           this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Registro salvo!' });
         }
@@ -355,6 +415,11 @@ export class EquipmentFormComponent implements OnInit {
       },
       error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao salvar.' })
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
 

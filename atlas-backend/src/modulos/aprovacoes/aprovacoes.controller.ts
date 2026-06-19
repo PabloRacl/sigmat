@@ -1,12 +1,16 @@
 import {
-  Controller, Get, Post, Param, Body,
-  ParseIntPipe, UseGuards
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ApprovalsService } from './aprovacoes.service';
 import { DecisionApprovalDto } from './dto/decision-approval.dto';
 import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
 import { LoggedUser } from '../../comum/decoradores/logged-user.decorator';
-
 
 @Controller('aprovacoes')
 @UseGuards(JwtAuthGuard)
@@ -15,13 +19,15 @@ export class ApprovalsController {
 
   @Get('pendentes')
   async listarPendentes(@LoggedUser() usuario: any) {
-    const batalhaoId = usuario.perfil === 'ADMIN_DTEC' ? undefined : usuario.batalhaoId;
+    const batalhaoId =
+      usuario.perfil === 'ADMIN_DTEC' ? undefined : usuario.batalhaoId;
     return this.ApprovalsService.listarPendentesPorUnidade(batalhaoId);
   }
 
   @Get('contagem')
   async contarPendentes(@LoggedUser() usuario: any) {
-    const batalhaoId = usuario.perfil === 'ADMIN_DTEC' ? undefined : usuario.batalhaoId;
+    const batalhaoId =
+      usuario.perfil === 'ADMIN_DTEC' ? undefined : usuario.batalhaoId;
     return { total: await this.ApprovalsService.contarPendentes(batalhaoId) };
   }
 
@@ -34,19 +40,13 @@ export class ApprovalsController {
   async processarDecisao(
     @Param('id', ParseIntPipe) id: number,
     @Body() dados: DecisionApprovalDto,
-    @LoggedUser() usuario: any
+    @LoggedUser() usuario: any,
   ) {
     return this.ApprovalsService.processarDecisao(
       id,
       dados.aprovado,
       usuario,
-      dados.justificativa
+      dados.justificativa,
     );
   }
 }
-
-
-
-
-
-

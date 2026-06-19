@@ -37,7 +37,7 @@ export class TransfersRepository {
   }
 
   async findEquipamentoUnique<T extends Prisma.EquipamentoFindUniqueArgs>(
-    args: T
+    args: T,
   ): Promise<Prisma.EquipamentoGetPayload<T> | null> {
     return this.prisma.equipamento.findUnique(args) as any;
   }

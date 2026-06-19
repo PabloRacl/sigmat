@@ -25,11 +25,11 @@ export class MaintenanceRepository {
       where: whereClause,
       include: {
         equipamento: {
-          include: { tipoEquipamento: true, marca: true }
+          include: { tipoEquipamento: true, marca: true },
         },
-        solicitante: true
+        solicitante: true,
       },
-      orderBy: { dataAbertura: 'desc' }
+      orderBy: { dataAbertura: 'desc' },
     });
   }
 
@@ -38,27 +38,27 @@ export class MaintenanceRepository {
       where: { id },
       include: {
         equipamento: true,
-        solicitante: true
-      }
+        solicitante: true,
+      },
     });
   }
 
   async findEquipamentoById(id: number) {
     return this.prisma.equipamento.findUnique({
       where: { id },
-      include: { secao: true }
+      include: { secao: true },
     });
   }
 
   async getStatusManutencao() {
     return this.prisma.statusEquipamento.findFirst({
-      where: { nome: 'MANUTENÇÃO' }
+      where: { nome: 'Manutenção' },
     });
   }
 
   async getStatusAtivo() {
     return this.prisma.statusEquipamento.findFirst({
-      where: { nome: 'ATIVO' }
+      where: { nome: 'Ativo' },
     });
   }
 
@@ -66,15 +66,24 @@ export class MaintenanceRepository {
     return this.prisma.$transaction(fn);
   }
 
+  async countOrdensPendentes(whereClause: any) {
+    return this.prisma.ordemServico.count({
+      where: {
+        ...whereClause,
+        status: { in: ['ABERTA', 'EM_ANDAMENTO', 'AGUARDANDO_PECA'] },
+      },
+    });
+  }
+
   async getLogsByEquipamento(equipamentoId: number) {
     return this.prisma.logOperacao.findMany({
       where: { equipamentoId },
       include: {
         usuario: {
-          select: { nome: true, matricula: true, postoGraduacao: true }
-        }
+          select: { nome: true, matricula: true, postoGraduacao: true },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 }

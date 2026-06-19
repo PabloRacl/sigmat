@@ -1,18 +1,23 @@
 /**
- * [Estado Atual]: Serviço de negócios para autenticação, controle de sessões e revogação de tokens.
- * [Dependências Técnicas]:
+ * [Estado Atual]: ServiÃ§o de negÃ³cios para autenticaÃ§Ã£o, controle de sessÃµes e revogaÃ§Ã£o de tokens.
+ * [DependÃªncias TÃ©cnicas]:
  *   - AuthRepository
  *   - LdapService, SgaService, UsersService, JwtService, AuditService
- * [Histórico de Modificações]:
- *   - Refatorado para o padrão Repository/Service, eliminando acoplamento com o PrismaClient.
+ * [HistÃ³rico de ModificaÃ§Ãµes]:
+ *   - Refatorado para o padrÃ£o Repository/Service, eliminando acoplamento com o PrismaClient.
  *   - Totalmente integrado com o fluxo corporativo real (LDAP, SGPM e SGA).
- * [Regras de Negócio Imutáveis]:
- *   - Validação corporativa baseada no LDAP local + permissão de perfil via SGA + dados cadastrais via SGPM.
- *   - Rotação estrita de Refresh Tokens de 7 dias de validade.
- *   - Lista negra (blacklist) para invalidação imediata de JWTs expirados ou revogados.
+ * [Regras de NegÃ³cio ImutÃ¡veis]:
+ *   - ValidaÃ§Ã£o corporativa baseada no LDAP local + permissÃ£o de perfil via SGA + dados cadastrais via SGPM.
+ *   - RotaÃ§Ã£o estrita de Refresh Tokens de 7 dias de validade.
+ *   - Lista negra (blacklist) para invalidaÃ§Ã£o imediata de JWTs expirados ou revogados.
  */
 
-import { Injectable, UnauthorizedException, Logger, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Logger,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LdapService } from '../../integracoes/ldap/ldap.service';
 import { SgaService } from '../../integracoes/sga/sga.service';
@@ -38,44 +43,57 @@ export class AuthService {
 
   async loginCorporativo(usuario: string, senha: string) {
     try {
-      // 1. Valida o usuário e a senha e retorna o CPF verificado no LDAP corporativo
+      // 1. Valida o usuÃ¡rio e a senha e retorna o CPF verificado no LDAP corporativo
       const cpfLdap = await this.ldapService.autenticar(usuario, senha);
 
-      // 2 e 3. Consulta em paralelo os dados do SGPM e as permissões do SGA
-      const [sgpmData, sgaPermissao] = await Promise.all([
-        this.sgaService.obterDadosSgpm(cpfLdap),
-        this.sgaService.obterPermissao(cpfLdap)
-      ]);
+      // 2. Consulta os dados funcionais adicionais do militar no SGPM
+      const sgpmData = await this.sgaService.obterDadosSgpm(cpfLdap);
+
+      // 3. Consulta as permissÃµes ativas e perfis do militar no SGA
+      const sgaPermissao = await this.sgaService.obterPermissao(cpfLdap);
 
       const dadosCompletos = {
-        login: cpfLdap, // o CPF é usado como login único
+        login: cpfLdap, // o CPF Ã© usado como login Ãºnico
         matricula: sgpmData.matricula || '',
-        nome: sgpmData.nome_completo || sgpmData.nome_guerra || 'Policial Militar',
-        email: `${sgpmData.nome_guerra?.toLowerCase() || 'policial'}@pm.pe.gov.br`,
+        nome: [sgpmData.sigla, sgpmData.nome_guerra].filter(Boolean).join(' ') || 'Policial Militar',
+        email: '',
         postoGraduacao: sgpmData.sigla || '',
         perfil: sgaPermissao.perfil,
         organizacaoDisp: sgpmData.organizacao_disp || 'DTEC',
         secaoSigla: sgpmData.secao || sgpmData.organizacao_disp || 'DTEC',
       };
 
-      // Se a execução chegou até aqui sem exceções, significa que o usuário:
-      // 1. Passou pela autenticação de senha no LDAP
-      // 2. Existe e está ATIVO no sistema de segurança SGA com permissão para o ATLAS.
-      // A regra de negócio é: O SGA é a fonte da verdade. Se ele liberou lá, o ATLAS libera e sincroniza os dados locais.
-      const usuarioAtualizado: any = await this.usersService.upsertUsuarioCorporativo({
-        ...dadosCompletos,
-        autorizado: true, // O SGA diz que está ativo
-      });
+      // Se a execuÃ§Ã£o chegou atÃ© aqui sem exceÃ§Ãµes, significa que o usuÃ¡rio:
+      // 1. Passou pela autenticaÃ§Ã£o de senha no LDAP
+      // 2. Existe e estÃ¡ ATIVO no sistema de seguranÃ§a SGA com permissÃ£o para o atlas.
+      // A regra de negÃ³cio Ã©: O SGA Ã© a fonte da verdade. Se ele liberou lÃ¡, o atlas libera e sincroniza os dados locais.
+      const usuarioAtualizado: any =
+        await this.usersService.upsertUsuarioCorporativo({
+          ...dadosCompletos,
+          autorizado: true, // O SGA diz que estÃ¡ ativo
+        });
 
+      const usuarioDetalhado: any = await this.usersService.buscarPorId(
+        usuarioAtualizado.id,
+      );
 
-      const usuarioDetalhado: any = await this.usersService.buscarPorId(usuarioAtualizado.id);
-
-      const batalhaoId = usuarioDetalhado.batalhaoId || usuarioDetalhado.secao?.batalhaoId;
-      const batalhaoSigla = usuarioDetalhado.batalhao?.sigla || usuarioDetalhado.secao?.batalhao?.sigla;
-      const batalhaoNome = usuarioDetalhado.batalhao?.nome || usuarioDetalhado.secao?.batalhao?.nome;
-      const diretoriaId = usuarioDetalhado.secao?.diretoriaId || usuarioDetalhado.batalhao?.diretoriaId;
-      const diretoriaSigla = usuarioDetalhado.secao?.diretoria?.sigla || usuarioDetalhado.batalhao?.diretoria?.sigla;
-      const diretoriaNome = usuarioDetalhado.secao?.diretoria?.nome || usuarioDetalhado.batalhao?.diretoria?.nome;
+      const batalhaoId =
+        usuarioDetalhado.batalhaoId || usuarioDetalhado.secao?.batalhaoId;
+      const batalhaoSigla =
+        usuarioDetalhado.batalhao?.sigla ||
+        usuarioDetalhado.secao?.batalhao?.sigla;
+      const batalhaoNome =
+        usuarioDetalhado.batalhao?.nome ||
+        usuarioDetalhado.secao?.batalhao?.nome;
+      const diretoriaId =
+        usuarioDetalhado.secao?.diretoriaId ||
+        usuarioDetalhado.batalhao?.diretoriaId;
+      const diretoriaSigla =
+        usuarioDetalhado.secao?.diretoria?.sigla ||
+        usuarioDetalhado.batalhao?.diretoria?.sigla;
+      const diretoriaNome =
+        usuarioDetalhado.secao?.diretoria?.nome ||
+        usuarioDetalhado.batalhao?.diretoria?.nome;
 
       const payload = {
         sub: usuarioDetalhado.id,
@@ -93,7 +111,7 @@ export class AuthService {
       await this.auditService.registrarLog({
         usuarioId: usuarioDetalhado.id,
         acao: AcaoLog.LOGIN,
-        descricao: `Usuário ${usuarioDetalhado.login} realizou login corporativo real (LDAP+SGPM+SGA).`,
+        descricao: `${dadosCompletos.nome} realizou login corporativo (LDAP+SGPM+SGA).`,
       });
 
       const usuarioSessao = {
@@ -101,6 +119,8 @@ export class AuthService {
         login: usuarioDetalhado.login,
         nome: usuarioDetalhado.nome,
         matricula: usuarioDetalhado.matricula,
+        email: dadosCompletos.email,
+        postoGraduacao: dadosCompletos.postoGraduacao,
         perfil: usuarioDetalhado.perfil,
         secaoId: usuarioDetalhado.secaoId,
         secaoSigla: usuarioDetalhado.secao?.sigla,
@@ -118,77 +138,85 @@ export class AuthService {
         refresh_token,
         usuario: usuarioSessao,
       };
-
     } catch (error: any) {
-      this.logger.error(`Erro no loginCorporativo: ${error?.message}`, error?.stack);
+      this.logger.error(
+        `Erro no loginCorporativo: ${error?.message}`,
+        error?.stack,
+      );
       if (error instanceof UnauthorizedException) throw error;
-      
-      throw new UnauthorizedException(`Falha na autenticação corporativa: ${error?.message || 'Dados inválidos'}`);
+
+      throw new UnauthorizedException(
+        `Falha na autenticaÃ§Ã£o corporativa: ${error?.message || 'Dados invÃ¡lidos'}`,
+      );
     }
   }
 
-  async solicitarAcessoCorporativo(dto: import('./dto/entrada.dto').SolicitarAcessoDto) {
+  async solicitarAcessoCorporativo(
+    dto: import('./dto/entrada.dto').SolicitarAcessoDto,
+  ) {
     try {
-      const isMock = process.env.USE_MOCK_AUTH === 'true';
-      let cpfLdap = dto.cpf;
-      let sgpmData: any = {};
-      let sgaPermissao: any = { perfil: 'USUARIO_BATALHAO' };
-
-      if (!isMock) {
-        // Usa o campo 'usuario' diretamente, igual ao login principal
-        cpfLdap = await this.ldapService.autenticar(dto.usuario, dto.senha);
-        const [sgpm, sga] = await Promise.all([
-          this.sgaService.obterDadosSgpm(cpfLdap).catch(() => ({})),
-          this.sgaService.obterPermissao(cpfLdap).catch(() => ({ perfil: 'USUARIO_BATALHAO' }))
-        ]);
-        sgpmData = sgpm;
-        sgaPermissao = sga;
-      }
+      const loginInformado = dto.usuario;
 
       const dadosCompletos = {
-        login: cpfLdap, // CPF real retornado pelo LDAP
-        cpf: cpfLdap,
-        matricula: sgpmData.matricula || dto.matricula || '',
-        nome: sgpmData.nome_completo || sgpmData.nome_guerra || dto.nome || 'Policial Militar',
-        email: `${(sgpmData.nome_guerra || dto.nome)?.toLowerCase().replace(/ /g, '.')}@pm.pe.gov.br`,
-        postoGraduacao: sgpmData.sigla || '',
-        perfil: sgaPermissao.perfil,
-        organizacaoDisp: sgpmData.organizacao_disp || dto.unidade || 'DTEC',
-        secaoSigla: sgpmData.secao || sgpmData.organizacao_disp || dto.unidade || 'DTEC',
+        login: loginInformado,
+        matricula: dto.matricula,
+        nome: dto.nome,
+        email: '',
+        postoGraduacao: '',
+        perfil: 'USUARIO_BATALHAO',
+        organizacaoDisp: dto.unidade,
+        secaoSigla: dto.unidade,
+        motivoSolicitacao: dto.motivo,
       };
 
-      const usuarioBanco = await this.usersService.buscarPorLogin(cpfLdap);
+      const usuarioBanco = await this.usersService.buscarPorLogin(loginInformado);
       if (usuarioBanco && usuarioBanco.autorizado === true) {
         return {
-          message: 'Você já está autorizado no ATLAS. Por favor, faça login normalmente.',
+          message:
+            'VocÃª jÃ¡ estÃ¡ autorizado no atlas. Por favor, faÃ§a login normalmente.',
         };
       }
 
       await this.accessRequestsService.solicitarAcesso(dadosCompletos);
 
       return {
-        message: 'Solicitação de acesso enviada. Um administrador será avisado pela DTEC.',
+        message:
+          'SolicitaÃ§Ã£o de acesso enviada. Um administrador serÃ¡ avisado pela DTEC.',
       };
     } catch (error: any) {
-      this.logger.error(`Erro no solicitarAcessoCorporativo: ${error?.message}`, error?.stack);
-      if (error instanceof UnauthorizedException || error instanceof ConflictException) throw error;
-      throw new UnauthorizedException(`Falha ao solicitar acesso corporativo: ${error?.message || 'Dados inválidos'}`);
+      this.logger.error(
+        `Erro no solicitarAcessoCorporativo: ${error?.message}`,
+        error?.stack,
+      );
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof ConflictException
+      )
+        throw error;
+      throw new UnauthorizedException(
+        `Falha ao solicitar acesso corporativo: ${error?.message || 'Dados invÃ¡lidos'}`,
+      );
     }
   }
 
   async refresh(refreshToken: string) {
     const tokenBanco = await this.repository.findRefreshToken({
       where: { token: refreshToken },
-      include: { usuario: true }
+      include: { usuario: true },
     });
 
     if (!tokenBanco || tokenBanco.expiresAt < new Date()) {
-      if (tokenBanco) await this.repository.deleteRefreshToken({ where: { id: tokenBanco.id } });
-      throw new UnauthorizedException('Refresh token inválido ou expirado.');
+      if (tokenBanco)
+        await this.repository.deleteRefreshToken({
+          where: { id: tokenBanco.id },
+        });
+      throw new UnauthorizedException('Refresh token invÃ¡lido ou expirado.');
     }
 
     const usuario = tokenBanco.usuario;
-    const usuarioDetalhado: any = await this.usersService.buscarPorId(usuario.id);
+    const usuarioDetalhado: any = await this.usersService.buscarPorId(
+      usuario.id,
+    );
     const batalhaoId = usuario.batalhaoId || usuarioDetalhado.secao?.batalhaoId;
     const payload = {
       sub: usuario.id,
@@ -207,23 +235,27 @@ export class AuthService {
 
     return {
       access_token,
-      refresh_token: novo_refresh_token
+      refresh_token: novo_refresh_token,
     };
   }
 
   async logout(usuarioId: number, accessToken: string) {
     await this.repository.deleteManyRefreshTokens({
-      where: { usuarioId }
+      where: { usuarioId },
     });
 
+    let nomeUsuario = 'Usuário';
     try {
       const decoded: any = this.jwtService.decode(accessToken);
+      if (decoded?.nome) {
+        nomeUsuario = decoded.nome;
+      }
       if (decoded && decoded.exp) {
         await this.repository.createBlacklistToken({
           data: {
             jti: decoded.jti || uuidv4(),
-            expiresAt: new Date(decoded.exp * 1000)
-          }
+            expiresAt: new Date(decoded.exp * 1000),
+          },
         });
       }
     } catch (e) {}
@@ -231,7 +263,7 @@ export class AuthService {
     await this.auditService.registrarLog({
       usuarioId,
       acao: AcaoLog.LOGOUT,
-      descricao: `Usuário realizou logout.`,
+      descricao: `${nomeUsuario} realizou logout.`,
     });
   }
 
@@ -244,8 +276,8 @@ export class AuthService {
       data: {
         token,
         usuarioId,
-        expiresAt
-      }
+        expiresAt,
+      },
     });
 
     return token;
@@ -259,7 +291,7 @@ export class AuthService {
       if (!jti) return false;
 
       const blacklisted = await this.repository.findBlacklistToken({
-        where: { jti }
+        where: { jti },
       });
       return !!blacklisted;
     } catch {

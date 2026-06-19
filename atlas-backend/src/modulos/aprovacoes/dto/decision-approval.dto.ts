@@ -6,6 +6,8 @@ export class DecisionApprovalDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(500, { message: 'A justificativa deve ter no máximo 500 caracteres' })
+  @MaxLength(500, {
+    message: 'A justificativa deve ter no máximo 500 caracteres',
+  })
   justificativa?: string;
 }

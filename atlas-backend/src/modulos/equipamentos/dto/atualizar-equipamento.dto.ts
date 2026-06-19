@@ -6,8 +6,3 @@ import { CriarEquipamentoDto } from './criar-equipamento.dto';
  * Utiliza o PartialType para tornar todos os campos do CriarEquipamentoDto opcionais.
  */
 export class AtualizarEquipamentoDto extends PartialType(CriarEquipamentoDto) {}
-
-
-
-
-

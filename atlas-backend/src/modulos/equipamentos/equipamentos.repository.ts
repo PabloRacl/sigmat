@@ -23,7 +23,11 @@ export class EquipmentRepository {
     return this.prisma.equipamento.count({ where: whereClause });
   }
 
-  async findEquipamentos(whereClause: Prisma.EquipamentoWhereInput, skip: number, take: number) {
+  async findEquipamentos(
+    whereClause: Prisma.EquipamentoWhereInput,
+    skip: number,
+    take: number,
+  ) {
     return this.prisma.equipamento.findMany({
       where: whereClause,
       include: {
@@ -88,27 +92,30 @@ export class EquipmentRepository {
       orderBy: { createdAt: 'desc' },
       include: {
         usuario: {
-          select: { nome: true, matricula: true, postoGraduacao: true }
-        }
-      }
+          select: { nome: true, matricula: true, postoGraduacao: true },
+        },
+      },
     });
   }
 
   async findEquipamentosByIds(ids: number[]) {
     return this.prisma.equipamento.findMany({
       where: { id: { in: ids } },
-      include: { secao: true }
+      include: { secao: true },
     });
   }
 
-  async updateManyEquipamentosTransaction(equipamentos: any[], updateData: any) {
+  async updateManyEquipamentosTransaction(
+    equipamentos: any[],
+    updateData: any,
+  ) {
     return this.prisma.$transaction(
-      equipamentos.map(eq => {
+      equipamentos.map((eq) => {
         return this.prisma.equipamento.update({
           where: { id: eq.id },
-          data: updateData
+          data: updateData,
         });
-      })
+      }),
     );
   }
 }

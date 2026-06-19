@@ -10,7 +10,16 @@
  *   - Logout e refresh de token devem invalidar as credenciais ativas correspondentes.
  */
 
-import { Controller, Post, Body, HttpCode, HttpStatus, Req, UseGuards, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Req,
+  UseGuards,
+  Get,
+} from '@nestjs/common';
 import { AuthService } from './autenticacao.service';
 import { LoginDto, SolicitarAcessoDto } from './dto/entrada.dto';
 import { Throttle } from '@nestjs/throttler';
@@ -40,8 +49,6 @@ export class AuthController {
     return this.authService.solicitarAcessoCorporativo(body);
   }
 
-
-
   @Get('unidades')
   async listarUnidades() {
     const unidades = await this.sgaService.listarUnidades();
@@ -63,10 +70,3 @@ export class AuthController {
     return this.authService.logout(req.user.id, token);
   }
 }
-
-
-
-
-
-
-

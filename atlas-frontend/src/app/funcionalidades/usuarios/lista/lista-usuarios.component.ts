@@ -8,9 +8,13 @@ import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { Textarea } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
+import { ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
 
 const PERFIS = [
@@ -31,10 +35,12 @@ const POSTOS = [
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule,
-    DialogModule, SelectModule, ButtonModule, InputTextModule, ToastModule, TooltipModule,
+    DialogModule, SelectModule, ButtonModule, InputTextModule, Textarea, ToastModule, TooltipModule,
+    ConfirmDialogModule,
+    EstadoVazioComponent,
     LayoutPaginaComponent
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './lista-usuarios.component.html',
   styleUrls: ['./lista-usuarios.component.scss'],
 })
@@ -43,10 +49,14 @@ export class UsersListComponent implements OnInit {
   private UsersService = inject(UsersService);
   private configService = inject(SettingsService);
   private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
   private accessReqService = inject(AccessRequestsFrontendService);
 
   usuarios: any[] = [];
   solicitacoes: any[] = [];
+  exibirDialogoRejeicao = false;
+  solicitacaoRejeicao: any = null;
+  motivoRejeicao = '';
   carregando = true;
   exibirModal = false;
   editando = false;
@@ -103,22 +113,36 @@ export class UsersListComponent implements OnInit {
   }
 
   aprovarSolicitacao(req: any) {
-    if (!confirm(`Aprovar a solicitação de ${req.nome}? O acesso real precisa ser liberado no SGA.`)) return;
-    this.accessReqService.aprovar(req.id).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Aprovada', detail: 'Solicitação aprovada.' });
-        this.carregarSolicitacoes();
-      },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao aprovar.' })
+    this.confirmationService.confirm({
+      message: `Aprovar a solicitação de ${req.nome}? O acesso real precisa ser liberado no SGA.`,
+      header: 'Aprovar Solicitação',
+      icon: 'pi pi-check-circle',
+      accept: () => {
+        this.accessReqService.aprovar(req.id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Aprovada', detail: 'Solicitação aprovada.' });
+            this.carregarSolicitacoes();
+          },
+          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao aprovar.' })
+        });
+      }
     });
   }
 
   rejeitarSolicitacao(req: any) {
-    const motivo = prompt(`Informe o motivo para rejeitar a solicitação de ${req.nome}:`);
-    if (motivo === null) return;
-    this.accessReqService.rejeitar(req.id, motivo).subscribe({
+    this.solicitacaoRejeicao = req;
+    this.motivoRejeicao = '';
+    this.exibirDialogoRejeicao = true;
+  }
+
+  confirmarRejeicao() {
+    if (!this.motivoRejeicao?.trim() || !this.solicitacaoRejeicao) return;
+    this.accessReqService.rejeitar(this.solicitacaoRejeicao.id, this.motivoRejeicao.trim()).subscribe({
       next: () => {
         this.messageService.add({ severity: 'success', summary: 'Rejeitada', detail: 'Solicitação rejeitada.' });
+        this.exibirDialogoRejeicao = false;
+        this.solicitacaoRejeicao = null;
+        this.motivoRejeicao = '';
         this.carregarSolicitacoes();
       },
       error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao rejeitar.' })
@@ -178,13 +202,19 @@ export class UsersListComponent implements OnInit {
   }
 
   remover(id: number, nome: string) {
-    if (!confirm(`Remover o usuário "${nome}"?`)) return;
-    this.UsersService.remover(id).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Removido', detail: 'Usuário excluído.' });
-        this.carregar();
-      },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível remover.' }),
+    this.confirmationService.confirm({
+      message: `Remover o usuário "${nome}"?`,
+      header: 'Confirmar Exclusão',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.UsersService.remover(id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Removido', detail: 'Usuário excluído.' });
+            this.carregar();
+          },
+          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível remover.' }),
+        });
+      }
     });
   }
 

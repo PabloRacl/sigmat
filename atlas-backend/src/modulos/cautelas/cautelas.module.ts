@@ -9,8 +9,3 @@ import { DatabaseModule } from '../../banco-dados/banco-dados.module';
   providers: [LoansService],
 })
 export class LoansModule {}
-
-
-
-
-

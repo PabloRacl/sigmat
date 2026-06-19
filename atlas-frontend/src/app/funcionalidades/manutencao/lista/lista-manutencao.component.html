@@ -160,13 +160,11 @@
       <ng-template pTemplate="emptymessage">
         <tr>
           <td colspan="9">
-            <div class="mn-empty">
-              <i class="pi pi-search"></i>
-              <p>Nenhuma ordem de serviço encontrada.</p>
+            <app-estado-vazio mensagem="Nenhuma ordem de serviço encontrada." icone="pi-search">
               <button class="mn-btn-ghost" (click)="filtrarPorStatus(null); buscaTexto=''; onBuscaChange()">
                 Limpar filtros
               </button>
-            </div>
+            </app-estado-vazio>
           </td>
         </tr>
       </ng-template>

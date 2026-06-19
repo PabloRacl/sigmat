@@ -27,9 +27,11 @@ import { LocalStrategy } from './strategies/local.strategy';
       useFactory: (configService: ConfigService) => {
         const secret = configService.get<string>('JWT_SECRET');
         if (!secret) {
-          throw new Error('JWT_SECRET não está definido nas variáveis de ambiente');
+          throw new Error(
+            'JWT_SECRET não está definido nas variáveis de ambiente',
+          );
         }
-        return { secret, signOptions: { expiresIn: '8h' } };
+        return { secret, signOptions: { expiresIn: '60m' } };
       },
     }),
   ],

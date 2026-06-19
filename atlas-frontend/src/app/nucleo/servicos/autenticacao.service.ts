@@ -4,6 +4,7 @@ import { tap } from 'rxjs/operators';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { environment } from '../../environment';
 import { MockModeService } from './modo-mock.service';
+import { USUARIOS_MOCK } from '../dados-teste/usuarios.teste';
 
 @Injectable({
   providedIn: 'root'
@@ -18,62 +19,7 @@ export class AuthService {
 
   login(matricula: string, senha: string) {
     if (this.mockMode.useMock) {
-      const mockUsers: Record<string, any> = {
-        'pablo.ricardo': {
-          id: 1,
-          nome: 'Pablo Ricardo',
-          login: 'pablo.ricardo',
-          perfil: 'ADMIN_DTEC',
-          email: 'pablo.ricardo@localhost',
-          diretoriaId: null,
-          diretoriaSigla: 'DTEC',
-          batalhaoId: null,
-          batalhaoSigla: null,
-          secaoId: null,
-          secaoSigla: null
-        },
-        'diretoria': {
-          id: 2,
-          nome: 'Usuário Diretoria',
-          login: 'diretoria',
-          perfil: 'DIRETORIA',
-          email: 'diretoria@localhost',
-          diretoriaId: 10,
-          diretoriaSigla: 'DTEC',
-          batalhaoId: null,
-          batalhaoSigla: null,
-          secaoId: null,
-          secaoSigla: null
-        },
-        'comandante': {
-          id: 3,
-          nome: 'Comandante BPTUR',
-          login: 'comandante',
-          perfil: 'COMANDANTE',
-          email: 'comandante@localhost',
-          diretoriaId: 10,
-          diretoriaSigla: 'DTEC',
-          batalhaoId: 20,
-          batalhaoSigla: 'BPTUR',
-          secaoId: 101,
-          secaoSigla: 'BPTUR'
-        },
-        'usuariobatalhao': {
-          id: 4,
-          nome: 'Usuário BPTUR',
-          login: 'usuariobatalhao',
-          perfil: 'USUARIO_BATALHAO',
-          email: 'usuariobatalhao@localhost',
-          diretoriaId: 10,
-          diretoriaSigla: 'DTEC',
-          batalhaoId: 20,
-          batalhaoSigla: 'BPTUR',
-          secaoId: 101,
-          secaoSigla: 'BPTUR'
-        }
-      };
-
-      const mockUsuario = mockUsers[matricula?.toLowerCase()];
+      const mockUsuario = USUARIOS_MOCK[matricula?.toLowerCase()];
       if (mockUsuario && senha === '123') {
         const mockResponse = {
           access_token: 'mock-access-token',
@@ -128,7 +74,7 @@ export class AuthService {
       );
   }
 
-  solicitarAcesso(dados: { usuario: string, matricula: string, cpf: string, nome: string, unidade: string, senha: string }) {
+  solicitarAcesso(dados: { usuario: string, matricula: string, nome: string, unidade: string, motivo: string }) {
     return this.http.post<any>(`${this.API_URL}/solicitar-acesso`, dados);
   }
 

@@ -1,27 +1,27 @@
-Resumo
+﻿Resumo
 
-Este PR contém correções e migrações relacionadas ao PrimeNG e pequenas correções de decoradores:
+Este PR contÃ©m correÃ§Ãµes e migraÃ§Ãµes relacionadas ao PrimeNG e pequenas correÃ§Ãµes de decoradores:
 
-- Corrige `styleUrl` → `styleUrls` em múltiplos componentes.
-- Migrações PrimeNG: `p-dropdown` → `p-select`, `pInputTextarea` → `pTextarea`, `TabView` → `TabsModule`/`p-tabs` quando aplicável.
-- Verificação e compatibilidade do `p-datepicker` (propriedades usadas mantidas).
-- Atualizações pontuais de estilos `.scss` para classes novas do Select.
+- Corrige `styleUrl` â†’ `styleUrls` em mÃºltiplos componentes.
+- MigraÃ§Ãµes PrimeNG: `p-dropdown` â†’ `p-select`, `pInputTextarea` â†’ `pTextarea`, `TabView` â†’ `TabsModule`/`p-tabs` quando aplicÃ¡vel.
+- VerificaÃ§Ã£o e compatibilidade do `p-datepicker` (propriedades usadas mantidas).
+- AtualizaÃ§Ãµes pontuais de estilos `.scss` para classes novas do Select.
 
 Principais arquivos alterados
 
-- Vários componentes em `src/app/features/*` (corrigidos decoradores e templates).
+- VÃ¡rios componentes em `src/app/features/*` (corrigidos decoradores e templates).
 - Ajustes em `src/app/features/*/*.scss` relacionados a `.p-select`.
 
-Checklist (para revisão)
+Checklist (para revisÃ£o)
 
-- [x] Build (`npx ng build --configuration development`) concluído localmente
-- [x] Testes unitários (`npx ng test --watch=false --browsers=ChromeHeadless`) passando
-- [ ] Revisar manualmente fluxo de Aprovações (`approvals`) — receber/aprovar/negar
-- [ ] Verificar telas responsivas e estilos após migração
+- [x] Build (`npx ng build --configuration development`) concluÃ­do localmente
+- [x] Testes unitÃ¡rios (`npx ng test --watch=false --browsers=ChromeHeadless`) passando
+- [ ] Revisar manualmente fluxo de AprovaÃ§Ãµes (`approvals`) â€” receber/aprovar/negar
+- [ ] Verificar telas responsivas e estilos apÃ³s migraÃ§Ã£o
 
-Instruções de teste rápido
+InstruÃ§Ãµes de teste rÃ¡pido
 
-1. Instalar dependências:
+1. Instalar dependÃªncias:
 
 ```bash
 cd atlas-frontend
@@ -34,13 +34,13 @@ npm ci
 npx ng build --configuration development
 ```
 
-3. Rodar testes unitários:
+3. Rodar testes unitÃ¡rios:
 
 ```bash
 npx ng test --watch=false --browsers=ChromeHeadless
 ```
 
-4. Rodar a aplicação em dev e testar fluxos principais (Aprovações, Empréstimos, Transferências):
+4. Rodar a aplicaÃ§Ã£o em dev e testar fluxos principais (AprovaÃ§Ãµes, EmprÃ©stimos, TransferÃªncias):
 
 ```bash
 npx ng serve
@@ -48,35 +48,35 @@ npx ng serve
 
 Impacto
 
-- Migração de componentes PrimeNG para versão compatível com o frontend atual.
-- Correções de decoradores Angular (`styleUrl` → `styleUrls`) para evitar erros de compilação.
-- Ajustes de estilo no SCSS para manter a aparência dos selects migrados.
-- Nenhuma alteração no backend ou contratos de API.
+- MigraÃ§Ã£o de componentes PrimeNG para versÃ£o compatÃ­vel com o frontend atual.
+- CorreÃ§Ãµes de decoradores Angular (`styleUrl` â†’ `styleUrls`) para evitar erros de compilaÃ§Ã£o.
+- Ajustes de estilo no SCSS para manter a aparÃªncia dos selects migrados.
+- Nenhuma alteraÃ§Ã£o no backend ou contratos de API.
 
-Verificações adicionais
+VerificaÃ§Ãµes adicionais
 
-- [ ] Validar carregamento e comportamento dos novos `p-select` em todos os formulários.
-- [ ] Confirmar navegação/responsividade nos `p-tabs` migrados de `TabView`.
+- [ ] Validar carregamento e comportamento dos novos `p-select` em todos os formulÃ¡rios.
+- [ ] Confirmar navegaÃ§Ã£o/responsividade nos `p-tabs` migrados de `TabView`.
 - [ ] Revisar visual do `p-datepicker` e dos campos `pTextarea` com classes existentes.
 
-Melhorias e próxima fase
+Melhorias e prÃ³xima fase
 
-- Exibir no cabeçalho do usuário o vínculo ao batalhão ou à diretoria: se for diretorias, mostrar apenas a diretoria; se for batalhão, mostrar apenas o batalhão.
-- Evoluir arquitetura do backend com módulos bem delimitados (`auth`, `equipamentos`, `workflow`, `relatórios`, `auditoria`).
-- Garantir camada de serviços isolada de `controller` e `Prisma`, com DTOs/validation pipes no NestJS e tipos/interfaces no Angular.
-- Padronizar erros, validações e nomenclatura em todo o código.
-- Adicionar testes unitários, de integração e E2E para fluxos críticos.
+- Exibir no cabeÃ§alho do usuÃ¡rio o vÃ­nculo ao batalhÃ£o ou Ã  diretoria: se for diretorias, mostrar apenas a diretoria; se for batalhÃ£o, mostrar apenas o batalhÃ£o.
+- Evoluir arquitetura do backend com mÃ³dulos bem delimitados (`auth`, `equipamentos`, `workflow`, `relatÃ³rios`, `auditoria`).
+- Garantir camada de serviÃ§os isolada de `controller` e `Prisma`, com DTOs/validation pipes no NestJS e tipos/interfaces no Angular.
+- Padronizar erros, validaÃ§Ãµes e nomenclatura em todo o cÃ³digo.
+- Adicionar testes unitÃ¡rios, de integraÃ§Ã£o e E2E para fluxos crÃ­ticos.
 - Configurar CI para rodar lint, build e testes automaticamente.
-- Revisar autenticação/autorização JWT, roles/perfis e proteção de endpoints.
-- Auditar dados, migrações Prisma, índices e histórico de auditoria.
-- Melhorar UX com formulário, feedback, acessibilidade e consistência visual.
+- Revisar autenticaÃ§Ã£o/autorizaÃ§Ã£o JWT, roles/perfis e proteÃ§Ã£o de endpoints.
+- Auditar dados, migraÃ§Ãµes Prisma, Ã­ndices e histÃ³rico de auditoria.
+- Melhorar UX com formulÃ¡rio, feedback, acessibilidade e consistÃªncia visual.
 - Documentar arquitetura, endpoints, modelo de dados e deploy.
 
 Problemas conhecidos
 
-- Usuários que não são admin não estão visualizando corretamente no relatório os equipamentos do batalhão ou diretoria a que pertencem.
-- Relatórios estão lentos com poucos dados; é necessário otimizar consultas e paginação antes que o histórico cresça.
+- UsuÃ¡rios que nÃ£o sÃ£o admin nÃ£o estÃ£o visualizando corretamente no relatÃ³rio os equipamentos do batalhÃ£o ou diretoria a que pertencem.
+- RelatÃ³rios estÃ£o lentos com poucos dados; Ã© necessÃ¡rio otimizar consultas e paginaÃ§Ã£o antes que o histÃ³rico cresÃ§a.
 
-Observações
+ObservaÃ§Ãµes
 
-- Não foram alteradas APIs de backend; mudanças são restritas ao frontend e testes adicionados/ajustados.
+- NÃ£o foram alteradas APIs de backend; mudanÃ§as sÃ£o restritas ao frontend e testes adicionados/ajustados.

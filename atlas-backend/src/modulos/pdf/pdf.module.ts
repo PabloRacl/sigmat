@@ -5,6 +5,6 @@ import { PdfService } from './pdf.service';
 @Module({
   controllers: [PdfController],
   providers: [PdfService],
-  exports: [PdfService]
+  exports: [PdfService],
 })
 export class PdfModule {}

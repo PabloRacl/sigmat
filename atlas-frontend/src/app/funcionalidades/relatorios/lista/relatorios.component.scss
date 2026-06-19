@@ -118,23 +118,6 @@
   color: #334155;
 }
 
-// ── Badges ──────────────────────────────────────────────────
-.re-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-
-  &.verde   { background: #f0fdf4; color: #16a34a; }
-  &.amarelo { background: #fffbeb; color: #d97706; }
-  &.azul    { background: #eff6ff; color: #2563eb; }
-  &.vermelho{ background: #fef2f2; color: #ef4444; }
-  &.cinza   { background: #f8fafc; color: #64748b; }
-}
-
 .re-patrimonio {
   font-weight: 700;
   color: #1e293b;

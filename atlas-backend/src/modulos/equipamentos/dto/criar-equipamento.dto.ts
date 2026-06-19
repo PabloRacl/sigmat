@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsInt, IsDateString, IsNotEmpty, IsObject, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  IsDateString,
+  IsNotEmpty,
+  IsObject,
+  IsNumber,
+} from 'class-validator';
 
 /**
  * DTO para criação de um novo equipamento.
@@ -59,6 +67,10 @@ export class CriarEquipamentoDto {
 
   @IsInt()
   @IsOptional()
+  batalhaoId?: number;
+
+  @IsInt()
+  @IsOptional()
   usuarioResponsavelId?: number;
 
   @IsObject()
@@ -79,8 +91,3 @@ export class CriarEquipamentoDto {
   @IsOptional()
   fotos?: any;
 }
-
-
-
-
-

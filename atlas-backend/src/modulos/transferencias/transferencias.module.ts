@@ -13,9 +13,3 @@ import { NotificationsModule } from '../notificacoes/notificacoes.module';
   exports: [TransfersService, TransfersRepository],
 })
 export class TransfersModule {}
-
-
-
-
-
-

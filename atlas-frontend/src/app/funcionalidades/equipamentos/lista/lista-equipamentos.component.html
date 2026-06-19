@@ -6,7 +6,7 @@
 >
   <!-- Seção: Cabeçalho da Página -->
   <div header-title>
-    <h1>Equipamentos ATLAS</h1>
+    <h1>Equipamentos atlas</h1>
     <p>Gestão de materiais e patrimônio da unidade</p>
   </div>
   
@@ -256,9 +256,7 @@
             </div>
           </td>
           <td style="text-align:center">
-            <span class="eq-status-badge" [ngClass]="obterCorDisponibilidade(eq.disponibilidade?.nome)">
-              {{ eq.disponibilidade?.nome || '—' }}
-            </span>
+            <app-indicador-status [valor]="eq.disponibilidade?.nome || '—'" tipo="disponibilidade"></app-indicador-status>
           </td>
           <td>
             <div class="eq-sec-cell" [pTooltip]="eq.secao?.nome + (eq.secao?.batalhao ? ' - ' + eq.secao?.batalhao?.nome : '')" tooltipPosition="top">
@@ -278,16 +276,14 @@
           <td>{{ eq.marca?.nome || '—' }}</td>
           <td>{{ eq.modelo?.nome || '—' }}</td>
           <td style="text-align:center">
-            <span class="eq-status-badge" [ngClass]="obterCorStatus(eq.status?.nome)">
-              {{ eq.status?.nome || '—' }}
-            </span>
+            <app-indicador-status [valor]="eq.status?.nome || '—'" tipo="status"></app-indicador-status>
           </td>
           <td>{{ eq.dataAquisicao ? (eq.dataAquisicao | date:'dd/MM/yyyy') : '—' }}</td>
           <td><span class="eq-obs-cell" [pTooltip]="eq.observacao" tooltipPosition="top">{{ eq.observacao || '—' }}</span></td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
-        <tr><td colspan="13"><div class="eq-empty"><i class="pi pi-search"></i><p>Nenhum equipamento encontrado.</p></div></td></tr>
+        <tr><td colspan="13"><app-estado-vazio mensagem="Nenhum equipamento encontrado." icone="pi-search"></app-estado-vazio></td></tr>
       </ng-template>
     </p-table>
   </div>
@@ -521,4 +517,5 @@
 
     <p-toast position="bottom-right"></p-toast>
   </div>
+  <p-confirmDialog></p-confirmDialog>
 </app-layout-pagina>

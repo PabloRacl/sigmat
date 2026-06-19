@@ -1,67 +1,24 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { SettingsService } from './configuracoes.service';
 import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
 import { RolesGuard } from '../../comum/guardas/roles.guard';
 import { Roles } from '../../comum/decoradores/roles.decorator';
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-
-class CriarTipoDto {
-  @IsString()
-  @IsNotEmpty({ message: 'O nome do tipo de equipamento não pode ser vazio.' })
-  nome: string = '';
-}
-
-class CriarMarcaDto {
-  @IsString()
-  @IsNotEmpty({ message: 'O nome da marca não pode ser vazio.' })
-  nome: string = '';
-}
-
-class CriarModeloDto {
-  @IsString()
-  @IsNotEmpty({ message: 'O nome do modelo não pode ser vazio.' })
-  nome: string = '';
-
-  @IsInt()
-  @IsOptional()
-  marcaId?: number;
-}
-
-class CriarSecaoDto {
-  @IsString()
-  @IsNotEmpty()
-  sigla: string = '';
-
-  @IsString()
-  @IsNotEmpty()
-  nome: string = '';
-
-  @IsInt()
-  @IsOptional()
-  batalhaoId?: number;
-
-  @IsInt()
-  @IsOptional()
-  diretoriaId?: number;
-}
-
-class AtualizarSecaoDto {
-  @IsString()
-  @IsOptional()
-  sigla?: string;
-
-  @IsString()
-  @IsOptional()
-  nome?: string;
-
-  @IsInt()
-  @IsOptional()
-  batalhaoId?: number;
-
-  @IsInt()
-  @IsOptional()
-  diretoriaId?: number;
-}
+import { CriarTipoDto } from './dto/criar-tipo.dto';
+import { CriarMarcaDto } from './dto/criar-marca.dto';
+import { CriarModeloDto } from './dto/criar-modelo.dto';
+import { CriarSecaoDto } from './dto/criar-secao.dto';
+import { AtualizarSecaoDto } from './dto/atualizar-secao.dto';
 
 @Controller('configuracoes')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -126,7 +83,11 @@ export class SettingsController {
 
   @Put('secoes/:id')
   @Roles('ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE')
-  atualizarSecao(@Param('id') id: string, @Body() dados: AtualizarSecaoDto, @Req() req: any) {
+  atualizarSecao(
+    @Param('id') id: string,
+    @Body() dados: AtualizarSecaoDto,
+    @Req() req: any,
+  ) {
     return this.SettingsService.atualizarSecao(Number(id), dados, req.user);
   }
 
@@ -153,8 +114,3 @@ export class SettingsController {
     return this.SettingsService.excluirModelo(Number(id));
   }
 }
-
-
-
-
-

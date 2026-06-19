@@ -13,8 +13,13 @@ import { ToastModule } from 'primeng/toast';
 import { TabsModule } from 'primeng/tabs';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
+import { ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
+import { IndicadorStatusComponent } from '../../../componentes/indicador-status/indicador-status.component';
+import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
+import { SeveridadeStatus } from '../../../nucleo/utilitarios/status-utilitarios';
 
 @Component({
   selector: 'app-gestao-cautelas',
@@ -23,9 +28,12 @@ import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout
     CommonModule, FormsModule, ReactiveFormsModule,
     DialogModule, SelectModule, ButtonModule, InputTextModule,
     DatePickerModule, ToastModule, TabsModule, TooltipModule, TableModule,
-    LayoutPaginaComponent
+    ConfirmDialogModule,
+    LayoutPaginaComponent,
+    IndicadorStatusComponent,
+    EstadoVazioComponent
   ],
-  providers: [MessageService, DatePipe],
+  providers: [MessageService, ConfirmationService, DatePipe],
   templateUrl: './gestao-cautelas.component.html',
   styleUrls: ['./gestao-cautelas.component.scss'],
 })
@@ -34,6 +42,7 @@ export class LoansManagementComponent implements OnInit {
   private LoansService = inject(LoansService);
   private pdfService = inject(PdfService);
   private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
 
   emprestados: any[]    = [];
   historico: any[]      = [];
@@ -161,28 +170,31 @@ export class LoansManagementComponent implements OnInit {
 
   confirmarRetornoMassa() {
     if (this.selecionados.length === 0) return;
-    if (!confirm(`Deseja baixar o retorno de ${this.selecionados.length} equipamentos em lote?`)) return;
-
-    this.carregando = true;
-    const requests = this.selecionados.map(item => this.LoansService.registrarRetorno(item.id));
-    
-    // Simplificando o processamento em lote
-    let concluidos = 0;
-    requests.forEach(req => {
-      req.subscribe({
-        next: () => {
-          concluidos++;
-          if (concluidos === requests.length) {
-            this.messageService.add({ severity: 'success', summary: 'Lote Processado', detail: `${concluidos} equipamentos retornaram ao inventário.` });
-            this.selecionados = [];
-            this.carregarTudo();
-          }
-        },
-        error: () => {
-          this.messageService.add({ severity: 'error', summary: 'Erro em Lote', detail: 'Alguns itens podem não ter sido processados.' });
-          this.carregando = false;
-        }
-      });
+    this.confirmationService.confirm({
+      message: `Deseja baixar o retorno de ${this.selecionados.length} equipamentos em lote?`,
+      header: 'Confirmar Retorno',
+      icon: 'pi pi-check-circle',
+      accept: () => {
+        this.carregando = true;
+        const requests = this.selecionados.map(item => this.LoansService.registrarRetorno(item.id));
+        let concluidos = 0;
+        requests.forEach(req => {
+          req.subscribe({
+            next: () => {
+              concluidos++;
+              if (concluidos === requests.length) {
+                this.messageService.add({ severity: 'success', summary: 'Lote Processado', detail: `${concluidos} equipamentos retornaram ao inventário.` });
+                this.selecionados = [];
+                this.carregarTudo();
+              }
+            },
+            error: () => {
+              this.messageService.add({ severity: 'error', summary: 'Erro em Lote', detail: 'Alguns itens podem não ter sido processados.' });
+              this.carregando = false;
+            }
+          });
+        });
+      }
     });
   }
 
@@ -227,6 +239,10 @@ export class LoansManagementComponent implements OnInit {
   isVencido(item: any): boolean {
     if (!item.dataRetornoEmprestimo) return false;
     return new Date(item.dataRetornoEmprestimo) < new Date();
+  }
+
+  severidadeVencimento(item: any): SeveridadeStatus {
+    return this.isVencido(item) ? 'perigo' : 'sucesso';
   }
 
   diasAtraso(item: any): number {

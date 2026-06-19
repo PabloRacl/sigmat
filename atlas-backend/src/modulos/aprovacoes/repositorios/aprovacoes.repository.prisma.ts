@@ -8,10 +8,16 @@ import { AuditService } from '../../../compartilhado/servicos/audit.service';
 export class AprovacaoRepositorioPrisma implements IAprovacaoRepositorio {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly auditService: AuditService
+    private readonly auditService: AuditService,
   ) {}
 
-  async criar(equipamentoId: number, solicitanteId: number, dadosNovos: any, dadosAntigos: any, camposAlterados: string[]): Promise<any> {
+  async criar(
+    equipamentoId: number,
+    solicitanteId: number,
+    dadosNovos: any,
+    dadosAntigos: any,
+    camposAlterados: string[],
+  ): Promise<any> {
     return this.prisma.alteracaoPendente.create({
       data: {
         equipamentoId,
@@ -56,7 +62,13 @@ export class AprovacaoRepositorioPrisma implements IAprovacaoRepositorio {
     });
   }
 
-  async processarDecisao(id: number, aprovado: boolean, aprovadoPorId: number, motivoNegacao?: string, dadosTransacao?: any): Promise<any> {
+  async processarDecisao(
+    id: number,
+    aprovado: boolean,
+    aprovadoPorId: number,
+    motivoNegacao?: string,
+    dadosTransacao?: any,
+  ): Promise<any> {
     const { solicitacao } = dadosTransacao;
     return this.prisma.$transaction(async (tx) => {
       const pendencia = await tx.alteracaoPendente.update({
@@ -70,8 +82,11 @@ export class AprovacaoRepositorioPrisma implements IAprovacaoRepositorio {
       });
 
       if (aprovado) {
-        const novos = solicitacao.dadosNovos as any;
-        if (solicitacao.camposAlterados.includes('_acao') && novos._acao === 'DELETE') {
+        const novos = solicitacao.dadosNovos;
+        if (
+          solicitacao.camposAlterados.includes('_acao') &&
+          novos._acao === 'DELETE'
+        ) {
           await tx.equipamento.delete({
             where: { id: solicitacao.equipamentoId },
           });
@@ -90,11 +105,12 @@ export class AprovacaoRepositorioPrisma implements IAprovacaoRepositorio {
         }
       }
 
-      const dadosAlteradosNormalizados = await this.auditService.normalizarDadosParaLog({
-        campos: solicitacao.camposAlterados,
-        dadosNovos: solicitacao.dadosNovos,
-        motivoNegacao: motivoNegacao || undefined
-      });
+      const dadosAlteradosNormalizados =
+        await this.auditService.normalizarDadosParaLog({
+          campos: solicitacao.camposAlterados,
+          dadosNovos: solicitacao.dadosNovos,
+          motivoNegacao: motivoNegacao || undefined,
+        });
 
       await tx.logOperacao.create({
         data: {
@@ -103,7 +119,7 @@ export class AprovacaoRepositorioPrisma implements IAprovacaoRepositorio {
           acao: aprovado ? AcaoLog.APPROVE : AcaoLog.REJECT,
           descricao: `${aprovado ? 'Aprovada' : 'Negada'} alteração para o equipamento ${solicitacao.equipamento.patrimonio}.`,
           dadosAlterados: dadosAlteradosNormalizados,
-        }
+        },
       });
 
       return pendencia;

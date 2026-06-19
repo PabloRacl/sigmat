@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
+﻿import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -15,13 +15,10 @@ describe('AppController', () => {
   });
 
   describe('raiz', () => {
-    it('deve retornar "Olá Mundo! - ATLAS PMPE API rodando (v1.0.3)."', () => {
-      expect(appController.obterSaudacao()).toBe('Olá Mundo! - ATLAS PMPE API rodando (v1.0.3).');
+    it('deve retornar "OlÃ¡ Mundo! - atlas PMPE API rodando (v1.0.3)."', () => {
+      expect(appController.obterSaudacao()).toBe(
+        'OlÃ¡ Mundo! - atlas PMPE API rodando (v1.0.3).',
+      );
     });
   });
 });
-
-
-
-
-

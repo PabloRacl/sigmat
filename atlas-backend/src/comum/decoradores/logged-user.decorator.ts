@@ -6,9 +6,3 @@ export const LoggedUser = createParamDecorator(
     return request.user;
   },
 );
-
-
-
-
-
-

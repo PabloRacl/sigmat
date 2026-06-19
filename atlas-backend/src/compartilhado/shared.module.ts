@@ -9,8 +9,3 @@ import { DatabaseModule } from '../banco-dados/banco-dados.module';
   exports: [AuditService],
 })
 export class SharedModule {}
-
-
-
-
-

@@ -1,0 +1,30 @@
+export const ROTAS = {
+  LOGIN: '/login',
+  QRCODE: '/qrcode',
+  VISAO_GERAL: '/visao-geral',
+  INICIO: '/visao-geral/inicio',
+  EQUIPAMENTOS: '/visao-geral/equipamentos',
+  USUARIOS: '/visao-geral/usuarios',
+  CAUTELAS: '/visao-geral/cautelas',
+  APROVACOES: '/visao-geral/aprovacoes',
+  RELATORIOS: '/visao-geral/relatorios',
+  SECOES: '/visao-geral/secoes',
+  CONFIGURACOES: '/visao-geral/configuracoes',
+  TRANSFERENCIAS: '/visao-geral/transferencias',
+  MANUTENCAO: '/visao-geral/manutencao',
+  AUDITORIA: '/visao-geral/auditoria',
+} as const;
+
+export const ROTAS_RELATIVAS = {
+  INICIO: 'inicio',
+  EQUIPAMENTOS: 'equipamentos',
+  USUARIOS: 'usuarios',
+  CAUTELAS: 'cautelas',
+  APROVACOES: 'aprovacoes',
+  RELATORIOS: 'relatorios',
+  SECOES: 'secoes',
+  CONFIGURACOES: 'configuracoes',
+  TRANSFERENCIAS: 'transferencias',
+  MANUTENCAO: 'manutencao',
+  AUDITORIA: 'auditoria',
+} as const;

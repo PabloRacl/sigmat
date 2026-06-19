@@ -17,6 +17,7 @@ import { TableModule } from 'primeng/table';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
+import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
 
 @Component({
   selector: 'app-lista-transferencias',
@@ -24,7 +25,7 @@ import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout
   imports: [
     CommonModule, FormsModule, DialogModule, SelectModule,
     ButtonModule, Textarea, InputTextModule, ToastModule, TooltipModule, TableModule,
-    ConfirmDialogModule, LayoutPaginaComponent
+    ConfirmDialogModule, LayoutPaginaComponent, EstadoVazioComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './lista-transferencias.component.html',
@@ -120,13 +121,19 @@ export class TransfersListComponent implements OnInit {
   }
 
   cancelar(id: number) {
-    if (!confirm('Deseja cancelar esta solicitação?')) return;
-    this.transferService.cancelar(id).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'warn', summary: 'Cancelado', detail: 'Transferência cancelada.' });
-        this.carregarDados();
-      },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao cancelar.' })
+    this.confirmationService.confirm({
+      message: 'Deseja cancelar esta solicitação?',
+      header: 'Confirmar Cancelamento',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.transferService.cancelar(id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'warn', summary: 'Cancelado', detail: 'Transferência cancelada.' });
+            this.carregarDados();
+          },
+          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Falha ao cancelar.' })
+        });
+      }
     });
   }
 }

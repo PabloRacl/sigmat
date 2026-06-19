@@ -19,9 +19,6 @@ export class SolicitarAcessoDto {
   @IsNotEmpty({ message: 'A matrícula é obrigatória' })
   matricula: string = '';
 
-  @IsString()
-  @IsNotEmpty({ message: 'O CPF é obrigatório' })
-  cpf: string = '';
 
   @IsString()
   @IsNotEmpty({ message: 'O nome é obrigatório' })
@@ -32,11 +29,6 @@ export class SolicitarAcessoDto {
   unidade: string = '';
 
   @IsString()
-  @IsNotEmpty({ message: 'A senha é obrigatória' })
-  senha: string = '';
+  @IsNotEmpty({ message: 'O motivo da solicitação é obrigatório' })
+  motivo: string = '';
 }
-
-
-
-
-

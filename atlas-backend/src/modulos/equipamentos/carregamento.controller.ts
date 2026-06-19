@@ -15,7 +15,7 @@ import { Request } from 'express';
 
 @Controller('upload')
 @UseGuards(JwtAuthGuard)
-export class UploadController {
+export class CarregamentoController {
   @Post('equipamento')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -28,13 +28,17 @@ export class UploadController {
           cb(null, uploadPath);
         },
         filename: (req: Request, file: Express.Multer.File, cb: any) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           cb(null, `eq-${uniqueSuffix}${extname(file.originalname)}`);
         },
       }),
       fileFilter: (req: Request, file: Express.Multer.File, cb: any) => {
         if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
-          return cb(new BadRequestException('Apenas imagens (JPG, PNG) são permitidas'), false);
+          return cb(
+            new BadRequestException('Apenas imagens (JPG, PNG) são permitidas'),
+            false,
+          );
         }
         cb(null, true);
       },
@@ -49,13 +53,8 @@ export class UploadController {
     }
     // Retorna a URL relativa para salvar no banco
     return {
-      url: `/upload./equipamentos/${file.filename}`,
+      url: `/uploads/equipamentos/${file.filename}`,
       originalName: file.originalname,
     };
   }
 }
-
-
-
-
-

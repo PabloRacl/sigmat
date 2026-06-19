@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { AdminGuard } from './nucleo/guardas/admin.guard';
 import { RoleGuard } from './nucleo/guardas/role.guard';
 
 export const routes: Routes = [
@@ -27,7 +26,8 @@ export const routes: Routes = [
       {
         path: 'usuarios',
         loadComponent: () => import('./funcionalidades/usuarios/lista/lista-usuarios.component').then(m => m.UsersListComponent),
-        canActivate: [AdminGuard]
+        canActivate: [RoleGuard],
+        data: { perfis: ['ADMIN_DTEC'] }
       },
       {
         path: 'cautelas',
@@ -39,29 +39,39 @@ export const routes: Routes = [
       },
       {
         path: 'relatorios',
-        loadComponent: () => import('./funcionalidades/relatorios/lista/relatorios.component').then(m => m.ReportsComponent)
+        loadComponent: () => import('./funcionalidades/relatorios/lista/relatorios.component').then(m => m.ReportsComponent),
+        canActivate: [RoleGuard],
+        data: { perfis: ['ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE'] }
       },
       {
         path: 'secoes',
         loadComponent: () => import('./funcionalidades/configuracoes/secoes/secoes.component').then(m => m.SettingsSectionsComponent),
-        canActivate: [RoleGuard]
+        canActivate: [RoleGuard],
+        data: { perfis: ['ADMIN_DTEC', 'DIRETORIA'] }
       },
       {
         path: 'configuracoes',
         loadComponent: () => import('./funcionalidades/configuracoes/secoes/secoes.component').then(m => m.SettingsSectionsComponent),
-        canActivate: [RoleGuard]
+        canActivate: [RoleGuard],
+        data: { perfis: ['ADMIN_DTEC', 'DIRETORIA'] }
       },
       {
         path: 'transferencias',
-        loadComponent: () => import('./funcionalidades/transferencias/lista/lista-transferencias.component').then(m => m.TransfersListComponent)
+        loadComponent: () => import('./funcionalidades/transferencias/lista/lista-transferencias.component').then(m => m.TransfersListComponent),
+        canActivate: [RoleGuard],
+        data: { perfis: ['ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE'] }
       },
       {
         path: 'manutencao',
-        loadComponent: () => import('./funcionalidades/manutencao/lista/lista-manutencao.component').then(m => m.MaintenanceListComponent)
+        loadComponent: () => import('./funcionalidades/manutencao/lista/lista-manutencao.component').then(m => m.MaintenanceListComponent),
+        canActivate: [RoleGuard],
+        data: { perfis: ['ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE'] }
       },
       {
         path: 'auditoria',
-        loadComponent: () => import('./funcionalidades/auditoria/registros/registros-auditoria.component').then(m => m.AuditLogsComponent)
+        loadComponent: () => import('./funcionalidades/auditoria/registros/registros-auditoria.component').then(m => m.AuditLogsComponent),
+        canActivate: [RoleGuard],
+        data: { perfis: ['ADMIN_DTEC', 'DIRETORIA'] }
       },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' }
     ]

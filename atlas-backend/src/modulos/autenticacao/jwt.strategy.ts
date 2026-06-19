@@ -8,10 +8,11 @@ import { AuthService } from './autenticacao.service';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     configService: ConfigService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
   ) {
     const secret = configService.get<string>('JWT_SECRET');
-    if (!secret) throw new Error('JWT_SECRET não está definido nas variáveis de ambiente');
+    if (!secret)
+      throw new Error('JWT_SECRET não está definido nas variáveis de ambiente');
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -41,8 +42,3 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     };
   }
 }
-
-
-
-
-

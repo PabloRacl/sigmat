@@ -16,11 +16,12 @@ import { ConfirmationService } from 'primeng/api';
 import { TabsModule } from 'primeng/tabs';
 import { TableModule } from 'primeng/table';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
+import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
 
 @Component({
   selector: 'app-lista-aprovacoes',
   standalone: true,
-  imports: [CommonModule, DialogModule, ButtonModule, Textarea, ToastModule, TooltipModule, FormsModule, ConfirmDialogModule, TabsModule, TableModule, LayoutPaginaComponent],
+  imports: [CommonModule, DialogModule, ButtonModule, Textarea, ToastModule, TooltipModule, FormsModule, ConfirmDialogModule, TabsModule, TableModule, LayoutPaginaComponent, EstadoVazioComponent],
   providers: [MessageService, ConfirmationService],
   templateUrl: './lista-aprovacoes.component.html',
   styleUrls: ['./lista-aprovacoes.component.scss']
@@ -156,16 +157,21 @@ export class ApprovalsListComponent implements OnInit {
   }
 
   aprovar(id: number) {
-    if (window.confirm('Deseja realmente aprovar esta alteração?')) {
-      this.approvalsService.processarDecisao(id, true, '').subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Aprovado', detail: 'Alteração aplicada ao equipamento.' });
-          this.notificationsService.atualizarContagem();
-          this.carregar();
-        },
-        error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'NÃ£o foi possÃ­vel aprovar.' })
-      });
-    }
+    this.confirmationService.confirm({
+      message: 'Deseja realmente aprovar esta alteração?',
+      header: 'Confirmar Aprovação',
+      icon: 'pi pi-check-circle',
+      accept: () => {
+        this.approvalsService.processarDecisao(id, true, '').subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Aprovado', detail: 'Alteração aplicada ao equipamento.' });
+            this.notificationsService.atualizarContagem();
+            this.carregar();
+          },
+          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível aprovar.' })
+        });
+      }
+    });
   }
 
   abrirNegar(p: any) {

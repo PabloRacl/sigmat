@@ -1,7 +1,8 @@
-﻿import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EquipmentService } from '../../../nucleo/servicos/equipamentos.service';
+import { ROTAS } from '../../../nucleo/utilitarios/rotas.constantes';
 
 @Component({
   selector: 'app-qr-movel',
@@ -26,7 +27,7 @@ export class MobileQrcodeComponent implements OnInit {
     if (idParam) {
       this.carregarEquipamento(Number(idParam));
     } else {
-      this.erro = 'Equipamento nÃ£o especificado na URL.';
+      this.erro = 'Equipamento não especificado na URL.';
       this.carregando = false;
     }
   }
@@ -39,10 +40,10 @@ export class MobileQrcodeComponent implements OnInit {
       },
       error: (err) => {
         if (err.status === 401 || err.status === 403) {
-          // UsuÃ¡rio nÃ£o autenticado, redireciona para o login com returnUrl
-          this.router.navigate(['/login'], { queryParams: { returnUrl: `/qrcode/${id}` } });
+          // Usuário não autenticado, redireciona para o login com returnUrl
+          this.router.navigate([ROTAS.LOGIN], { queryParams: { returnUrl: `/qrcode/${id}` } });
         } else if (err.status === 404) {
-          this.erro = 'Equipamento nÃ£o encontrado no acervo.';
+          this.erro = 'Equipamento não encontrado no acervo.';
         } else {
           this.erro = 'Erro ao buscar dados do equipamento.';
         }
@@ -64,7 +65,7 @@ export class MobileQrcodeComponent implements OnInit {
   }
 
   voltarAoSistema() {
-    this.router.navigate(['/visao-geral/equipamentos']);
+    this.router.navigate([ROTAS.EQUIPAMENTOS]);
   }
 }
 

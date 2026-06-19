@@ -33,6 +33,7 @@ model Batalhao {
   diretoria   Diretoria? @relation(fields: [diretoriaId], references: [id])
   secoes      Secao[]
   usuarios    Usuario[]
+  equipamentos Equipamento[]
 
   @@map("batalhoes")
 }
@@ -86,27 +87,25 @@ model Usuario {
   tiposPermitidos           UsuarioTipoEquipamento[]
   batalhao                  Batalhao?                @relation(fields: [batalhaoId], references: [id])
   secao                     Secao?                   @relation(fields: [secaoId], references: [id])
-  manutencaos               Manutencao[]
-  logManutencaos            LogManutencao[]
 
   @@map("usuarios")
 }
 
 model SolicitacaoAcesso {
-  id              Int               @id @default(autoincrement())
-  login           String            @db.VarChar(50)
-  cpf             String?           @db.VarChar(20)
-  matricula       String?           @db.VarChar(50)
-  nome            String            @db.VarChar(200)
-  email           String?           @db.VarChar(200)
-  postoGraduacao  String?           @map("posto_graduacao") @db.VarChar(100)
-  organizacaoDisp String?           @db.VarChar(100)
-  secaoSigla      String?           @db.VarChar(100)
-  perfil          PerfilUsuario?
-  status          StatusSolicitacao @default(PENDENTE)
-  motivoRejeicao  String?           @map("motivo_rejeicao") @db.VarChar(255)
-  createdAt       DateTime          @default(now()) @map("created_at")
-  updatedAt       DateTime          @updatedAt @map("updated_at")
+  id                Int                @id @default(autoincrement())
+  login             String             @db.VarChar(50)
+  matricula         String?            @db.VarChar(50)
+  nome              String             @db.VarChar(200)
+  email             String?            @db.VarChar(200)
+  postoGraduacao    String?            @map("posto_graduacao") @db.VarChar(100)
+  organizacaoDisp   String?            @db.VarChar(100)
+  secaoSigla        String?            @db.VarChar(100)
+  perfil            PerfilUsuario?     
+  status            StatusSolicitacao  @default(PENDENTE)
+  motivoRejeicao    String?            @map("motivo_rejeicao") @db.VarChar(255)
+  motivoSolicitacao String?            @map("motivo_solicitacao") @db.Text
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
 
   @@map("solicitacoes_acesso")
 }
@@ -196,6 +195,7 @@ model Equipamento {
   tipoAquisicaoId       Int?                @map("tipo_aquisicao_id")
   disponibilidadeId     Int                 @map("disponibilidade_id")
   secaoId               Int                 @map("secao_id")
+  batalhaoId            Int?                @map("batalhao_id")
   usuarioResponsavelId  Int?                @map("usuario_responsavel_id")
   dataRetornoEmprestimo DateTime?           @map("data_retorno_emprestimo") @db.Date
   dataAprovacao         DateTime?           @map("data_aprovacao")
@@ -214,6 +214,7 @@ model Equipamento {
   marca                 Marca?              @relation(fields: [marcaId], references: [id])
   modelo                Modelo?             @relation(fields: [modeloId], references: [id])
   secao                 Secao               @relation(fields: [secaoId], references: [id])
+  batalhao              Batalhao?           @relation(fields: [batalhaoId], references: [id])
   status                StatusEquipamento   @relation(fields: [statusId], references: [id])
   tipoAquisicao         TipoAquisicao?      @relation(fields: [tipoAquisicaoId], references: [id])
   tipoEquipamento       TipoEquipamento     @relation(fields: [tipoEquipamentoId], references: [id])
@@ -223,50 +224,17 @@ model Equipamento {
   logsOperacoes         LogOperacao[]
   ordensServico         OrdemServico[]
   transferencias        Transferencia[]
-  manutencaos           Manutencao[]
 
   @@index([patrimonio])
   @@index([sei])
   @@index([numeroSerie])
   @@index([secaoId])
+  @@index([batalhaoId])
   @@index([statusId])
   @@index([tipoEquipamentoId])
   @@index([usuarioResponsavelId])
   @@map("equipamentos")
 }
-
-// enum PrioridadeManutencao {
-//   BAIXA
-//   MEDIA
-//   ALTA
-// }
-
-// model Manutencao {
-//   id               Int               @id @default(autoincrement())
-//   equipamentoId    Int               @map("equipamento_id")
-//   responsavelId    Int?              @map("responsavel_id")
-//   custo            Decimal           @db.Decimal(15,2)
-//   prioridade       PrioridadeManutencao
-//   status           StatusManutencao   @default(ABERTA)
-//   dataInicio       DateTime          @default(now()) @map("data_inicio")
-//   dataFim          DateTime?         @map("data_fim")
-//   descricao        String?           @db.VarChar(255)
-//   equipamento      Equipamento       @relation(fields: [equipamentoId], references: [id])
-//   responsavel      Usuario?          @relation(fields: [responsavelId], references: [id])
-//   logs             LogManutencao[]
-// }
-
-// model LogManutencao {
-//   id               Int                @id @default(autoincrement())
-//   manutencaoId     Int                @map("manutencao_id")
-//   fromStatus       StatusManutencao
-//   toStatus         StatusManutencao
-//   changedAt        DateTime           @default(now()) @map("changed_at")
-//   changedById      Int?               @map("changed_by_id")
-//   observacao       String?            @db.VarChar(255)
-//   manutencao       Manutencao         @relation(fields: [manutencaoId], references: [id])
-//   changedBy        Usuario?           @relation(fields: [changedById], references: [id])
-// }
 
 model AlteracaoPendente {
   id              Int         @id @default(autoincrement())
@@ -444,37 +412,4 @@ enum StatusManutencao {
   AGUARDANDO_PECA
   CONCLUIDA
   CANCELADA
-}
-
-enum PrioridadeManutencao {
-  BAIXA
-  MEDIA
-  ALTA
-}
-
-model Manutencao {
-  id            Int                  @id @default(autoincrement())
-  equipamentoId Int                  @map("equipamento_id")
-  responsavelId Int?                 @map("responsavel_id")
-  custo         Decimal              @db.Decimal(15, 2)
-  prioridade    PrioridadeManutencao
-  status        StatusManutencao     @default(ABERTA)
-  dataInicio    DateTime             @default(now()) @map("data_inicio")
-  dataFim       DateTime?            @map("data_fim")
-  descricao     String?              @db.VarChar(255)
-  equipamento   Equipamento          @relation(fields: [equipamentoId], references: [id])
-  responsavel   Usuario?             @relation(fields: [responsavelId], references: [id])
-  logs          LogManutencao[]
-}
-
-model LogManutencao {
-  id           Int              @id @default(autoincrement())
-  manutencaoId Int              @map("manutencao_id")
-  fromStatus   StatusManutencao
-  toStatus     StatusManutencao
-  changedAt    DateTime         @default(now()) @map("changed_at")
-  changedById  Int?             @map("changed_by_id")
-  observacao   String?          @db.VarChar(255)
-  manutencao   Manutencao       @relation(fields: [manutencaoId], references: [id])
-  changedBy    Usuario?         @relation(fields: [changedById], references: [id])
 }

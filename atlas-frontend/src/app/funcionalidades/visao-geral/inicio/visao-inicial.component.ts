@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,17 +6,19 @@ import { DashboardService } from '../../../nucleo/servicos/painel.service';
 import { ChartModule } from 'primeng/chart';
 import { SelectModule } from 'primeng/select';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
+import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
+import { ROTAS } from '../../../nucleo/utilitarios/rotas.constantes';
 
 type GraficoKey = 'porStatus' | 'porTipo' | 'porDisponibilidade' | 'porBatalhao' | 'porMarca';
 
 @Component({
   selector: 'app-visao-inicial',
   standalone: true,
-  imports: [CommonModule, ChartModule, SelectModule, FormsModule, LayoutPaginaComponent],
+  imports: [CommonModule, ChartModule, SelectModule, FormsModule, LayoutPaginaComponent, EstadoVazioComponent],
   templateUrl: './visao-inicial.component.html',
   styleUrls: ['./visao-inicial.component.scss'],
 })
-export class DashboardHomeComponent implements OnInit {
+export class DashboardHomeComponent implements OnInit, OnDestroy {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
 
@@ -24,8 +26,10 @@ export class DashboardHomeComponent implements OnInit {
   charts: any = null;
   activities: any[] = [];
   loading = true;
+  isFirstLoad = true;
+  private refreshInterval: any;
 
-  // Seletor de grfico principal
+  // Seletor de gráfico principal
   opcoesGrafico = [
     { label: 'Por Status', value: 'porStatus', tipo: 'pie' },
     { label: 'Por Tipo de Equipamento', value: 'porTipo', tipo: 'bar' },
@@ -44,7 +48,7 @@ export class DashboardHomeComponent implements OnInit {
     responsive: true,
     maintainAspectRatio: false,
     animation: {
-      duration: 1200,
+      duration: this.isFirstLoad ? 1200 : 0,
       easing: 'easeOutQuart',
       animateRotate: true,
       animateScale: true
@@ -73,7 +77,7 @@ export class DashboardHomeComponent implements OnInit {
     responsive: true,
     maintainAspectRatio: true,
     animation: {
-      duration: 1200,
+      duration: this.isFirstLoad ? 1200 : 0,
       easing: 'easeOutQuart',
       animateRotate: true,
       animateScale: true
@@ -111,7 +115,7 @@ export class DashboardHomeComponent implements OnInit {
       maintainAspectRatio: false,
       indexAxis: isHorizontal ? ('y' as const) : ('x' as const),
       animation: {
-        duration: 1000,
+        duration: this.isFirstLoad ? 1000 : 0,
         easing: 'easeOutQuart'
       },
       plugins: {
@@ -149,6 +153,32 @@ export class DashboardHomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.carregarDados();
+    this.refreshInterval = setInterval(() => {
+      this.carregarGraficos(); // Atualiza silenciosamente em background
+    }, 15000); // 15 segundos
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+  }
+
+  carregarGraficos() {
+    this.dashboardService.obterEstatisticas().subscribe({
+      next: (res) => {
+        this.isFirstLoad = false;
+        
+        // Apenas atualiza se os dados realmente mudaram para evitar animação constante (bug visual)
+        if (JSON.stringify(this.summary) !== JSON.stringify(res.resumo)) {
+          this.summary = res.resumo;
+        }
+        if (JSON.stringify(this.charts) !== JSON.stringify(res.graficos)) {
+          // Quando atualiza, se a animação estiver zero, não pisca
+          this.charts = { ...res.graficos };
+        }
+      }
+    });
   }
 
   carregarDados() {
@@ -158,6 +188,11 @@ export class DashboardHomeComponent implements OnInit {
         this.summary = res.resumo;
         this.charts = res.graficos;
         this.loading = false;
+        
+        // Desativa a animação logo após o carregamento inicial terminar
+        setTimeout(() => {
+          this.isFirstLoad = false;
+        }, 1500);
       },
       error: () => {
         this.loading = false;
@@ -168,7 +203,7 @@ export class DashboardHomeComponent implements OnInit {
 
   irParaEquipamentos(q: string) {
     if (!q) return;
-    this.router.navigate(['/visao-geral/equipamentos'], { queryParams: { q } });
+    this.router.navigate([ROTAS.EQUIPAMENTOS], { queryParams: { q } });
   }
 }
 

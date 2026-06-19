@@ -87,33 +87,6 @@
   }
 }
 
-.eq-det-badge {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 99px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-  i {
-    font-size: 0.5rem;
-  }
-
-  &.status {
-    &.success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-    &.warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-    &.danger  { background: rgba(239, 68, 68, 0.2);  color: #f87171; }
-    &.neutral { background: rgba(100, 116, 139, 0.2); color: #cbd5e1; }
-  }
-
-  &.disp {
-    &.success { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-    &.warning { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
-    &.neutral { background: rgba(100, 116, 139, 0.2); color: #cbd5e1; }
-  }
-}
 
 .pat-pill {
   background: rgba(255, 255, 255, 0.08);

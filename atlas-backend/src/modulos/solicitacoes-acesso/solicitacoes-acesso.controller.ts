@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Patch, UseGuards, ParseIntPipe, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Patch,
+  UseGuards,
+  ParseIntPipe,
+  Body,
+} from '@nestjs/common';
 import { AccessRequestsService } from './solicitacoes-acesso.service';
 import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
 import { RolesGuard } from '../../comum/guardas/roles.guard';
@@ -21,7 +29,10 @@ export class AccessRequestsController {
   }
 
   @Patch(':id/rejeitar')
-  async rejeitar(@Param('id', ParseIntPipe) id: number, @Body('motivo') motivo?: string) {
+  async rejeitar(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('motivo') motivo?: string,
+  ) {
     return this.accessRequestsService.rejeitar(id, motivo);
   }
 }

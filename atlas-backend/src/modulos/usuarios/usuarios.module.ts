@@ -11,8 +11,3 @@ import { DatabaseModule } from '../../banco-dados/banco-dados.module';
   exports: [UsersService, UsersRepository],
 })
 export class UsersModule {}
-
-
-
-
-

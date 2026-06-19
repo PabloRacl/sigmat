@@ -17,7 +17,8 @@ describe('SgaService', () => {
     };
     configService = {
       get: jest.fn((key: string) => {
-        if (key === 'SGA_API_URL') return 'https://sga.sistemas.pm.pe.gov.br/api';
+        if (key === 'SGA_API_URL')
+          return 'https://sga.sistemas.pm.pe.gov.br/api';
         if (key === 'SGA_SYSTEM_TOKEN') return 'token-teste';
         return null;
       }),
@@ -77,7 +78,7 @@ describe('SgaService', () => {
       httpService.get.mockReturnValue(of(mockResponse));
 
       await expect(service.obterPermissao('123456')).rejects.toThrow(
-        UnauthorizedException
+        UnauthorizedException,
       );
 
       process.env.NODE_ENV = originalEnv;
@@ -98,7 +99,7 @@ describe('SgaService', () => {
       httpService.get.mockReturnValue(throwError(() => mockError));
 
       await expect(service.obterPermissao('123456')).rejects.toThrow(
-        UnauthorizedException
+        UnauthorizedException,
       );
 
       process.env.NODE_ENV = originalEnv;

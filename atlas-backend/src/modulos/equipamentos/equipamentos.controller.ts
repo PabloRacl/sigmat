@@ -4,14 +4,24 @@
  * [Histórico de Modificações]: Padronização de Clean Code; Validação por DTOs.
  * [Regras de Negócio Imutáveis]: Não importar PrismaClient.
  */
-import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { EquipmentService } from './equipamentos.service';
 import { CriarEquipamentoDto } from './dto/criar-equipamento.dto';
 import { AtualizarEquipamentoDto } from './dto/atualizar-equipamento.dto';
 import { AtualizarMassaDto } from './dto/atualizar-massa.dto';
 import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
 import { LoggedUser } from '../../comum/decoradores/logged-user.decorator';
-
 
 @Controller('equipamentos')
 @UseGuards(JwtAuthGuard)
@@ -35,18 +45,33 @@ export class EquipmentController {
     @Query('dataAquisicao') dataAquisicao?: string,
     @Query('observacao') observacao?: string,
   ) {
-    return this.equipmentService.listarTodos(usuario, { 
-      page, limit, search, tipoId, statusId, disponibilidadeId, secaoId, 
-      marcaId, patrimonio, sei, numeroSerie, dataAquisicao, observacao
+    return this.equipmentService.listarTodos(usuario, {
+      page,
+      limit,
+      search,
+      tipoId,
+      statusId,
+      disponibilidadeId,
+      secaoId,
+      marcaId,
+      patrimonio,
+      sei,
+      numeroSerie,
+      dataAquisicao,
+      observacao,
     });
   }
 
   @Patch('massa')
   async atualizarEmMassa(
     @Body() body: AtualizarMassaDto,
-    @LoggedUser() usuario: any
+    @LoggedUser() usuario: any,
   ) {
-    return this.equipmentService.atualizarEmMassa(body.ids, body.dados, usuario);
+    return this.equipmentService.atualizarEmMassa(
+      body.ids,
+      body.dados,
+      usuario,
+    );
   }
 
   @Get(':id')
@@ -61,15 +86,18 @@ export class EquipmentController {
 
   @Patch(':id')
   async atualizar(
-    @Param('id', ParseIntPipe) id: number, 
+    @Param('id', ParseIntPipe) id: number,
     @Body() dados: AtualizarEquipamentoDto,
-    @LoggedUser() usuario: any
+    @LoggedUser() usuario: any,
   ) {
     return this.equipmentService.atualizar(id, dados, usuario);
   }
 
   @Delete(':id')
-  async remover(@Param('id', ParseIntPipe) id: number, @LoggedUser() usuario: any) {
+  async remover(
+    @Param('id', ParseIntPipe) id: number,
+    @LoggedUser() usuario: any,
+  ) {
     return this.equipmentService.remover(id, usuario);
   }
 
@@ -78,8 +106,3 @@ export class EquipmentController {
     return this.equipmentService.obterHistorico(id);
   }
 }
-
-
-
-
-

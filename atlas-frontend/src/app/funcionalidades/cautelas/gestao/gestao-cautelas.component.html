@@ -96,10 +96,7 @@
         </div>
       </div>
 
-      <div class="cd-empty" *ngIf="emprestados.length === 0" style="text-align: center; padding: 3rem 0; color: #94a3b8;">
-        <i class="pi pi-inbox" style="font-size: 2.5rem; margin-bottom: 0.5rem;"></i>
-        <p>Nenhum equipamento emprestado no momento.</p>
-      </div>
+      <app-estado-vazio *ngIf="emprestados.length === 0" mensagem="Nenhum equipamento emprestado no momento."></app-estado-vazio>
 
       <p-table 
         *ngIf="emprestados.length > 0"
@@ -165,10 +162,7 @@
 
     <!-- ABA 1: VENCIDOS -->
     <div *ngIf="!carregando && abaAtiva === '1'">
-      <div class="cd-empty" *ngIf="vencidos.length === 0" style="text-align: center; padding: 3rem 0; color: #94a3b8;">
-        <i class="pi pi-check-circle text-green" style="font-size: 2.5rem; color: #10b981; margin-bottom: 0.5rem;"></i>
-        <p>Nenhum empréstimo vencido. Tudo em ordem!</p>
-      </div>
+      <app-estado-vazio *ngIf="vencidos.length === 0" mensagem="Nenhum empréstimo vencido. Tudo em ordem!" icone="pi-check-circle"></app-estado-vazio>
       <div class="cd-grid" *ngIf="vencidos.length > 0" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
         <div class="cd-item-card vencido" *ngFor="let e of vencidos" style="background: #fff; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
           <div class="cd-item-card__head" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
@@ -243,9 +237,7 @@
             <td>{{ e.solicitante }}</td>
             <td>{{ e.dataSolicitacao | date:'dd/MM/yyyy' }}</td>
             <td>
-              <span class="eq-status-badge" [ngClass]="isVencido(e) ? 'vermelho' : 'verde'">
-                {{ e.disponibilidade?.nome }}
-              </span>
+              <app-indicador-status [valor]="e.disponibilidade?.nome || '—'" [severidadeManual]="severidadeVencimento(e)"></app-indicador-status>
             </td>
             <td style="text-align: center">
               <button class="cd-btn-icon" (click)="imprimirCautela(e)" pTooltip="Reimprimir Cautela" style="width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; cursor: pointer; color: #475569;">
@@ -356,7 +348,7 @@
               <div style="font-weight: bold; font-size: 14px; margin-top: 5px; text-transform: uppercase;">
                 SECRETARIA DE DEFESA SOCIAL<br>
                 POLÍCIA MILITAR DE PERNAMBUCO<br>
-                DTEC - ATLAS
+                DTEC - atlas
               </div>
             </div>
             
@@ -419,4 +411,5 @@
       </div>
     </p-dialog>
   </div>
+  <p-confirmDialog></p-confirmDialog>
 </app-layout-pagina>

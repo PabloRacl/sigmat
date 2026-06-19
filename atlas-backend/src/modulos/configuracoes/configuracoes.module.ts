@@ -10,8 +10,3 @@ import { DatabaseModule } from '../../banco-dados/banco-dados.module';
   exports: [SettingsService],
 })
 export class SettingsModule {}
-
-
-
-
-

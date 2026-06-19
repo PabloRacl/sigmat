@@ -11,7 +11,6 @@ const INCLUDE_EMPRESTIMO = {
   disponibilidade: true,
 };
 
-
 @Injectable()
 export class LoansService {
   constructor(
@@ -49,18 +48,27 @@ export class LoansService {
   }
 
   /** Registrar saída — marca equipamento como Emprestado */
-  async registrarSaida(equipamentoId: number, dados: {
-    solicitante: string;
-    dataSolicitacao: string;
-    dataRetornoEmprestimo?: string;
-  }, usuario: any) {
-    const equip = await this.prisma.equipamento.findUnique({ where: { id: equipamentoId } });
+  async registrarSaida(
+    equipamentoId: number,
+    dados: {
+      solicitante: string;
+      dataSolicitacao: string;
+      dataRetornoEmprestimo?: string;
+    },
+    usuario: any,
+  ) {
+    const equip = await this.prisma.equipamento.findUnique({
+      where: { id: equipamentoId },
+    });
     if (!equip) throw new NotFoundException('Equipamento não encontrado');
 
-    const dispEmprestado = await this.prisma.disponibilidade.findFirst({ 
-      where: { nome: { equals: 'EMPRESTIMO', mode: 'insensitive' } } 
+    const dispEmprestado = await this.prisma.disponibilidade.findFirst({
+      where: { nome: { equals: 'EMPRESTIMO', mode: 'insensitive' } },
     });
-    if (!dispEmprestado) throw new NotFoundException('Disponibilidade "EMPRESTIMO" não cadastrada');
+    if (!dispEmprestado)
+      throw new NotFoundException(
+        'Disponibilidade "EMPRESTIMO" não cadastrada',
+      );
 
     const resultado = await this.prisma.equipamento.update({
       where: { id: equipamentoId },
@@ -88,13 +96,18 @@ export class LoansService {
 
   /** Registrar retorno — marca equipamento como Disponível e limpa os dados de empréstimo */
   async registrarRetorno(equipamentoId: number, usuario: any) {
-    const equip = await this.prisma.equipamento.findUnique({ where: { id: equipamentoId } });
+    const equip = await this.prisma.equipamento.findUnique({
+      where: { id: equipamentoId },
+    });
     if (!equip) throw new NotFoundException('Equipamento não encontrado');
 
-    const dispDisponivel = await this.prisma.disponibilidade.findFirst({ 
-      where: { nome: { equals: 'DISPONÍVEL', mode: 'insensitive' } } 
+    const dispDisponivel = await this.prisma.disponibilidade.findFirst({
+      where: { nome: { equals: 'DISPONÍVEL', mode: 'insensitive' } },
     });
-    if (!dispDisponivel) throw new NotFoundException('Disponibilidade "DISPONÍVEL" não cadastrada');
+    if (!dispDisponivel)
+      throw new NotFoundException(
+        'Disponibilidade "DISPONÍVEL" não cadastrada',
+      );
 
     const resultado = await this.prisma.equipamento.update({
       where: { id: equipamentoId },
@@ -112,7 +125,10 @@ export class LoansService {
       equipamentoId: equipamentoId,
       acao: AcaoLog.UPDATE,
       descricao: `Retorno registrado: Equipamento ${resultado.patrimonio} devolvido ao estoque.`,
-      dadosAlterados: { statusAnterior: 'EMPRESTIMO', statusAtual: 'DISPONÍVEL' },
+      dadosAlterados: {
+        statusAnterior: 'EMPRESTIMO',
+        statusAtual: 'DISPONÍVEL',
+      },
     });
 
     return resultado;
@@ -120,8 +136,8 @@ export class LoansService {
 
   /** Equipamentos com retorno vencido (data de retorno no passado e ainda emprestados) */
   async listarVencidos() {
-    const dispEmprestado = await this.prisma.disponibilidade.findFirst({ 
-      where: { nome: { equals: 'EMPRESTIMO', mode: 'insensitive' } } 
+    const dispEmprestado = await this.prisma.disponibilidade.findFirst({
+      where: { nome: { equals: 'EMPRESTIMO', mode: 'insensitive' } },
     });
     if (!dispEmprestado) return [];
 
@@ -135,8 +151,3 @@ export class LoansService {
     });
   }
 }
-
-
-
-
-

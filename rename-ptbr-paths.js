@@ -1,4 +1,4 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const path = require('path');
 const root = path.join(process.cwd(), 'atlas-frontend', 'src', 'app');
 const mappings = [

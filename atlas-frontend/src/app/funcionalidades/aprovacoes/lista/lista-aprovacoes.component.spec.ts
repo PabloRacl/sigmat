@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { ApprovalsListComponent } from './lista-aprovacoes.component';
 import { ApprovalsService } from '../../../nucleo/servicos/aprovacoes.service';
 import { TransfersService } from '../../../nucleo/servicos/transferencias.service';
@@ -24,11 +24,33 @@ class MockAuthService {
   getUsuario = jasmine.createSpy('getUsuario').and.returnValue({ perfil: 'ADMIN_DTEC', secaoId: 1 });
 }
 
+class MockMessageService {
+  add = jasmine.createSpy('add');
+}
+
+class MockConfirmationService {
+  requireConfirmation$ = new Subject<any>();
+  private acceptCb: (() => void) | null = null;
+
+  confirm(options: any) {
+    this.acceptCb = options.accept || null;
+    this.requireConfirmation$.next(options);
+  }
+
+  accept() {
+    if (this.acceptCb) {
+      this.acceptCb();
+      this.acceptCb = null;
+    }
+  }
+}
+
 describe('ApprovalsListComponent', () => {
   let component: ApprovalsListComponent;
   let fixture: ComponentFixture<ApprovalsListComponent>;
   let approvalsService: MockApprovalsService;
   let notificationsService: MockNotificationsService;
+  let confirmationService: MockConfirmationService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -38,15 +60,21 @@ describe('ApprovalsListComponent', () => {
         { provide: TransfersService, useClass: MockTransfersService },
         { provide: NotificationsService, useClass: MockNotificationsService },
         { provide: AuthService, useClass: MockAuthService },
-        MessageService,
-        ConfirmationService,
       ]
-    }).compileComponents();
+    })
+    .overrideComponent(ApprovalsListComponent, {
+      set: { providers: [
+        MessageService,
+        { provide: ConfirmationService, useClass: MockConfirmationService }
+      ]}
+    })
+    .compileComponents();
 
     fixture = TestBed.createComponent(ApprovalsListComponent);
     component = fixture.componentInstance;
     approvalsService = TestBed.inject(ApprovalsService) as unknown as MockApprovalsService;
     notificationsService = TestBed.inject(NotificationsService) as unknown as MockNotificationsService;
+    confirmationService = fixture.componentRef.injector.get(ConfirmationService) as unknown as MockConfirmationService;
     fixture.detectChanges();
   });
 
@@ -60,10 +88,8 @@ describe('ApprovalsListComponent', () => {
   });
 
   it('should approve a pending item and refresh', () => {
-    approvalsService.processarDecisao.and.returnValue(of({}));
-    spyOn(window, 'confirm').and.returnValue(true);
-
     component.aprovar(123);
+    confirmationService.accept();
 
     expect(approvalsService.processarDecisao).toHaveBeenCalledWith(123, true, '');
     expect(notificationsService.atualizarContagem).toHaveBeenCalled();

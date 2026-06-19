@@ -15,13 +15,8 @@ import { AprovacaoRepositorioPrisma } from './repositorios/aprovacoes.repository
     {
       provide: I_APROVACAO_REPOSITORIO,
       useClass: AprovacaoRepositorioPrisma,
-    }
+    },
   ],
   exports: [ApprovalsService],
 })
 export class ApprovalsModule {}
-
-
-
-
-

@@ -6,6 +6,8 @@ import { AuthService } from '../../../nucleo/servicos/autenticacao.service';
 import { EquipmentService } from '../../../nucleo/servicos/equipamentos.service';
 import { TransfersService } from '../../../nucleo/servicos/transferencias.service';
 import { MessageService } from 'primeng/api';
+import { ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -28,9 +30,10 @@ import { Router } from '@angular/router';
     InputTextModule,
     InputTextarea,
     SelectModule,
+    ConfirmDialogModule,
     LayoutPaginaComponent
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './secoes.component.html',
   styleUrls: ['./secoes.component.scss']
 })
@@ -41,6 +44,7 @@ export class SettingsSectionsComponent implements OnInit {
   private equipmentService = inject(EquipmentService);
   private transfersService = inject(TransfersService);
   private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
   private router = inject(Router);
 
   // flag to detect if we are on the dedicated "Seções" route
@@ -160,7 +164,7 @@ export class SettingsSectionsComponent implements OnInit {
     } else {
       this.form.reset();
       this.form.patchValue({ id: null });
-      if (this.userPerfil === 'USUARIO_BATALHO' && this.userBatalhaoId) {
+      if (this.userPerfil === 'USUARIO_BATALHAO' && this.userBatalhaoId) {
         this.form.patchValue({ batalhaoId: this.userBatalhaoId });
       }
     }
@@ -266,13 +270,19 @@ export class SettingsSectionsComponent implements OnInit {
   }
 
   excluirTipo(id: number, nome: string) {
-    if (!confirm(`Deseja realmente excluir o tipo de equipamento "${nome}"?`)) return;
-    this.settingsService.excluirTipo(id).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Tipo excluído com sucesso.' });
-        this.carregarDados();
-      },
-      error: (err) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Erro ao excluir tipo.' })
+    this.confirmationService.confirm({
+      message: `Deseja realmente excluir o tipo de equipamento "${nome}"?`,
+      header: 'Confirmar Exclusão',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.settingsService.excluirTipo(id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Tipo excluído com sucesso.' });
+            this.carregarDados();
+          },
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Erro ao excluir tipo.' })
+        });
+      }
     });
   }
 
@@ -295,13 +305,19 @@ export class SettingsSectionsComponent implements OnInit {
   }
 
   excluirMarca(id: number, nome: string) {
-    if (!confirm(`Deseja realmente excluir a marca "${nome}"?`)) return;
-    this.settingsService.excluirMarca(id).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Marca excluída com sucesso.' });
-        this.carregarDados();
-      },
-      error: (err) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Erro ao excluir marca.' })
+    this.confirmationService.confirm({
+      message: `Deseja realmente excluir a marca "${nome}"?`,
+      header: 'Confirmar Exclusão',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.settingsService.excluirMarca(id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Marca excluída com sucesso.' });
+            this.carregarDados();
+          },
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Erro ao excluir marca.' })
+        });
+      }
     });
   }
 
@@ -324,13 +340,19 @@ export class SettingsSectionsComponent implements OnInit {
   }
 
   excluirModelo(id: number, nome: string) {
-    if (!confirm(`Deseja realmente excluir o modelo "${nome}"?`)) return;
-    this.settingsService.excluirModelo(id).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Modelo excluído com sucesso.' });
-        this.carregarDados();
-      },
-      error: (err) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Erro ao excluir modelo.' })
+    this.confirmationService.confirm({
+      message: `Deseja realmente excluir o modelo "${nome}"?`,
+      header: 'Confirmar Exclusão',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.settingsService.excluirModelo(id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Modelo excluído com sucesso.' });
+            this.carregarDados();
+          },
+          error: (err) => this.messageService.add({ severity: 'error', summary: 'Erro', detail: err.error?.message || 'Erro ao excluir modelo.' })
+        });
+      }
     });
   }
 
@@ -373,16 +395,22 @@ export class SettingsSectionsComponent implements OnInit {
   }
 
   excluirStatus(id: number, nome: string) {
-    if (!confirm(`Deseja realmente excluir o status "${nome}"?`)) return;
-    this.settingsService.excluirStatus(id).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Status excluído com sucesso.' });
-        this.carregarDados();
-      },
-      error: (err) => this.messageService.add({
-        severity: 'error', summary: 'Erro',
-        detail: err?.error?.message || 'Erro ao excluir status.'
-      })
+    this.confirmationService.confirm({
+      message: `Deseja realmente excluir o status "${nome}"?`,
+      header: 'Confirmar Exclusão',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.settingsService.excluirStatus(id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Status excluído com sucesso.' });
+            this.carregarDados();
+          },
+          error: (err) => this.messageService.add({
+            severity: 'error', summary: 'Erro',
+            detail: err?.error?.message || 'Erro ao excluir status.'
+          })
+        });
+      }
     });
   }
 }

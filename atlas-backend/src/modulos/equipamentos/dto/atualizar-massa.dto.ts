@@ -1,4 +1,10 @@
-import { IsArray, IsInt, IsObject, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class AtualizarMassaDto {
   @IsArray()
@@ -14,8 +20,3 @@ export class AtualizarMassaDto {
     observacao?: string;
   } = {};
 }
-
-
-
-
-

@@ -1,13 +1,13 @@
-/**
- * [Estado Atual]: Serviço de integração direta com as bases PostgreSQL do SGA e SGPM da corporação.
- * [Dependências Técnicas]:
- *   - Driver 'pg' (Pool de Conexão Postgres)
- *   - ConfigService (Variáveis de ambiente)
- * [Histórico de Modificações]:
+﻿/**
+ * [Estado Atual]: ServiÃ§o de integraÃ§Ã£o direta com as bases PostgreSQL do SGA e SGPM da corporaÃ§Ã£o.
+ * [DependÃªncias TÃ©cnicas]:
+ *   - Driver 'pg' (Pool de ConexÃ£o Postgres)
+ *   - ConfigService (VariÃ¡veis de ambiente)
+ * [HistÃ³rico de ModificaÃ§Ãµes]:
  *   - Totalmente refatorado de chamadas HTTP mockadas para consultas PostgreSQL reais baseadas no modelo 'login-implantar'.
- * [Regras de Negócio Imutáveis]:
- *   - Habilitação obrigatória do sistema ATLAS via checagem s.id_sistema no SGA (SGA_SYSTEM_ID).
- *   - Extração do perfil funcional e unidade de lotação direto da view ViewSgpm no banco de dados do SGPM.
+ * [Regras de NegÃ³cio ImutÃ¡veis]:
+ *   - HabilitaÃ§Ã£o obrigatÃ³ria do sistema atlas via checagem s.id_sistema no SGA (SGA_SYSTEM_ID).
+ *   - ExtraÃ§Ã£o do perfil funcional e unidade de lotaÃ§Ã£o direto da view ViewSgpm no banco de dados do SGPM.
  *   - Modo de Fallback se USE_MOCK_AUTH=true no .env para permitir desenvolvimento local/offline.
  */
 
@@ -23,40 +23,68 @@ export class SgaService {
   constructor(private readonly configService: ConfigService) {}
 
   /**
-   * Obtém os dados funcionais do militar (matrícula, nome de guerra, OME, etc) a partir de seu CPF no SGPM.
+   * ObtÃ©m os dados funcionais do militar (matrÃ­cula, nome de guerra, OME, etc) a partir de seu CPF no SGPM.
    */
   async obterDadosSgpm(cpf: string): Promise<any> {
     const useMock = this.configService.get<string>('USE_MOCK_AUTH') === 'true';
     if (useMock) {
-      this.logger.log(`[MOCK DEV] Retornando dados mockados do SGPM para o CPF: ${cpf}`);
+      this.logger.log(
+        `[MOCK DEV] Retornando dados mockados do SGPM para o CPF: ${cpf}`,
+      );
 
       // Diferencia os dados mock pelo login retornado do LDAP
       const mockSgpm: Record<string, any> = {
         'pablo.ricardo': {
-          cpf: 'pablo.ricardo', matricula: '123456', sigla: 'SD',
-          nome_completo: 'PABLO RICARDO', nome_guerra: 'PABLO',
-          rg_funcional: '123456-7', organizacao_disp: 'DTEC', secao: 'SEC-DTEC', id_organizacao_disp: 29
+          cpf: 'pablo.ricardo',
+          matricula: '123456',
+          sigla: 'SD',
+          nome_completo: 'PABLO RICARDO',
+          nome_guerra: 'PABLO',
+          rg_funcional: '123456-7',
+          organizacao_disp: 'DTEC',
+          secao: 'SEC-DTEC',
+          id_organizacao_disp: 29,
         },
-        'diretoria': {
-          cpf: 'diretoria', matricula: '654321', sigla: 'SD',
-          nome_completo: 'DIRETORIA TESTE', nome_guerra: 'DIRETORIA',
-          rg_funcional: '223344-5', organizacao_disp: 'DIM', secao: 'SEC-DIM', id_organizacao_disp: 31
+        diretoria: {
+          cpf: 'diretoria',
+          matricula: '654321',
+          sigla: 'SD',
+          nome_completo: 'DIRETORIA TESTE',
+          nome_guerra: 'DIRETORIA',
+          rg_funcional: '223344-5',
+          organizacao_disp: 'DIM',
+          secao: 'SEC-DIM',
+          id_organizacao_disp: 31,
         },
-        'comandante': {
-          cpf: 'comandante', matricula: '111222', sigla: 'SD',
-          nome_completo: 'COMANDANTE TESTE', nome_guerra: 'COMANDANTE',
-          rg_funcional: '334455-6', organizacao_disp: '1BPM', secao: 'SEC-1BPM', id_organizacao_disp: 30
+        comandante: {
+          cpf: 'comandante',
+          matricula: '111222',
+          sigla: 'SD',
+          nome_completo: 'COMANDANTE TESTE',
+          nome_guerra: 'COMANDANTE',
+          rg_funcional: '334455-6',
+          organizacao_disp: '1BPM',
+          secao: 'SEC-1BPM',
+          id_organizacao_disp: 30,
         },
-        'usuariobatalhao': {
-          cpf: 'usuariobatalhao', matricula: '333444', sigla: 'SD',
-          nome_completo: 'USUÁRIO BATALHÃO TESTE', nome_guerra: 'USUARIOBATALHAO',
-          rg_funcional: '445566-7', organizacao_disp: 'BPTUR', secao: 'SSCOM-BPTUR', id_organizacao_disp: 267
-        }
+        usuariobatalhao: {
+          cpf: 'usuariobatalhao',
+          matricula: '333444',
+          sigla: 'SD',
+          nome_completo: 'USUÃRIO BATALHÃƒO TESTE',
+          nome_guerra: 'USUARIOBATALHAO',
+          rg_funcional: '445566-7',
+          organizacao_disp: 'BPTUR',
+          secao: 'SSCOM-BPTUR',
+          id_organizacao_disp: 267,
+        },
       };
 
       const dadosMock = mockSgpm[cpf];
       if (!dadosMock) {
-        throw new UnauthorizedException('Usuário não cadastrado no modo de desenvolvimento.');
+        throw new UnauthorizedException(
+          'UsuÃ¡rio nÃ£o cadastrado no modo de desenvolvimento.',
+        );
       }
       return dadosMock;
     }
@@ -67,7 +95,14 @@ export class SgaService {
     const password = this.configService.get<string>('SGPM_DB_PASSWORD');
     const database = this.configService.get<string>('SGPM_DB_DATABASE');
 
-    const pool = new Pool({ host, port, user, password, database, connectionTimeoutMillis: 5000 });
+    const pool = new Pool({
+      host,
+      port,
+      user,
+      password,
+      database,
+      connectionTimeoutMillis: 5000,
+    });
 
     try {
       this.logger.log(`Consultando SGPM para o CPF: ${cpf}`);
@@ -88,7 +123,9 @@ export class SgaService {
       await pool.end();
 
       if (res.rows.length === 0) {
-        throw new UnauthorizedException('Dados funcionais não encontrados no SGPM.');
+        throw new UnauthorizedException(
+          'Dados funcionais nÃ£o encontrados no SGPM.',
+        );
       }
 
       return res.rows[0];
@@ -97,28 +134,58 @@ export class SgaService {
       this.logger.error(`Erro ao consultar base SGPM: ${errorMessage}`);
       await pool.end();
       if (err instanceof UnauthorizedException) throw err;
-      throw new UnauthorizedException('Falha ao obter dados funcionais do SGPM.');
+      throw new UnauthorizedException(
+        'Falha ao obter dados funcionais do SGPM.',
+      );
     }
   }
 
   /**
-   * Obtém as permissões do usuário cadastrado no SGA (Portal de Segurança) e valida o acesso.
+   * ObtÃ©m as permissÃµes do usuÃ¡rio cadastrado no SGA (Portal de SeguranÃ§a) e valida o acesso.
    */
-  async obterPermissao(cpf: string): Promise<{ perfil: PerfilUsuario; ativo: boolean; idSistemas: number[]; idPerfis: number[] }> {
+  async obterPermissao(cpf: string): Promise<{
+    perfil: PerfilUsuario;
+    ativo: boolean;
+    idSistemas: number[];
+    idPerfis: number[];
+  }> {
     const useMock = this.configService.get<string>('USE_MOCK_AUTH') === 'true';
     if (useMock) {
-      this.logger.log(`[MOCK DEV] Retornando permissões mockadas do SGA para o CPF: ${cpf}`);
+      this.logger.log(
+        `[MOCK DEV] Retornando permissÃµes mockadas do SGA para o CPF: ${cpf}`,
+      );
 
-      const mockPermissoes: Record<string, { perfil: PerfilUsuario; idSistemas: number[]; idPerfis: number[] }> = {
-        'pablo.ricardo': { perfil: PerfilUsuario.ADMIN_DTEC, idSistemas: [19, 1, 2], idPerfis: [1, 2] },
-        'diretoria': { perfil: PerfilUsuario.DIRETORIA, idSistemas: [19], idPerfis: [4] },
-        'comandante': { perfil: PerfilUsuario.COMANDANTE, idSistemas: [19], idPerfis: [5] },
-        'usuariobatalhao': { perfil: PerfilUsuario.USUARIO_BATALHAO, idSistemas: [19], idPerfis: [3] },
+      const mockPermissoes: Record<
+        string,
+        { perfil: PerfilUsuario; idSistemas: number[]; idPerfis: number[] }
+      > = {
+        'pablo.ricardo': {
+          perfil: PerfilUsuario.ADMIN_DTEC,
+          idSistemas: [19, 1, 2],
+          idPerfis: [1, 2],
+        },
+        diretoria: {
+          perfil: PerfilUsuario.DIRETORIA,
+          idSistemas: [19],
+          idPerfis: [4],
+        },
+        comandante: {
+          perfil: PerfilUsuario.COMANDANTE,
+          idSistemas: [19],
+          idPerfis: [5],
+        },
+        usuariobatalhao: {
+          perfil: PerfilUsuario.USUARIO_BATALHAO,
+          idSistemas: [19],
+          idPerfis: [3],
+        },
       };
 
       const perm = mockPermissoes[cpf];
       if (!perm) {
-        throw new UnauthorizedException('Usuário não cadastrado no modo de desenvolvimento.');
+        throw new UnauthorizedException(
+          'UsuÃ¡rio nÃ£o cadastrado no modo de desenvolvimento.',
+        );
       }
       return { ...perm, ativo: true };
     }
@@ -128,12 +195,21 @@ export class SgaService {
     const user = this.configService.get<string>('SGA_DB_USER');
     const password = this.configService.get<string>('SGA_DB_PASSWORD');
     const database = this.configService.get<string>('SGA_DB_DATABASE');
-    const targetSystemId = Number(this.configService.get<number>('SGA_SYSTEM_ID') || 19);
+    const targetSystemId = Number(
+      this.configService.get<number>('SGA_SYSTEM_ID') || 19,
+    );
 
-    const pool = new Pool({ host, port, user, password, database, connectionTimeoutMillis: 5000 });
+    const pool = new Pool({
+      host,
+      port,
+      user,
+      password,
+      database,
+      connectionTimeoutMillis: 5000,
+    });
 
     try {
-      this.logger.log(`Consultando SGA para as permissões do CPF: ${cpf}`);
+      this.logger.log(`Consultando SGA para as permissÃµes do CPF: ${cpf}`);
       const query = `
         SELECT 
           u.nome, 
@@ -153,21 +229,27 @@ export class SgaService {
       await pool.end();
 
       if (res.rows.length === 0) {
-        throw new UnauthorizedException('Usuário não cadastrado no Portal de Segurança (SGA).');
+        throw new UnauthorizedException(
+          'UsuÃ¡rio nÃ£o cadastrado no Portal de SeguranÃ§a (SGA).',
+        );
       }
 
       const rows = res.rows;
       const isAtivo = rows[0].ativo === true;
 
       if (!isAtivo) {
-        throw new UnauthorizedException('Acesso não permitido. Usuário inativo no SGA.');
+        throw new UnauthorizedException(
+          'Acesso nÃ£o permitido. UsuÃ¡rio inativo no SGA.',
+        );
       }
 
       const idSistemas = rows.map((r) => Number(r.id_sistema));
       const idPerfis = rows.map((r) => Number(r.id_perfil));
 
       if (!idSistemas.includes(targetSystemId)) {
-        throw new UnauthorizedException('Usuário não possui as permissões necessárias para acessar este sistema.');
+        throw new UnauthorizedException(
+          'UsuÃ¡rio nÃ£o possui as permissÃµes necessÃ¡rias para acessar este sistema.',
+        );
       }
 
       const perfilMapeado = this.mapearPerfilSga(rows[0].perfil);
@@ -176,24 +258,37 @@ export class SgaService {
         perfil: perfilMapeado,
         ativo: true,
         idSistemas,
-        idPerfis
+        idPerfis,
       };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       this.logger.error(`Erro ao consultar base SGA: ${errorMessage}`);
       await pool.end();
       if (err instanceof UnauthorizedException) throw err;
-      throw new UnauthorizedException('Falha de conexão com a base de segurança (SGA).');
+      throw new UnauthorizedException(
+        'Falha de conexÃ£o com a base de seguranÃ§a (SGA).',
+      );
     }
   }
 
   /**
-   * Lista todas as unidades (OMEs) disponíveis no banco SGPM para preencher o select do formulário.
+   * Lista todas as unidades (OMEs) disponÃ­veis no banco SGPM para preencher o select do formulÃ¡rio.
    */
   async listarUnidades(): Promise<string[]> {
     const useMock = this.configService.get<string>('USE_MOCK_AUTH') === 'true';
     if (useMock) {
-      return ['DTEC', 'DIM', 'BPCHOQUE', 'BPTUR', 'BPGD', '1º BPM', '2º BPM', 'BOPE', 'CPM', 'EMG'];
+      return [
+        'DTEC',
+        'DIM',
+        'BPCHOQUE',
+        'BPTUR',
+        'BPGD',
+        '1Âº BPM',
+        '2Âº BPM',
+        'BOPE',
+        'CPM',
+        'EMG',
+      ];
     }
 
     const pool = new Pool({
@@ -202,29 +297,29 @@ export class SgaService {
       user: this.configService.get<string>('SGPM_DB_USER'),
       password: this.configService.get<string>('SGPM_DB_PASSWORD'),
       database: this.configService.get<string>('SGPM_DB_DATABASE'),
-      connectionTimeoutMillis: 5000
+      connectionTimeoutMillis: 5000,
     });
 
     try {
       const res = await pool.query(
-        `SELECT DISTINCT ome FROM "pessoa_cadastro_view" WHERE ome IS NOT NULL ORDER BY ome;`
+        `SELECT DISTINCT ome FROM "pessoa_cadastro_view" WHERE ome IS NOT NULL ORDER BY ome;`,
       );
       await pool.end();
       return res.rows.map((r) => r.ome as string);
     } catch (err) {
       await pool.end();
       this.logger.error(`Erro ao listar unidades do SGPM: ${err}`);
-      // Retorna lista padrão em caso de falha de conexão
+      // Retorna lista padrÃ£o em caso de falha de conexÃ£o
       return ['DTEC', 'DIM', 'BPCHOQUE', 'BPTUR', 'BPGD', 'BOPE', 'CPM', 'EMG'];
     }
   }
 
   /**
-   * Mapeia os perfis recebidos do SGA para a enumeração PerfilUsuario utilizada pelo Prisma.
+   * Mapeia os perfis recebidos do SGA para a enumeraÃ§Ã£o PerfilUsuario utilizada pelo Prisma.
    */
   private mapearPerfilSga(perfilSga: string): PerfilUsuario {
     const p = String(perfilSga).toUpperCase().trim();
-    
+
     if (p.includes('ADMIN') || p.includes('DTEC')) {
       return PerfilUsuario.ADMIN_DTEC;
     }
@@ -234,7 +329,7 @@ export class SgaService {
     if (p.includes('COMANDANTE') || p.includes('CMT')) {
       return PerfilUsuario.COMANDANTE;
     }
-    
+
     return PerfilUsuario.USUARIO_BATALHAO;
   }
 }

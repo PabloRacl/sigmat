@@ -27,7 +27,7 @@ button {
   max-height: calc(100vh - 40px) !important;
   border-radius: 24px !important;
   overflow: hidden !important;
-  background: rgba(15, 23, 42, 0.92) !important;
+  background: rgba(43, 54, 85, 0.95) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: 0 25px 60px -18px rgba(0, 0, 0, 0.55) !important;
 }
@@ -175,9 +175,9 @@ button {
   background: rgba(15, 23, 42, 0.68) !important;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ATLAS — Padrão de Layout Global (Pixel-Perfect)
-   ═══════════════════════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   atlas â€” PadrÃ£o de Layout Global (Pixel-Perfect)
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 :root {
   --atlas-page-padding: 1.5rem;
@@ -185,6 +185,18 @@ button {
   --atlas-radius-large: 16px;
   --atlas-radius-medium: 12px;
   --atlas-border-color: #e2e8f0;
+
+  /* Cores Padrão PMPE */
+  --bg-primary: #2F3B68;
+  --bg-secondary: #242c50;
+  --bg-tertiary: #19203b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --accent-color: #3b82f6;
+  --accent-glow: rgba(255, 255, 255, .2);
+  --glass-bg: rgba(25, 32, 59, .6);
+  --glass-border: rgba(255, 255, 255, .12);
+  --font-family: "Inter", sans-serif;
 }
 
 .atlas-layout {
@@ -410,5 +422,14 @@ button {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.indicador-status {
+  font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 99px;
+  &.severidade-sucesso  { background: #f0fdf4; color: #16a34a; }
+  &.severidade-atencao  { background: #fffbeb; color: #d97706; }
+  &.severidade-perigo   { background: #fef2f2; color: #ef4444; }
+  &.severidade-info     { background: #eff6ff; color: #2563eb; }
+  &.severidade-neutro   { background: #f8fafc; color: #64748b; }
 }
 

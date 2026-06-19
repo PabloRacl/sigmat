@@ -13,9 +13,9 @@ const statusIds = {
   ATIVO: 1,
   INATIVO: 2,
   EXTRAVIADO: 3,
-  MANUTENCAO: 4,
+  'MANUTENÇÃO': 4,
   DANO: 5,
-  DISPONIVEL: 6,
+  DISPONÍVEL: 6,
   RESERVA: 7,
   PENDENTE_APROVACAO: 23
 };
@@ -24,58 +24,24 @@ const disponibilidadeIds = {
   EMPRESTIMO: 2
 };
 
-function getRandom<T>(items: T[]): T {
+function getRandom<T>(items: T[]) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-function pad(value: number, length = 3): string {
+function pad(value: number, length = 3) {
   return String(value).padStart(length, '0');
 }
 
-function randomDateInPast(days: number): Date {
+function randomDateInPast(days: number) {
   const date = new Date();
   date.setDate(date.getDate() - Math.floor(Math.random() * days));
   return date;
 }
 
-function randomDateInFuture(days: number): Date {
+function randomDateInFuture(days: number) {
   const date = new Date();
   date.setDate(date.getDate() + Math.floor(Math.random() * days));
   return date;
-}
-
-/** Generate an array with exactly 100 status IDs following the required distribution */
-function generateStatusDistribution(): number[] {
-  const distribution = [] as number[];
-  // 20 ATIVO
-  for (let i = 0; i < 20; i++) distribution.push(statusIds.ATIVO);
-  // 20 INATIVO
-  for (let i = 0; i < 20; i++) distribution.push(statusIds.INATIVO);
-  // 20 EXTRAVIADO
-  for (let i = 0; i < 20; i++) distribution.push(statusIds.EXTRAVIADO);
-  // 20 MANUTENCAO
-  for (let i = 0; i < 20; i++) distribution.push(statusIds.MANUTENCAO);
-  // 20 PENDENTE_APROVACAO
-  for (let i = 0; i < 20; i++) distribution.push(statusIds.PENDENTE_APROVACAO);
-  // Shuffle for randomness
-  for (let i = distribution.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [distribution[i], distribution[j]] = [distribution[j], distribution[i]];
-  }
-  return distribution;
-}
-
-/** Generate an array with exactly 100 disponibilidade IDs (50 CARGA, 50 EMPRESTIMO) */
-function generateDisponibilidadeDistribution(): number[] {
-  const distribution = [] as number[];
-  for (let i = 0; i < 50; i++) distribution.push(disponibilidadeIds.CARGA);
-  for (let i = 0; i < 50; i++) distribution.push(disponibilidadeIds.EMPRESTIMO);
-  // Shuffle
-  for (let i = distribution.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [distribution[i], distribution[j]] = [distribution[j], distribution[i]];
-  }
-  return distribution;
 }
 
 async function main() {
@@ -108,34 +74,52 @@ async function main() {
       secoes.push(secao);
     }
 
-    const statusDist = generateStatusDistribution();
-    const disponibilidadeDist = generateDisponibilidadeDistribution();
     let equipamentoSequence = 1;
-    let statusIndex = 0;
 
     for (const secao of secoes) {
-      for (let i = 0; i < 20; i++) { // 20 equipments per seção => 100 total per batalhão
-        let statusId = statusDist[statusIndex % statusDist.length];
-        let disponibilidadeId = disponibilidadeDist[statusIndex % disponibilidadeDist.length];
-        const patrimonySuffix = pad(equipamentoSequence);
+      for (let index = 1; index <= 20; index++) {
+        const patrimonySuffix = pad(index);
         const patrimonio = `AUTO-${batalhao.sigla}-${secao.nome}-${patrimonySuffix}`;
         const tipoEquipamentoId = tipoIds[(equipamentoSequence - 1) % tipoIds.length];
 
-        // Default fields
-        let dataRetornoEmprestimo: Date | null = null;
-        let dataSolicitacao: Date | null = null;
-        let dataAprovacao: Date | null = null;
-        let solicitante: string | null = null;
+        const isLoan = index % 5 === 0;
+        const isMaintenance = index % 7 === 0;
+        const isReserve = index % 13 === 0;
+        const isDamaged = index % 19 === 0;
+        const isMissing = index % 23 === 0;
+        const isPendingApproval = index % 17 === 0;
 
-        if (disponibilidadeId === disponibilidadeIds.EMPRESTIMO) {
+        let statusId = statusIds.ATIVO;
+        let disponibilidadeId = disponibilidadeIds.CARGA;
+        let dataRetornoEmprestimo = null;
+        let dataSolicitacao = null;
+        let dataAprovacao = null;
+        let solicitante = null;
+
+        if (isLoan) {
+          disponibilidadeId = disponibilidadeIds.EMPRESTIMO;
+          statusId = statusIds.DISPONÍVEL;
           dataRetornoEmprestimo = randomDateInFuture(40);
           dataSolicitacao = randomDateInPast(30);
           dataAprovacao = randomDateInPast(20);
           solicitante = `Usuário ${batalhao.sigla}`;
-        }
-
-        // Ensure pending approval equipment uses CARGA availability
-        if (statusId === statusIds.PENDENTE_APROVACAO) {
+        } else if (isMaintenance) {
+          statusId = statusIds['MANUTENÇÃO'];
+          disponibilidadeId = disponibilidadeIds.CARGA;
+        } else if (isReserve) {
+          statusId = statusIds.RESERVA;
+          disponibilidadeId = disponibilidadeIds.CARGA;
+        } else if (isDamaged) {
+          statusId = statusIds.DANO;
+          disponibilidadeId = disponibilidadeIds.CARGA;
+        } else if (isMissing) {
+          statusId = statusIds.EXTRAVIADO;
+          disponibilidadeId = disponibilidadeIds.CARGA;
+        } else if (isPendingApproval) {
+          statusId = statusIds.PENDENTE_APROVACAO;
+          disponibilidadeId = disponibilidadeIds.CARGA;
+        } else {
+          statusId = statusIds.ATIVO;
           disponibilidadeId = disponibilidadeIds.CARGA;
         }
 
@@ -149,7 +133,7 @@ async function main() {
             tipoEquipamentoId,
             statusId,
             disponibilidadeId,
-
+            secaoId: secao.id,
             dataRetornoEmprestimo,
             dataSolicitacao,
             dataAprovacao,
@@ -172,7 +156,7 @@ async function main() {
           }
         });
 
-        if (disponibilidadeId === disponibilidadeIds.EMPRESTIMO && defaultUserId) {
+        if (isLoan && defaultUserId) {
           const destino = secoes[(secoes.indexOf(secao) + 1) % secoes.length];
           await prisma.transferencia.create({
             data: {
@@ -180,16 +164,15 @@ async function main() {
               origemId: secao.id,
               destinoId: destino.id,
               solicitanteId: defaultUserId,
-              status: statusIndex % 2 === 0 ? 'CONCLUIDA' : 'PENDENTE',
+              status: index % 2 === 0 ? 'CONCLUIDA' : 'PENDENTE',
               observacao: `Transferência auto-gerada para ${patrimonio}`,
               dataEnvio: randomDateInPast(40),
-              dataRecebimento: statusIndex % 2 === 0 ? randomDateInPast(10) : null
+              dataRecebimento: index % 2 === 0 ? randomDateInPast(10) : null
             }
           });
         }
 
         equipamentoSequence++;
-        statusIndex++;
       }
     }
 

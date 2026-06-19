@@ -5,23 +5,10 @@
 >
   <!-- Cabeçalho da Página -->
   <div header-title>
-    <h1>Dashboard ATLAS</h1>
+    <h1>Dashboard atlas</h1>
     <p>Bem-vindo ao centro de comando do patrimônio da PMPE</p>
   </div>
   
-  <div header-actions>
-    <div class="dh-quick-search" style="display: inline-flex; align-items: center; background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 2px 2px 2px 12px; margin-right: 12px;">
-      <i class="pi pi-search" style="color: #94a3b8; margin-right: 8px;"></i>
-      <input type="text" placeholder="Busca rápida de patrimônio..." #quickSearch (keyup.enter)="irParaEquipamentos(quickSearch.value)" style="border: none; outline: none; font-size: 0.85rem; padding: 6px 0; color: #334155;">
-      <button class="dh-quick-search__btn" (click)="irParaEquipamentos(quickSearch.value)" title="Pesquisar" style="background: #2563eb; color: white; border: none; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-        <i class="pi pi-arrow-right" style="color: white !important;"></i>
-      </button>
-    </div>
-    <button class="dh-btn-refresh" [class.spinning]="loading" (click)="carregarDados()" title="Atualizar dados" style="display: inline-flex; align-items: center; gap: 8px; background: white; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; color: #475569;">
-      <i class="pi pi-refresh" [class.pi-spin]="loading"></i>
-      Atualizar
-    </button>
-  </div>
 
   <!-- Cards de Resumo Estatístico -->
   <div class="dh-stats" *ngIf="summary" stats>
@@ -128,10 +115,7 @@
               </div>
             </div>
           </div>
-          <div class="dh-empty-activities" *ngIf="activities.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #94a3b8; padding: 2rem 0;">
-            <i class="pi pi-calendar-times" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-            <p style="margin: 0; font-size: 0.85rem;">Sem atividades registradas hoje.</p>
-          </div>
+          <app-estado-vazio *ngIf="activities.length === 0" mensagem="Sem atividades registradas hoje." icone="pi-calendar-times"></app-estado-vazio>
         </div>
       </div>
     </div>

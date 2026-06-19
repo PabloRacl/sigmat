@@ -16,7 +16,9 @@ import { Prisma } from '@prisma/client';
 export class AuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findRefreshToken(args: Prisma.RefreshTokenFindUniqueArgs): Promise<any> {
+  async findRefreshToken(
+    args: Prisma.RefreshTokenFindUniqueArgs,
+  ): Promise<any> {
     return this.prisma.refreshToken.findUnique(args);
   }
 

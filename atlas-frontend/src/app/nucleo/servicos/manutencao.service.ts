@@ -13,6 +13,10 @@ export class MaintenanceService {
     return this.http.get<any>(this.API_URL);
   }
 
+  contarPendentes() {
+    return this.http.get<{ total: number }>(`${this.API_URL}/contagem`);
+  }
+
   buscarPorId(id: number) {
     return this.http.get<any>(`${this.API_URL}/${id}`);
   }

@@ -4,7 +4,7 @@ import request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { JwtAuthGuard } from '../src/modulos/autenticacao/guardas/jwt-autenticacao.guard';
 import { ApprovalsService } from '../src/modulos/aprovacoes/aprovacoes.service';
-import { EquipmentService } from '../src/modules/equipment/equipment.service';
+import { EquipmentService } from '../src/modulos/equipamentos/equipamentos.service';
 
 describe('Approval Flow (e2e)', () => {
   let app: INestApplication;
@@ -14,15 +14,25 @@ describe('Approval Flow (e2e)', () => {
 
   beforeAll(async () => {
     approvalsService = {
-      listarPendentesPorUnidade: jest.fn().mockResolvedValue([{ id: 101, equipamentoId: 5, aprovado: null }]),
-      obterPendencia: jest.fn().mockResolvedValue({ id: 101, equipamentoId: 5, aprovado: true }),
+      listarPendentesPorUnidade: jest
+        .fn()
+        .mockResolvedValue([{ id: 101, equipamentoId: 5, aprovado: null }]),
+      obterPendencia: jest
+        .fn()
+        .mockResolvedValue({ id: 101, equipamentoId: 5, aprovado: true }),
       contarPendentes: jest.fn().mockResolvedValue(1),
-      processarDecisao: jest.fn().mockResolvedValue({ id: 101, aprovado: true, aprovadoPorId: 42 }),
-      criarSolicitacao: jest.fn().mockResolvedValue({ id: 101, equipamentoId: 5, aprovado: null }),
+      processarDecisao: jest
+        .fn()
+        .mockResolvedValue({ id: 101, aprovado: true, aprovadoPorId: 42 }),
+      criarSolicitacao: jest
+        .fn()
+        .mockResolvedValue({ id: 101, equipamentoId: 5, aprovado: null }),
     };
 
     equipmentService = {
-      atualizar: jest.fn().mockResolvedValue({ id: 101, equipamentoId: 5, aprovado: null }),
+      atualizar: jest
+        .fn()
+        .mockResolvedValue({ id: 101, equipamentoId: 5, aprovado: null }),
     };
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -57,7 +67,11 @@ describe('Approval Flow (e2e)', () => {
       .expect(200);
 
     expect(result.body).toEqual({ id: 101, equipamentoId: 5, aprovado: null });
-    expect(equipmentService.atualizar).toHaveBeenCalledWith(5, { nome: 'Nome atualizado' }, mockUser);
+    expect(equipmentService.atualizar).toHaveBeenCalledWith(
+      5,
+      { nome: 'Nome atualizado' },
+      mockUser,
+    );
   });
 
   it('should list pending approvals', async () => {
@@ -65,7 +79,9 @@ describe('Approval Flow (e2e)', () => {
       .get('/aprovacoes/pendentes')
       .expect(200);
 
-    expect(result.body).toEqual([{ id: 101, equipamentoId: 5, aprovado: null }]);
+    expect(result.body).toEqual([
+      { id: 101, equipamentoId: 5, aprovado: null },
+    ]);
     expect(approvalsService.listarPendentesPorUnidade).toHaveBeenCalledWith(1);
   });
 
@@ -76,7 +92,12 @@ describe('Approval Flow (e2e)', () => {
       .expect(201);
 
     expect(result.body).toEqual({ id: 101, aprovado: true, aprovadoPorId: 42 });
-    expect(approvalsService.processarDecisao).toHaveBeenCalledWith(101, true, mockUser, 'Validado');
+    expect(approvalsService.processarDecisao).toHaveBeenCalledWith(
+      101,
+      true,
+      mockUser,
+      'Validado',
+    );
   });
 
   it('should retrieve a specific approval request', async () => {

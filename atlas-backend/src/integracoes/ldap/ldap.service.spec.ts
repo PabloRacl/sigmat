@@ -42,10 +42,12 @@ describe('LdapService', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
 
-      const result = await service.autenticar('pablo.ricardo', 'qualquer_senha');
+      const result = await service.autenticar(
+        'pablo.ricardo',
+        'qualquer_senha',
+      );
 
-      expect(result.login).toBe('pablo.ricardo');
-      expect(result.nome).toBe('Pablo Ricardo');
+      expect(result).toBe('pablo.ricardo');
 
       process.env.NODE_ENV = originalEnv;
     });
@@ -57,11 +59,10 @@ describe('LdapService', () => {
       const mockResponse = {
         status: 200,
         data: {
-          login: '123456',
-          matricula: '123456',
-          nome: 'Policial de Teste',
-          email: 'teste@pm.pe.gov.br',
-          postoGraduacao: 'Cabo',
+          status: 'success',
+          data: [
+            ['Login: 123456']
+          ]
         },
       };
 
@@ -70,8 +71,7 @@ describe('LdapService', () => {
       const result = await service.autenticar('123456', 'senha_correta');
 
       expect(httpService.post).toHaveBeenCalled();
-      expect(result.nome).toBe('Policial de Teste');
-      expect(result.postoGraduacao).toBe('Cabo');
+      expect(result).toBe('123456');
 
       process.env.NODE_ENV = originalEnv;
     });
@@ -90,9 +90,9 @@ describe('LdapService', () => {
 
       httpService.post.mockReturnValue(throwError(() => mockError));
 
-      await expect(service.autenticar('123456', 'senha_errada')).rejects.toThrow(
-        UnauthorizedException
-      );
+      await expect(
+        service.autenticar('123456', 'senha_errada'),
+      ).rejects.toThrow(UnauthorizedException);
 
       process.env.NODE_ENV = originalEnv;
     });

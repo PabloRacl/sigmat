@@ -7,6 +7,7 @@ import { AuthService } from '../../../nucleo/servicos/autenticacao.service';
 
 class MockAuthService {
   login = jasmine.createSpy('login').and.returnValue({ subscribe: () => {} });
+  buscarUnidades = jasmine.createSpy('buscarUnidades').and.returnValue({ subscribe: () => {} });
 }
 
 describe('LoginComponent', () => {

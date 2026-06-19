@@ -21,7 +21,11 @@ export class NotificationsService {
   /**
    * Notifica o solicitante sobre a aprovação ou negação de uma alteração
    */
-  notificarDecisaoAlteracao(userId: number, aprovado: boolean, patrimonio: string) {
+  notificarDecisaoAlteracao(
+    userId: number,
+    aprovado: boolean,
+    patrimonio: string,
+  ) {
     this.gateway.enviarParaUsuario(userId, 'decisao_alteracao', {
       aprovado,
       mensagem: `Sua solicitação de alteração para o equipamento ${patrimonio} foi ${aprovado ? 'APROVADA' : 'NEGADA'}.`,
@@ -31,7 +35,11 @@ export class NotificationsService {
   /**
    * Notificação genérica
    */
-  notificar(userId: number, mensagem: string, tipo: 'info' | 'success' | 'warn' | 'error' = 'info') {
+  notificar(
+    userId: number,
+    mensagem: string,
+    tipo: 'info' | 'success' | 'warn' | 'error' = 'info',
+  ) {
     this.gateway.enviarParaUsuario(userId, 'notificacao_geral', {
       mensagem,
       tipo,

@@ -9,11 +9,12 @@ import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
+import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
 
 @Component({
   selector: 'app-registros-auditoria',
   standalone: true,
-  imports: [CommonModule, TableModule, TagModule, TooltipModule, InputTextModule, FormsModule, DialogModule, ButtonModule, LayoutPaginaComponent],
+  imports: [CommonModule, TableModule, TagModule, TooltipModule, InputTextModule, FormsModule, DialogModule, ButtonModule, LayoutPaginaComponent, EstadoVazioComponent],
   templateUrl: './registros-auditoria.component.html',
   styleUrls: ['./registros-auditoria.component.scss']
 })
@@ -86,7 +87,7 @@ export class AuditLogsComponent implements OnInit {
   }
 
   formatarJSON(json: any): string {
-    if (!json) return 'â€”';
+    if (!json) return '—';
     return JSON.stringify(json, null, 2);
   }
 
@@ -96,17 +97,17 @@ export class AuditLogsComponent implements OnInit {
       modeloId: 'Modelo',
       tipoEquipamentoId: 'Tipo Equipamento',
       statusId: 'Status',
-      tipoAquisicaoId: 'Tipo AquisiÃ§Ã£o',
+      tipoAquisicaoId: 'Tipo Aquisição',
       disponibilidadeId: 'Disponibilidade',
-      secaoId: 'SeÃ§Ã£o',
-      usuarioResponsavelId: 'ResponsÃ¡vel',
+      secaoId: 'Seção',
+      usuarioResponsavelId: 'Responsável',
       usuarioAprovadorId: 'Aprovador',
       usuarioNegadorId: 'Negador',
       solicitanteId: 'Solicitante',
-      usuarioId: 'UsuÃ¡rio',
-      numeroSerie: 'NÃºmero de SÃ©rie',
-      patrimonio: 'PatrimÃ´nio',
-      dataAquisicao: 'Data de AquisiÃ§Ã£o',
+      usuarioId: 'Usuário',
+      numeroSerie: 'Número de Série',
+      patrimonio: 'Patrimônio',
+      dataAquisicao: 'Data de Aquisição',
     };
     return labels[key] || key.replace(/([A-Z])/g, ' $1').replace(/Id$/, '').toUpperCase();
   }
@@ -136,7 +137,7 @@ export class AuditLogsComponent implements OnInit {
   }
 
   formatValue(value: any): string {
-    if (value === null || value === undefined || value === '') return 'â€”';
+    if (value === null || value === undefined || value === '') return '—';
     if (typeof value === 'object') {
       if ('nome' in value) return String(value.nome);
       if ('sigla' in value) return String(value.sigla);

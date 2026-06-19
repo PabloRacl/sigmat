@@ -18,13 +18,14 @@ export class AccessRequestsService {
     });
 
     if (existe) {
-      throw new ConflictException('Já existe uma solicitação de acesso pendente para este login.');
+      throw new ConflictException(
+        'Já existe uma solicitação de acesso pendente para este login.',
+      );
     }
 
     const novaSolicitacao = await this.repository.create({
       data: {
         login: dados.login,
-        cpf: dados.cpf,
         matricula: dados.matricula,
         nome: dados.nome,
         email: dados.email,
@@ -49,14 +50,14 @@ export class AccessRequestsService {
   async listarPendentes() {
     return this.repository.findMany({
       where: { status: 'PENDENTE' },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async aprovar(id: number) {
     const solicitacao = await this.repository.update({
       where: { id },
-      data: { status: 'APROVADA' }
+      data: { status: 'APROVADA' },
     });
     // Lógica para notificar ou criar usuário pode ser adicionada aqui se necessário
     return solicitacao;
@@ -65,7 +66,7 @@ export class AccessRequestsService {
   async rejeitar(id: number, motivo?: string) {
     return this.repository.update({
       where: { id },
-      data: { status: 'REJEITADA', motivoRejeicao: motivo }
+      data: { status: 'REJEITADA', motivoRejeicao: motivo },
     });
   }
 }

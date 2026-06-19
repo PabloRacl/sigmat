@@ -17,8 +17,3 @@ export class DashboardController {
     return this.dashboardService.obterAtividadesRecentes(req.user);
   }
 }
-
-
-
-
-

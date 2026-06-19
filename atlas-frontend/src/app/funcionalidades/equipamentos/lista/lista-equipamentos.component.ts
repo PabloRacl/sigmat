@@ -36,6 +36,8 @@ import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
+import { ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { UploadService } from '../../../nucleo/servicos/carregamento.service';
 import { PdfService } from '../../../nucleo/servicos/pdf.service';
 
@@ -44,6 +46,8 @@ import { EquipmentFormComponent } from '../formulario/formulario-equipamento.com
 import { EquipmentTimelineComponent } from '../linha-do-tempo/linha-do-tempo-equipamento.component';
 import { EquipmentDetailsComponent } from '../detalhes/detalhes-equipamento.component';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
+import { IndicadorStatusComponent } from '../../../componentes/indicador-status/indicador-status.component';
+import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
 
 @Component({
   selector: 'app-lista-equipamentos',
@@ -64,9 +68,12 @@ import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout
     EquipmentFormComponent,
     EquipmentTimelineComponent,
     EquipmentDetailsComponent,
-    LayoutPaginaComponent
+    LayoutPaginaComponent,
+    IndicadorStatusComponent,
+    EstadoVazioComponent,
+    ConfirmDialogModule
   ],
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './lista-equipamentos.component.html',
   styleUrls: ['./lista-equipamentos.component.scss']
 })
@@ -81,6 +88,7 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private reportsService = inject(ReportsService);
   private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
   public uploadService = inject(UploadService);
   private pdfService = inject(PdfService);
   private route = inject(ActivatedRoute);
@@ -176,7 +184,7 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.carregarDadosAuxiliares();
     // Subscribe to status changes to set default forecast date
-    this.manutencaoForm.get('statusId')?.valueChanges.subscribe(status => {
+    this.manutencaoForm.get('statusId')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(status => {
       // Example: set forecast 7 days from now for statuses involving 'PEÃ‡A'
         if (status && status.toString().toUpperCase().includes('PEÃ‡A')) {
           const date = new Date();
@@ -345,37 +353,30 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   limparSelecao() { this.selecionados = []; this.cestaAberta = false; }
   removerDaSelecao(eq: any) { this.selecionados = this.selecionados.filter(item => item.id !== eq.id); if (this.selecionados.length === 0) this.cestaAberta = false; }
   
-  obterCorStatus(status: string): string {
-    const s = status?.toUpperCase();
-    if (s === 'ATIVO' || s === 'DISPONÃVEL') return 'success';
-    if (s === 'MANUTENÃ‡ÃƒO' || s === 'PENDENTE_APROVACAO') return 'warning';
-    if (s === 'INATIVO' || s === 'EXTRAVIADO' || s === 'DANO') return 'danger';
-    return 'neutral';
-  }
-  obterCorDisponibilidade(disp: string): string {
-    const d = disp?.toUpperCase();
-    if (d === 'CARGA') return 'success';
-    if (d === 'EMPRESTIMO') return 'warning';
-    return 'neutral';
-  }
+
   abrirNovo() { this.equipamentoSelecionado = null; this.exibirModal = true; }
   editar(eq: any) { this.equipamentoSelecionado = eq; this.exibirModal = true; }
   onSaved() { this.carregarEquipamentos(1, this.rows, this.filtroGlobal); this.carregarStats(); }
   removerEquipamento(eq: any) {
-    if (confirm(`Tem certeza que deseja excluir o equipamento ${eq.patrimonio}?`)) {
-      this.equipmentService.remover(eq.id).subscribe({
-        next: (res: any) => {
-          if (res && res.dadosNovos && res.dadosNovos._acao === 'DELETE') {
-            this.messageService.add({ severity: 'info', summary: 'AprovaÃ§Ã£o Solicitada', detail: 'A exclusÃ£o do equipamento foi enviada para o DTEC.', life: 5000 });
-          } else {
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Equipamento removido do sistema.' });
-            this.carregarEquipamentos(1, this.rows, this.filtroGlobal);
-            this.carregarStats();
-          }
-        },
-        error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir equipamento.' })
-      });
-    }
+    this.confirmationService.confirm({
+      message: `Tem certeza que deseja excluir o equipamento ${eq.patrimonio}?`,
+      header: 'Confirmar Exclusão',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.equipmentService.remover(eq.id).subscribe({
+          next: (res: any) => {
+            if (res && res.dadosNovos && res.dadosNovos._acao === 'DELETE') {
+              this.messageService.add({ severity: 'info', summary: 'Aprovação Solicitada', detail: 'A exclusão do equipamento foi enviada para o DTEC.', life: 5000 });
+            } else {
+              this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Equipamento removido do sistema.' });
+              this.carregarEquipamentos(1, this.rows, this.filtroGlobal);
+              this.carregarStats();
+            }
+          },
+          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao excluir equipamento.' })
+        });
+      }
+    });
   }
   verDetalhes(eq: any) { this.equipamentoSelecionado = eq; this.exibirModalDetalhes = true; }
   verTimeline(eq: any) { this.equipamentoSelecionado = eq; this.exibirModalTimeline = true; }

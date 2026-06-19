@@ -12,11 +12,16 @@ export class EquipamentoFiltroBuilder {
       return this;
     }
 
-    const secoesIds = [this.userFull.secaoId, ...this.userFull.secoesPermitidas.map((s: any) => s.secaoId)].filter(Boolean);
-    const userBatalhaoId = this.userFull.batalhaoId || this.userFull.secao?.batalhaoId;
+    const secoesIds = [
+      this.userFull.secaoId,
+      ...this.userFull.secoesPermitidas.map((s: any) => s.secaoId),
+    ].filter(Boolean);
+    const userBatalhaoId =
+      this.userFull.batalhaoId || this.userFull.secao?.batalhaoId;
 
     if (this.userFull.perfil === PerfilUsuario.DIRETORIA) {
-      const diretoriaId = this.userFull.secao?.diretoriaId || this.userFull.batalhao?.diretoriaId;
+      const diretoriaId =
+        this.userFull.secao?.diretoriaId || this.userFull.batalhao?.diretoriaId;
       const diretoriasOr: any[] = [];
 
       if (secoesIds.length > 0) {
@@ -58,30 +63,46 @@ export class EquipamentoFiltroBuilder {
           { patrimonio: { contains: search, mode: 'insensitive' } },
           { numeroSerie: { contains: search, mode: 'insensitive' } },
           { sei: { contains: search, mode: 'insensitive' } },
-          { tipoEquipamento: { nome: { contains: search, mode: 'insensitive' } } },
+          {
+            tipoEquipamento: {
+              nome: { contains: search, mode: 'insensitive' },
+            },
+          },
           { marca: { nome: { contains: search, mode: 'insensitive' } } },
           { secao: { sigla: { contains: search, mode: 'insensitive' } } },
           { observacao: { contains: search, mode: 'insensitive' } },
           { solicitante: { contains: search, mode: 'insensitive' } },
-          { especificacoes: { path: [], string_contains: search } },
-        ]
+          { especificacoes: { path: ['$'], string_contains: search } },
+        ],
       });
     }
     return this;
   }
 
   aplicarFiltrosAvancados(params: any) {
-    if (params.tipoId) this.and.push({ tipoEquipamentoId: Number(params.tipoId) });
+    if (params.tipoId)
+      this.and.push({ tipoEquipamentoId: Number(params.tipoId) });
     if (params.statusId) this.and.push({ statusId: Number(params.statusId) });
-    if (params.disponibilidadeId) this.and.push({ disponibilidadeId: Number(params.disponibilidadeId) });
+    if (params.disponibilidadeId)
+      this.and.push({ disponibilidadeId: Number(params.disponibilidadeId) });
     if (params.secaoId) this.and.push({ secaoId: Number(params.secaoId) });
     if (params.marcaId) this.and.push({ marcaId: Number(params.marcaId) });
 
-    if (params.patrimonio) this.and.push({ patrimonio: { contains: params.patrimonio, mode: 'insensitive' } });
-    if (params.sei) this.and.push({ sei: { contains: params.sei, mode: 'insensitive' } });
-    if (params.numeroSerie) this.and.push({ numeroSerie: { contains: params.numeroSerie, mode: 'insensitive' } });
-    if (params.observacao) this.and.push({ observacao: { contains: params.observacao, mode: 'insensitive' } });
-    
+    if (params.patrimonio)
+      this.and.push({
+        patrimonio: { contains: params.patrimonio, mode: 'insensitive' },
+      });
+    if (params.sei)
+      this.and.push({ sei: { contains: params.sei, mode: 'insensitive' } });
+    if (params.numeroSerie)
+      this.and.push({
+        numeroSerie: { contains: params.numeroSerie, mode: 'insensitive' },
+      });
+    if (params.observacao)
+      this.and.push({
+        observacao: { contains: params.observacao, mode: 'insensitive' },
+      });
+
     if (params.dataAquisicao) {
       const data = new Date(params.dataAquisicao);
       if (!isNaN(data.getTime())) {

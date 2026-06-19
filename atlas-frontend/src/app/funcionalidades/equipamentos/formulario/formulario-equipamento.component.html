@@ -109,15 +109,21 @@
           styleClass="w-full" appendTo="body"></p-select>
       </div>
       <div class="eq-form__field flex-1">
-        <label>Seção <span class="req">*</span></label>
-        <p-select [options]="secoes" formControlName="secaoId" optionLabel="sigla" optionValue="id" 
-          [filter]="true" filterBy="sigla,nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+        <label>OME (Batalhão/Diretoria)</label>
+        <p-select [options]="batalhoes" formControlName="batalhaoId" optionLabel="sigla" optionValue="id"
+          [filter]="true" filterBy="sigla,nome" placeholder="Selecione o batalhão..." styleClass="w-full" appendTo="body" [showClear]="true">
         </p-select>
       </div>
     </div>
 
     <div class="eq-form__row">
-      <div class="eq-form__field flex-1">
+      <div class="eq-form__field" style="flex: 1.2;">
+        <label>Seção <span class="req">*</span></label>
+        <p-select [options]="secoesFiltradas" formControlName="secaoId" optionLabel="sigla" optionValue="id" 
+          [filter]="true" filterBy="sigla,nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+        </p-select>
+      </div>
+      <div class="eq-form__field" style="flex: 1;">
         <label>Data Aquisição</label>
         <p-datepicker formControlName="dataAquisicao" dateFormat="dd/mm/yy" appendTo="body" styleClass="w-full"></p-datepicker>
       </div>
@@ -133,5 +139,26 @@
       <button type="submit" class="eq-btn-primary" [disabled]="form.invalid">{{ editando ? 'Salvar Alterações' : 'Cadastrar' }}</button>
     </div>
   </form>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="exibirDialogoPrompt"
+  [header]="rotuloPrompt"
+  [modal]="true"
+  [style]="{width: '400px'}"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="confirmarPrompt()"
+>
+  <div class="eq-prompt-field">
+    <input type="text" pInputText [(ngModel)]="valorPrompt"
+      [ngModelOptions]="{standalone: true}"
+      placeholder="Digite o nome..."
+      class="w-full" (keyup.enter)="confirmarPrompt()" autofocus />
+  </div>
+  <div class="eq-dialog-footer">
+    <button type="button" class="eq-btn-cancel" (click)="exibirDialogoPrompt = false; valorPrompt = ''">Cancelar</button>
+    <button type="button" class="eq-btn-primary" (click)="confirmarPrompt()" [disabled]="!valorPrompt.trim()">Confirmar</button>
+  </div>
 </p-dialog>
 

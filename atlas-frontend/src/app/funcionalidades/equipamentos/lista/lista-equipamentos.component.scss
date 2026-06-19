@@ -408,15 +408,6 @@
 
 .eq-unidade-tag { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
 
-.eq-status-badge {
-  font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 99px;
-  &.verde  { background: #f0fdf4; color: #16a34a; }
-  &.azul   { background: #eff6ff; color: #2563eb; }
-  &.amarelo { background: #fffbeb; color: #d97706; }
-  &.vermelho { background: #fef2f2; color: #ef4444; }
-  &.cinza  { background: #f8fafc; color: #64748b; }
-}
-
 // ── Timeline ───────────────────────────────────────────────────
 .eq-timeline { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
 .eq-timeline-item {

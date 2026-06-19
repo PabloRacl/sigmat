@@ -3,59 +3,10 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { environment } from '../../environment';
 import { MockModeService } from './modo-mock.service';
-
-const MOCK_TIPOS = [
-  { id: 1, nome: 'CPU' },
-  { id: 2, nome: 'MONITOR' },
-  { id: 3, nome: 'RÁDIO' },
-  { id: 4, nome: 'CELULAR' },
-  { id: 5, nome: 'CHIP' },
-  { id: 6, nome: 'MODEM' },
-  { id: 7, nome: 'MULTICARREGADOR' },
-  { id: 8, nome: 'TABLET' },
-  { id: 9, nome: 'FONTE' },
-  { id: 10, nome: 'TECLADO' },
-  { id: 11, nome: 'MOUSE' },
-  { id: 12, nome: 'ALL IN ONE' },
-  { id: 13, nome: 'NOOTBOOK' },
-  { id: 999, nome: 'TESTES' }
-];
-
-const MOCK_STATUS = [
-  { id: 1, nome: 'ATIVO' },
-  { id: 2, nome: 'INATIVO' },
-  { id: 3, nome: 'EXTRAVIADO' },
-  { id: 4, nome: 'MANUTENÇÃO' },
-  { id: 5, nome: 'DANO' },
-  { id: 6, nome: 'DISPONÍVEL' },
-  { id: 7, nome: 'RESERVA' },
-  { id: 23, nome: 'PENDENTE_APROVACAO' }
-];
-
-const MOCK_DISPONIBILIDADES = [
-  { id: 1, nome: 'CARGA' },
-  { id: 2, nome: 'EMPRESTIMO' }
-];
-
-const MOCK_TIPOS_AQUISICAO = [
-  { id: 1, nome: 'COMPRA' },
-  { id: 2, nome: 'DOAÇÃO' },
-  { id: 3, nome: 'TRANSFERÊNCIA' }
-];
-
-const MOCK_SECOES = [
-  { id: 101, sigla: 'BPTUR', nome: 'Seção BPTUR', batalhaoId: 20 },
-  { id: 201, sigla: 'HQT', nome: 'Seção HQT', batalhaoId: 21 },
-  { id: 202, sigla: 'CBT1', nome: 'Seção CBT1', batalhaoId: 22 },
-  { id: 301, sigla: 'OUT', nome: 'Seção OUTRO', batalhaoId: 30 }
-];
-
-const MOCK_BATALHOES = [
-  { id: 20, sigla: 'BPTUR', nome: 'Batalhão BPTUR' },
-  { id: 21, sigla: 'HQT', nome: 'Batalhão HQT' },
-  { id: 22, sigla: 'CBT1', nome: 'Batalhão CBT1' },
-  { id: 30, sigla: 'OUT', nome: 'Batalhão Outros' }
-];
+import {
+  MOCK_TIPOS, MOCK_STATUS, MOCK_DISPONIBILIDADES, MOCK_TIPOS_AQUISICAO,
+  MOCK_SECOES, MOCK_BATALHOES, MOCK_MARCAS, MOCK_MODELOS
+} from '../dados-teste/configuracoes.teste';
 
 @Injectable({
   providedIn: 'root'
@@ -74,26 +25,14 @@ export class SettingsService {
 
   listarMarcas(): Observable<any[]> {
     if (this.mockMode.useMock) {
-      return of([
-        { id: 1, nome: 'Dell' },
-        { id: 2, nome: 'Samsung' },
-        { id: 3, nome: 'Motorola' },
-        { id: 4, nome: 'HP' },
-        { id: 5, nome: 'Sony' }
-      ]);
+      return of(MOCK_MARCAS);
     }
     return this.http.get<any[]>(`${this.API_URL}/marcas`);
   }
 
   listarModelos(): Observable<any[]> {
     if (this.mockMode.useMock) {
-      return of([
-        { id: 1, nome: 'Inspiron', marcaId: 1 },
-        { id: 2, nome: 'Galaxy Tab', marcaId: 2 },
-        { id: 3, nome: 'Moto G', marcaId: 3 },
-        { id: 4, nome: 'LaserJet', marcaId: 4 },
-        { id: 5, nome: 'Alpha', marcaId: 5 }
-      ]);
+      return of(MOCK_MODELOS);
     }
     return this.http.get<any[]>(`${this.API_URL}/modelos`);
   }
@@ -203,11 +142,29 @@ export class SettingsService {
     return this.http.put<any>(`${this.API_URL}/secoes/${id}`, dados);
   }
 
+  private batalhoesCache: any[] | null = null;
+
   listarBatalhoes(): Observable<any[]> {
     if (this.mockMode.useMock) {
       return of(MOCK_BATALHOES);
     }
-    return this.http.get<any[]>(`${this.API_URL}/batalhoes`);
+    if (this.batalhoesCache) {
+      return of(this.batalhoesCache);
+    }
+    return new Observable(observer => {
+      this.http.get<any[]>(`${this.API_URL}/batalhoes`).subscribe({
+        next: (res) => {
+          this.batalhoesCache = res;
+          observer.next(res);
+          observer.complete();
+        },
+        error: (err) => observer.error(err)
+      });
+    });
+  }
+
+  limparCacheBatalhoes() {
+    this.batalhoesCache = null;
   }
 }
 

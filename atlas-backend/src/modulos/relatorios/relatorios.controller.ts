@@ -29,8 +29,3 @@ export class ReportsController {
     return this.reportsService.logsAuditoria(query, usuario);
   }
 }
-
-
-
-
-

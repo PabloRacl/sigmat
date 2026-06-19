@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
 import { PerfilUsuario } from '@prisma/client';
 import { I_APROVACAO_REPOSITORIO } from './repositorios/aprovacoes.repository.interface';
 import type { IAprovacaoRepositorio } from './repositorios/aprovacoes.repository.interface';
@@ -15,18 +21,33 @@ export class ApprovalsService {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  async criarSolicitacao(equipamentoId: number, solicitanteId: number, dadosNovos: any, dadosAntigos: any) {
+  async criarSolicitacao(
+    equipamentoId: number,
+    solicitanteId: number,
+    dadosNovos: any,
+    dadosAntigos: any,
+  ) {
     const camposAlterados = Object.keys(dadosNovos).filter(
-      key => JSON.stringify(dadosNovos[key]) !== JSON.stringify(dadosAntigos[key])
+      (key) =>
+        JSON.stringify(dadosNovos[key]) !== JSON.stringify(dadosAntigos[key]),
     );
 
     if (camposAlterados.length === 0) {
       return { message: 'Nenhuma alteração detectada' };
     }
 
-    const pendencia = await this.repository.criar(equipamentoId, solicitanteId, dadosNovos, dadosAntigos, camposAlterados);
+    const pendencia = await this.repository.criar(
+      equipamentoId,
+      solicitanteId,
+      dadosNovos,
+      dadosAntigos,
+      camposAlterados,
+    );
 
-    const diff = await this.auditService.gerarDiffComLabels(dadosAntigos, dadosNovos);
+    const diff = await this.auditService.gerarDiffComLabels(
+      dadosAntigos,
+      dadosNovos,
+    );
     if (diff) {
       await this.auditService.registrarLog({
         usuarioId: solicitanteId,
@@ -60,9 +81,19 @@ export class ApprovalsService {
     return pendencia;
   }
 
-  async processarDecisao(id: number, aprovado: boolean, usuario: any, motivoNegacao?: string) {
-    if (usuario.perfil !== PerfilUsuario.ADMIN_DTEC && usuario.perfil !== PerfilUsuario.COMANDANTE) {
-      throw new ForbiddenException('Apenas Comandantes ou Administradores podem processar aprovações.');
+  async processarDecisao(
+    id: number,
+    aprovado: boolean,
+    usuario: any,
+    motivoNegacao?: string,
+  ) {
+    if (
+      usuario.perfil !== PerfilUsuario.ADMIN_DTEC &&
+      usuario.perfil !== PerfilUsuario.COMANDANTE
+    ) {
+      throw new ForbiddenException(
+        'Apenas Comandantes ou Administradores podem processar aprovações.',
+      );
     }
 
     const solicitacao = await this.obterPendencia(id);
@@ -73,18 +104,29 @@ export class ApprovalsService {
 
     if (usuario.perfil === PerfilUsuario.COMANDANTE) {
       const userBatalhaoId = usuario.batalhaoId;
-      if (!userBatalhaoId || solicitacao.equipamento?.secao?.batalhaoId !== userBatalhaoId) {
-        throw new ForbiddenException('Você só pode processar aprovações de sua unidade.');
+      if (
+        !userBatalhaoId ||
+        solicitacao.equipamento?.secao?.batalhaoId !== userBatalhaoId
+      ) {
+        throw new ForbiddenException(
+          'Você só pode processar aprovações de sua unidade.',
+        );
       }
     }
 
-    const resultado = await this.repository.processarDecisao(id, aprovado, usuario.id, motivoNegacao, { solicitacao });
+    const resultado = await this.repository.processarDecisao(
+      id,
+      aprovado,
+      usuario.id,
+      motivoNegacao,
+      { solicitacao },
+    );
 
     this.notificationsService.notificarAtualizacaoGlobal();
     this.notificationsService.notificarDecisaoAlteracao(
       solicitacao.solicitanteId,
       aprovado,
-      solicitacao.equipamento.patrimonio
+      solicitacao.equipamento.patrimonio,
     );
 
     return resultado;

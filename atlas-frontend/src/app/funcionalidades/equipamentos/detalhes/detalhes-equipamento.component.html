@@ -16,12 +16,8 @@
         <span class="eq-det-hero__type">{{ equipment?.tipoEquipamento?.nome }}</span>
         <h2 class="eq-det-hero__title">{{ equipment?.marca?.nome }} {{ equipment?.modelo?.nome || '' }}</h2>
         <div class="eq-det-hero__badges">
-          <span class="eq-det-badge status" [ngClass]="obterCorStatus(equipment?.status?.nome)">
-            <i class="pi pi-circle-fill"></i> {{ equipment?.status?.nome || 'Sem Status' }}
-          </span>
-          <span class="eq-det-badge disp" [ngClass]="obterCorDisponibilidade(equipment?.disponibilidade?.nome)">
-            <i class="pi pi-info-circle"></i> {{ equipment?.disponibilidade?.nome || 'Sem Carga' }}
-          </span>
+          <app-indicador-status [valor]="equipment?.status?.nome || 'Sem Status'" tipo="status"></app-indicador-status>
+          <app-indicador-status [valor]="equipment?.disponibilidade?.nome || 'Sem Carga'" tipo="disponibilidade"></app-indicador-status>
         </div>
       </div>
       <div class="eq-det-hero__right">
@@ -99,10 +95,7 @@
             </div>
           </div>
 
-          <div class="empty-specs" *ngIf="chavesEspecificacoes.length === 0">
-            <i class="pi pi-sliders-h"></i>
-            <p>Nenhuma especificação técnica detalhada registrada para este item.</p>
-          </div>
+          <app-estado-vazio *ngIf="chavesEspecificacoes.length === 0" mensagem="Nenhuma especificação técnica detalhada registrada para este item." icone="pi-sliders-h"></app-estado-vazio>
         </div>
 
       </div>

@@ -14,6 +14,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
 import { TabsModule } from 'primeng/tabs';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
+import { IndicadorStatusComponent } from '../../../componentes/indicador-status/indicador-status.component';
 
 @Component({
   selector: 'app-reports',
@@ -21,7 +22,8 @@ import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout
   imports: [
     CommonModule, FormsModule, TableModule, ButtonModule,
     SelectModule, InputTextModule, TooltipModule, TabsModule,
-    LayoutPaginaComponent
+    LayoutPaginaComponent,
+    IndicadorStatusComponent
   ],
   templateUrl: './relatorios.component.html',
   styleUrl: './relatorios.component.scss'
@@ -489,20 +491,6 @@ export class ReportsComponent implements OnInit, OnDestroy {
     return new Date(v).toLocaleDateString('pt-BR');
   }
 
-  obterCorStatus(s: string): string {
-    const status = s?.toUpperCase();
-    if (status === 'ATIVO' || status === 'DISPONÍVEL') return 'verde';
-    if (status === 'MANUTENÇÃO' || status === 'PENDENTE_APROVACAO') return 'amarelo';
-    if (status === 'INATIVO' || status === 'EXTRAVIADO' || status === 'DANO') return 'vermelho';
-    return 'cinza';
-  }
-
-  obterCorDisponibilidade(d: string): string {
-    const disp = d?.toUpperCase();
-    if (disp === 'CARGA') return 'azul';
-    if (disp === 'EMPRESTIMO') return 'amarelo';
-    return 'cinza';
-  }
 }
 
 

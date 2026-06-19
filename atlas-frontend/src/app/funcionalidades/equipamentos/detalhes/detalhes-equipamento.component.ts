@@ -15,10 +15,13 @@ import { CommonModule } from '@angular/common';
 // PrimeNG
 import { DialogModule } from 'primeng/dialog';
 
+import { IndicadorStatusComponent } from '../../../componentes/indicador-status/indicador-status.component';
+import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
+
 @Component({
   selector: 'app-detalhes-equipamento',
   standalone: true,
-  imports: [CommonModule, DialogModule],
+  imports: [CommonModule, DialogModule, IndicadorStatusComponent, EstadoVazioComponent],
   templateUrl: './detalhes-equipamento.component.html',
   styleUrls: ['./detalhes-equipamento.component.scss']
 })
@@ -38,21 +41,6 @@ export class EquipmentDetailsComponent {
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
-  }
-
-  obterCorStatus(status: string): string {
-    const s = status?.toUpperCase();
-    if (s === 'ATIVO' || s === 'DISPONÍVEL') return 'success';
-    if (s === 'MANUTENÇÃO' || s === 'PENDENTE_APROVACAO') return 'warning';
-    if (s === 'INATIVO' || s === 'EXTRAVIADO' || s === 'DANO') return 'danger';
-    return 'neutral';
-  }
-
-  obterCorDisponibilidade(disp: string): string {
-    const d = disp?.toUpperCase();
-    if (d === 'CARGA') return 'success';
-    if (d === 'EMPRESTIMO') return 'warning';
-    return 'neutral';
   }
 
   fechar() {

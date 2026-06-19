@@ -46,11 +46,11 @@ export class UsersRepository {
       await tx.refreshToken.deleteMany({ where: { usuarioId: id } });
       await tx.usuarioSecao.deleteMany({ where: { usuarioId: id } });
       await tx.usuarioTipoEquipamento.deleteMany({ where: { usuarioId: id } });
-      
+
       // 2. Remove a responsabilidade de equipamentos atuais
       await tx.equipamento.updateMany({
         where: { usuarioResponsavelId: id },
-        data: { usuarioResponsavelId: null }
+        data: { usuarioResponsavelId: null },
       });
 
       // 3. Em vez de deletar fisicamente, marcamos como "Removido" (Soft Delete).
@@ -65,7 +65,7 @@ export class UsersRepository {
           login: `removido_${id}_${user.login}`,
           nome: `[REMOVIDO] ${user.nome}`,
           autorizado: false,
-        }
+        },
       });
     });
   }

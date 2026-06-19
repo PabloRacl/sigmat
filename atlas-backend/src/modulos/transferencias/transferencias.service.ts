@@ -13,7 +13,12 @@
  *   - A seção (secaoId) do equipamento só é alterada quando o destino confirma o recebimento.
  */
 
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { TransfersRepository } from './transferencias.repository';
 import { StatusTransferencia, PerfilUsuario, AcaoLog } from '@prisma/client';
 import { AuditService } from '../../compartilhado/servicos/audit.service';
@@ -27,22 +32,32 @@ export class TransfersService {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  async solicitar(equipamentoId: number, destinoId: number, solicitanteId: number, usuario: any, observacao?: string) {
+  async solicitar(
+    equipamentoId: number,
+    destinoId: number,
+    solicitanteId: number,
+    usuario: any,
+    observacao?: string,
+  ) {
     const equipamento = await this.repository.findEquipamentoUnique({
       where: { id: equipamentoId },
-      include: { secao: true }
+      include: { secao: true },
     });
 
     if (!equipamento) throw new NotFoundException('Equipamento não encontrado');
 
     if (usuario.perfil === PerfilUsuario.DIRETORIA) {
-      throw new ForbiddenException('Usuários de Diretoria não podem iniciar transferências.');
+      throw new ForbiddenException(
+        'Usuários de Diretoria não podem iniciar transferências.',
+      );
     }
 
     if (usuario.perfil !== PerfilUsuario.ADMIN_DTEC) {
       const userBatalhaoId = usuario.batalhaoId;
       if (!userBatalhaoId || equipamento.secao?.batalhaoId !== userBatalhaoId) {
-        throw new ForbiddenException('Você só pode solicitar transferências para equipamentos da sua unidade.');
+        throw new ForbiddenException(
+          'Você só pode solicitar transferências para equipamentos da sua unidade.',
+        );
       }
     }
 
@@ -80,20 +95,31 @@ export class TransfersService {
     dataRetornoEmprestimo?: string,
   ) {
     if (usuario.perfil === PerfilUsuario.DIRETORIA) {
-      throw new ForbiddenException('Usuários de Diretoria não podem iniciar transferências.');
+      throw new ForbiddenException(
+        'Usuários de Diretoria não podem iniciar transferências.',
+      );
     }
 
     return this.repository.client.$transaction(async (tx: any) => {
       const transferencias = [];
 
       for (const id of equipamentoIds) {
-        const equipamento = await tx.equipamento.findUnique({ where: { id }, include: { secao: true } });
-        if (!equipamento) throw new NotFoundException(`Equipamento ID ${id} não encontrado`);
+        const equipamento = await tx.equipamento.findUnique({
+          where: { id },
+          include: { secao: true },
+        });
+        if (!equipamento)
+          throw new NotFoundException(`Equipamento ID ${id} não encontrado`);
 
         if (usuario.perfil !== PerfilUsuario.ADMIN_DTEC) {
           const userBatalhaoId = usuario.batalhaoId;
-          if (!userBatalhaoId || equipamento.secao?.batalhaoId !== userBatalhaoId) {
-            throw new ForbiddenException('Você só pode solicitar transferências para equipamentos da sua unidade.');
+          if (
+            !userBatalhaoId ||
+            equipamento.secao?.batalhaoId !== userBatalhaoId
+          ) {
+            throw new ForbiddenException(
+              'Você só pode solicitar transferências para equipamentos da sua unidade.',
+            );
           }
         }
 
@@ -109,10 +135,13 @@ export class TransfersService {
         });
 
         const equipUpdate: any = {};
-        if (disponibilidadeId) equipUpdate.disponibilidadeId = disponibilidadeId;
+        if (disponibilidadeId)
+          equipUpdate.disponibilidadeId = disponibilidadeId;
         if (solicitante) equipUpdate.solicitante = solicitante;
-        if (dataSolicitacao) equipUpdate.dataSolicitacao = new Date(dataSolicitacao);
-        if (dataRetornoEmprestimo) equipUpdate.dataRetornoEmprestimo = new Date(dataRetornoEmprestimo);
+        if (dataSolicitacao)
+          equipUpdate.dataSolicitacao = new Date(dataSolicitacao);
+        if (dataRetornoEmprestimo)
+          equipUpdate.dataRetornoEmprestimo = new Date(dataRetornoEmprestimo);
 
         if (Object.keys(equipUpdate).length > 0) {
           await tx.equipamento.update({ where: { id }, data: equipUpdate });
@@ -132,7 +161,10 @@ export class TransfersService {
 
     if (usuario.perfil === 'ADMIN_DTEC') {
       filtroDestino = {};
-    } else if (usuario.batalhaoId && (usuario.perfil === 'COMANDANTE' || usuario.perfil === 'USUARIO_BATALHAO')) {
+    } else if (
+      usuario.batalhaoId &&
+      (usuario.perfil === 'COMANDANTE' || usuario.perfil === 'USUARIO_BATALHAO')
+    ) {
       filtroDestino = { destino: { batalhaoId: usuario.batalhaoId } };
     } else {
       filtroDestino = { destinoId: usuario.secaoId };
@@ -145,7 +177,7 @@ export class TransfersService {
       },
       include: {
         equipamento: {
-          include: { tipoEquipamento: true }
+          include: { tipoEquipamento: true },
         },
         origem: true,
         destino: true,
@@ -160,19 +192,28 @@ export class TransfersService {
       where: { id: transferenciaId },
     });
 
-    if (!transferencia) throw new NotFoundException('Transferência não encontrada');
-    if (transferencia.status !== 'PENDENTE') throw new BadRequestException('Transferência já processada');
+    if (!transferencia)
+      throw new NotFoundException('Transferência não encontrada');
+    if (transferencia.status !== 'PENDENTE')
+      throw new BadRequestException('Transferência já processada');
 
-    if (recebedor.perfil !== 'COMANDANTE' && recebedor.perfil !== 'ADMIN_DTEC') {
-      throw new ForbiddenException('Apenas Comandantes ou Administradores podem aprovar recebimentos.');
+    if (
+      recebedor.perfil !== 'COMANDANTE' &&
+      recebedor.perfil !== 'ADMIN_DTEC'
+    ) {
+      throw new ForbiddenException(
+        'Apenas Comandantes ou Administradores podem aprovar recebimentos.',
+      );
     }
 
     if (recebedor.perfil === 'COMANDANTE' && recebedor.batalhaoId) {
       const secaoDestino = await this.repository.findSecaoUnique({
-        where: { id: transferencia.destinoId }
+        where: { id: transferencia.destinoId },
       });
       if (secaoDestino?.batalhaoId !== recebedor.batalhaoId) {
-        throw new ForbiddenException('Você só pode aprovar transferências destinadas ao seu Batalhão.');
+        throw new ForbiddenException(
+          'Você só pode aprovar transferências destinadas ao seu Batalhão.',
+        );
       }
     }
 
@@ -209,11 +250,20 @@ export class TransfersService {
       where: { id: transferenciaId },
     });
 
-    if (!transferencia) throw new NotFoundException('Transferência não encontrada');
-    if (transferencia.status !== 'PENDENTE') throw new BadRequestException('Apenas transferências pendentes podem ser canceladas');
+    if (!transferencia)
+      throw new NotFoundException('Transferência não encontrada');
+    if (transferencia.status !== 'PENDENTE')
+      throw new BadRequestException(
+        'Apenas transferências pendentes podem ser canceladas',
+      );
 
-    if (usuario.perfil !== PerfilUsuario.ADMIN_DTEC && transferencia.solicitanteId !== usuario.id) {
-      throw new ForbiddenException('Você não tem permissão para cancelar esta transferência.');
+    if (
+      usuario.perfil !== PerfilUsuario.ADMIN_DTEC &&
+      transferencia.solicitanteId !== usuario.id
+    ) {
+      throw new ForbiddenException(
+        'Você não tem permissão para cancelar esta transferência.',
+      );
     }
 
     const t = await this.repository.update({

@@ -10,37 +10,23 @@
  */
 
 import {
-  Controller, Get, Post, Patch, Delete,
-  Param, Body, ParseIntPipe, UseGuards
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './usuarios.service';
 import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
 import { RolesGuard } from '../../comum/guardas/roles.guard';
 import { Roles } from '../../comum/decoradores/roles.decorator';
 import { LoggedUser } from '../../comum/decoradores/logged-user.decorator';
-import { PerfilUsuario } from '@prisma/client';
-
-class CriarUsuarioDto {
-  login: string = '';
-  matricula: string = '';
-  nome: string = '';
-  email?: string;
-  postoGraduacao?: string;
-  perfil: PerfilUsuario = PerfilUsuario.USUARIO_BATALHAO;
-  secaoId?: number;
-  batalhaoId?: number;
-}
-
-class AtualizarUsuarioDto {
-  login?: string;
-  matricula?: string;
-  nome?: string;
-  email?: string;
-  postoGraduacao?: string;
-  perfil?: PerfilUsuario;
-  secaoId?: number;
-  batalhaoId?: number;
-}
+import { CriarUsuarioDto } from './dto/criar-usuario.dto';
+import { AtualizarUsuarioDto } from './dto/atualizar-usuario.dto';
 
 @Controller('usuarios')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -54,7 +40,10 @@ export class UsersController {
   }
 
   @Get('login/:login')
-  async buscarPorLogin(@Param('login') login: string, @LoggedUser() usuario: any) {
+  async buscarPorLogin(
+    @Param('login') login: string,
+    @LoggedUser() usuario: any,
+  ) {
     return this.UsersService.buscarPorLoginAutorizado(login, usuario);
   }
 
@@ -87,8 +76,3 @@ export class UsersController {
     return this.UsersService.remover(id);
   }
 }
-
-
-
-
-

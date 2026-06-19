@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { environment } from '../../environment';
 import { AuthService } from './autenticacao.service';
 import { MockModeService } from './modo-mock.service';
+import { MOCK_EQUIPAMENTOS } from '../dados-teste/equipamentos.teste';
 
 @Injectable({
   providedIn: 'root'
@@ -15,108 +16,7 @@ export class EquipmentService {
   private readonly API_URL = `${environment.apiUrl}/equipamentos`;
 
   private getMockEquipamentos() {
-    return [
-      {
-        id: 1,
-        patrimonio: 'BPTUR-0001',
-        numeroSerie: 'SN-BPTUR-001',
-        tipoEquipamento: { nome: 'Notebook' },
-        marca: { nome: 'Dell' },
-        status: { nome: 'ATIVO' },
-        disponibilidade: { nome: 'DISPONIVEL' },
-        secao: {
-          id: 101,
-          sigla: 'BPTUR',
-          nome: 'Seção BPTUR',
-          batalhao: {
-            id: 20,
-            sigla: 'BPTUR',
-            nome: 'Batalhão BPTUR',
-            diretoria: { id: 10, sigla: 'DTEC', nome: 'Diretoria de Tecnologia' }
-          }
-        }
-      },
-      {
-        id: 2,
-        patrimonio: 'BPTUR-0002',
-        numeroSerie: 'SN-BPTUR-002',
-        tipoEquipamento: { nome: 'Tablet' },
-        marca: { nome: 'Samsung' },
-        status: { nome: 'MANUTENCAO' },
-        disponibilidade: { nome: 'EMPRESTIMO' },
-        secao: {
-          id: 101,
-          sigla: 'BPTUR',
-          nome: 'Seção BPTUR',
-          batalhao: {
-            id: 20,
-            sigla: 'BPTUR',
-            nome: 'Batalhão BPTUR',
-            diretoria: { id: 10, sigla: 'DTEC', nome: 'Diretoria de Tecnologia' }
-          }
-        }
-      },
-      {
-        id: 3,
-        patrimonio: 'DPTO-0001',
-        numeroSerie: 'SN-DTEC-001',
-        tipoEquipamento: { nome: 'Smartphone' },
-        marca: { nome: 'Motorola' },
-        status: { nome: 'ATIVO' },
-        disponibilidade: { nome: 'DISPONIVEL' },
-        secao: {
-          id: 201,
-          sigla: 'HQT',
-          nome: 'Seção HQT',
-          batalhao: {
-            id: 21,
-            sigla: 'HQT',
-            nome: 'Batalhão HQT',
-            diretoria: { id: 10, sigla: 'DTEC', nome: 'Diretoria de Tecnologia' }
-          }
-        }
-      },
-      {
-        id: 4,
-        patrimonio: 'DPTO-0002',
-        numeroSerie: 'SN-DTEC-002',
-        tipoEquipamento: { nome: 'Impressora' },
-        marca: { nome: 'HP' },
-        status: { nome: 'ATIVO' },
-        disponibilidade: { nome: 'CARGA' },
-        secao: {
-          id: 202,
-          sigla: 'CBT1',
-          nome: 'Seção CBT1',
-          batalhao: {
-            id: 22,
-            sigla: 'CBT1',
-            nome: 'Batalhão CBT1',
-            diretoria: { id: 10, sigla: 'DTEC', nome: 'Diretoria de Tecnologia' }
-          }
-        }
-      },
-      {
-        id: 5,
-        patrimonio: 'OUT-0001',
-        numeroSerie: 'SN-OUT-001',
-        tipoEquipamento: { nome: 'Câmera' },
-        marca: { nome: 'Sony' },
-        status: { nome: 'ATIVO' },
-        disponibilidade: { nome: 'DISPONIVEL' },
-        secao: {
-          id: 301,
-          sigla: 'OUT',
-          nome: 'Seção OUTRO',
-          batalhao: {
-            id: 30,
-            sigla: 'OUT',
-            nome: 'Batalhão Outros',
-            diretoria: { id: 11, sigla: 'DIREX', nome: 'Diretoria Extra' }
-          }
-        }
-      }
-    ];
+    return [...MOCK_EQUIPAMENTOS];
   }
 
   private filterMockEquipamentos(equipamentos: any[], search: string, filtros: any, usuario: any) {

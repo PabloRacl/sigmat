@@ -1,12 +1,12 @@
 /**
- * [Estado Atual]: Componente de apresentação/painel (Dumb Component com carregamento reativo de histórico) para timeline do Equipamento.
- * [Dependências Técnicas]:
+ * [Estado Atual]: Componente de apresenta��o/painel (Dumb Component com carregamento reativo de hist�rico) para timeline do Equipamento.
+ * [Depend�ncias T�cnicas]:
  *   - Services: EquipmentService
- * [Histórico de Modificações]:
+ * [Hist�rico de Modifica��es]:
  *   - Movido para /feature./equipamentos/linha-do-tempo-equipamento.
- *   - Adicionado cabeçalho de contexto arquitetural de alta eficiência de tokens.
- * [Regras de Negócio Imutáveis]:
- *   - Renderização e mapeamento do histórico/log de alterações de equipamentos (diff).
+ *   - Adicionado cabe�alho de contexto arquitetural de alta efici�ncia de tokens.
+ * [Regras de Neg�cio Imut�veis]:
+ *   - Renderiza��o e mapeamento do hist�rico/log de altera��es de equipamentos (diff).
  */
 
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
@@ -15,11 +15,12 @@ import { EquipmentService } from '../../../nucleo/servicos/equipamentos.service'
 
 // PrimeNG
 import { DialogModule } from 'primeng/dialog';
+import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
 
 @Component({
   selector: 'app-linha-do-tempo-equipamento',
   standalone: true,
-  imports: [CommonModule, DialogModule],
+  imports: [CommonModule, DialogModule, EstadoVazioComponent],
   templateUrl: './linha-do-tempo-equipamento.component.html',
   styleUrls: ['./linha-do-tempo-equipamento.component.scss']
 })
@@ -57,19 +58,19 @@ export class EquipmentTimelineComponent {
     const DICTIONARY: Record<string, string> = {
       sei: 'Processo SEI',
       marcaId: 'ID Marca',
-      secaoId: 'ID SeÃ§Ã£o',
+      secaoId: 'ID Seção',
       modeloId: 'ID Modelo',
       statusId: 'ID Status',
-      observacao: 'ObservaÃ§Ã£o',
-      patrimonio: 'PatrimÃ´nio',
-      numeroSerie: 'NÂº SÃ©rie',
-      dataAquisicao: 'Data AquisiÃ§Ã£o',
-      dataSolicitacao: 'Data SolicitaÃ§Ã£o',
-      dataRetornoEmprestimo: 'Retorno EmprÃ©stimo',
-      especificacoes: 'EspecificaÃ§Ãµes',
+      observacao: 'Observação',
+      patrimonio: 'Patrimônio',
+      numeroSerie: 'Nº Série',
+      dataAquisicao: 'Data Aquisição',
+      dataSolicitacao: 'Data Solicitação',
+      dataRetornoEmprestimo: 'Retorno Empréstimo',
+      especificacoes: 'Especificações',
       disponibilidadeId: 'ID Disponibilidade',
       tipoEquipamentoId: 'ID Tipo Equip.',
-      tipoAquisicaoId: 'ID Tipo AquisiÃ§Ã£o',
+      tipoAquisicaoId: 'ID Tipo Aquisição',
       solicitante: 'Solicitante',
       valor: 'Valor',
       empenho: 'Empenho'

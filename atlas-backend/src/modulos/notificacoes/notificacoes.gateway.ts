@@ -14,7 +14,9 @@ import { Logger } from '@nestjs/common';
   },
   namespace: 'notificacoes',
 })
-export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class NotificationsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server!: Server;
 
@@ -54,7 +56,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   enviarParaUsuario(userId: number, evento: string, payload: any) {
     const sockets = this.userSockets.get(userId);
     if (sockets) {
-      sockets.forEach(socketId => {
+      sockets.forEach((socketId) => {
         this.server.to(socketId).emit(evento, payload);
       });
     }

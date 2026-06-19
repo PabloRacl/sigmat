@@ -15,7 +15,7 @@ import { OrgStructureModule } from './modulos/estrutura-organizacional/estrutura
 import { SettingsModule } from './modulos/configuracoes/configuracoes.module';
 
 import { ConfigModule } from '@nestjs/config';
-import { DashboardModule } from './modulos/visao-geral/painel.module';
+import { DashboardModule as PainelModule } from './modulos/visao-geral/painel.module';
 import { TransfersModule } from './modulos/transferencias/transferencias.module';
 import { SharedModule } from './compartilhado/shared.module';
 import { MaintenanceModule } from './modulos/manutencao/manutencao.module';
@@ -27,10 +27,12 @@ import { PdfModule } from './modulos/pdf/pdf.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 10,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100, // Ajustado para 100 requisições por minuto para não quebrar dashboards, porém prevenindo DoS
+      },
+    ]),
     DatabaseModule,
 
     SharedModule,
@@ -47,9 +49,9 @@ import { PdfModule } from './modulos/pdf/pdf.module';
 
     OrgStructureModule,
     SettingsModule,
-    DashboardModule,
+    PainelModule,
     TransfersModule,
-    MaintenanceModule
+    MaintenanceModule,
   ],
   controllers: [AppController],
   providers: [
@@ -61,9 +63,3 @@ import { PdfModule } from './modulos/pdf/pdf.module';
   ],
 })
 export class AppModule {}
-
-
-
-
-
-

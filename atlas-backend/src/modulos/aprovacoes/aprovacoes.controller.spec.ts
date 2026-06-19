@@ -29,13 +29,18 @@ describe('ApprovalsController', () => {
     const result = await controller.listarPendentes({ perfil: 'ADMIN_DTEC' });
 
     expect(result).toEqual(['pendencia']);
-    expect(approvalsService.listarPendentesPorUnidade).toHaveBeenCalledWith(undefined);
+    expect(approvalsService.listarPendentesPorUnidade).toHaveBeenCalledWith(
+      undefined,
+    );
   });
 
   it('should list pending approvals for unit user', async () => {
     approvalsService.listarPendentesPorUnidade.mockResolvedValue(['pendencia']);
 
-    const result = await controller.listarPendentes({ perfil: 'COMANDANTE', batalhaoId: 10 });
+    const result = await controller.listarPendentes({
+      perfil: 'COMANDANTE',
+      batalhaoId: 10,
+    });
 
     expect(result).toEqual(['pendencia']);
     expect(approvalsService.listarPendentesPorUnidade).toHaveBeenCalledWith(10);
@@ -62,20 +67,31 @@ describe('ApprovalsController', () => {
   it('should count pending approvals for unit user', async () => {
     approvalsService.contarPendentes.mockResolvedValue(4);
 
-    const result = await controller.contarPendentes({ perfil: 'COMANDANTE', batalhaoId: 15 });
+    const result = await controller.contarPendentes({
+      perfil: 'COMANDANTE',
+      batalhaoId: 15,
+    });
 
     expect(result).toEqual({ total: 4 });
     expect(approvalsService.contarPendentes).toHaveBeenCalledWith(15);
   });
 
   it('should process approval decision', async () => {
-    const dto: DecisionApprovalDto = { aprovado: true, justificativa: 'Tudo certo' };
+    const dto: DecisionApprovalDto = {
+      aprovado: true,
+      justificativa: 'Tudo certo',
+    };
     const usuario = { id: 2, perfil: 'ADMIN_DTEC' };
     approvalsService.processarDecisao.mockResolvedValue({ id: 8 });
 
     const result = await controller.processarDecisao(8, dto, usuario);
 
     expect(result).toEqual({ id: 8 });
-    expect(approvalsService.processarDecisao).toHaveBeenCalledWith(8, true, usuario, 'Tudo certo');
+    expect(approvalsService.processarDecisao).toHaveBeenCalledWith(
+      8,
+      true,
+      usuario,
+      'Tudo certo',
+    );
   });
 });

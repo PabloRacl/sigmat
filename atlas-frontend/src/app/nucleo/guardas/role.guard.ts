@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from '../servicos/autenticacao.service';
+import { PerfilUsuario } from '../interfaces/usuario.interface';
+import { ROTAS } from '../utilitarios/rotas.constantes';
 
 @Injectable({
   providedIn: 'root'
@@ -11,13 +13,14 @@ export class RoleGuard implements CanActivate {
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     const usuario = this.authService.getUsuario();
-    const perfil = usuario?.perfil;
-    const podeAcessar = ['ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE', 'USUARIO_BATALHAO'].includes(perfil);
+    const perfisPermitidos = (route.data?.['perfis'] as PerfilUsuario[]) ?? [];
+    const perfil = usuario?.perfil as PerfilUsuario;
 
-    if (!podeAcessar) {
-      this.router.navigate(['/visao-geral/inicio']);
+    if (!perfisPermitidos.length || perfisPermitidos.includes(perfil)) {
+      return true;
     }
 
-    return podeAcessar;
+    this.router.navigate([ROTAS.INICIO]);
+    return false;
   }
 }

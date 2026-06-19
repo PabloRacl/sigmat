@@ -4,17 +4,36 @@
  * [Histórico de Modificações]: Refatoração para Clean Code - Isolamento do banco de dados concluído.
  * [Regras de Negócio Imutáveis]: Não importar PrismaClient; Validar DTOs rigorosamente.
  */
-import { Controller, Get, Post, Patch, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { MaintenanceService } from './manutencao.service';
 import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
 import { LoggedUser } from '../../comum/decoradores/logged-user.decorator';
 
-import { CriarOrdemServicoDto, AtualizarStatusOsDto } from './dto/manutencao.dto';
+import {
+  CriarOrdemServicoDto,
+  AtualizarStatusOsDto,
+} from './dto/manutencao.dto';
 
 @Controller('manutencao')
 @UseGuards(JwtAuthGuard)
 export class MaintenanceController {
   constructor(private readonly MaintenanceService: MaintenanceService) {}
+
+  @Get('contagem')
+  contarPendentes(@LoggedUser() usuario: any) {
+    return this.MaintenanceService.contarPendentes(usuario).then((total) => ({
+      total,
+    }));
+  }
 
   @Get()
   listarTodos(@LoggedUser() usuario: any) {
@@ -40,9 +59,14 @@ export class MaintenanceController {
   atualizarStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() dados: AtualizarStatusOsDto,
-    @LoggedUser() usuario: any
+    @LoggedUser() usuario: any,
   ) {
-    return this.MaintenanceService.atualizarStatus(id, dados.status, dados, usuario);
+    return this.MaintenanceService.atualizarStatus(
+      id,
+      dados.status,
+      dados,
+      usuario,
+    );
   }
 
   @Get(':id/historico')
@@ -50,9 +74,3 @@ export class MaintenanceController {
     return this.MaintenanceService.obterHistorico(id);
   }
 }
-
-
-
-
-
-

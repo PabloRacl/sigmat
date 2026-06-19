@@ -5,6 +5,7 @@ import { DialogModule } from 'primeng/dialog';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../nucleo/servicos/autenticacao.service';
 import { MockModeService } from '../../../nucleo/servicos/modo-mock.service';
+import { ROTAS } from '../../../nucleo/utilitarios/rotas.constantes';
 
 @Component({
   selector: 'app-login',
@@ -26,10 +27,9 @@ export class LoginComponent implements OnInit {
   // Solicitar acesso fields
   reqUsuario = '';
   reqMatricula = '';
-  reqCpf = '';
   reqNome = '';
   reqUnidade = '';
-  reqSenha = '';
+  reqMotivo = '';
 
   // Unidades (OMEs) para o select pesquisável
   unidades: string[] = [];
@@ -126,7 +126,11 @@ export class LoginComponent implements OnInit {
       },
       error: (err: any) => {
         console.error('Login Error:', err);
-        this.error = 'Erro: ' + (err.error?.message || err.message || 'Falha desconhecida');
+        if (err.status === 429) {
+          this.error = 'Muitas tentativas inválidas. Por segurança contra ataques, seu IP foi temporariamente bloqueado. Aguarde 1 minuto e tente novamente.';
+        } else {
+          this.error = this.obterMensagemErro(err);
+        }
         this.loading = false;
       }
     });
@@ -144,16 +148,15 @@ export class LoginComponent implements OnInit {
     this.requestSuccess = '';
     this.reqUsuario = '';
     this.reqMatricula = '';
-    this.reqCpf = '';
     this.reqNome = '';
     this.reqUnidade = '';
-    this.reqSenha = '';
+    this.reqMotivo = '';
     this.unidadesBusca = '';
     this.mostrarDropdownUnidades = false;
   }
 
   solicitarAcesso() {
-    if (!this.reqUsuario || !this.reqMatricula || !this.reqCpf || !this.reqNome || !this.reqUnidade || !this.reqSenha) {
+    if (!this.reqUsuario || !this.reqMatricula || !this.reqNome || !this.reqUnidade || !this.reqMotivo) {
       this.requestError = 'Preencha todos os campos para solicitar acesso.';
       return;
     }
@@ -165,10 +168,9 @@ export class LoginComponent implements OnInit {
     const dados = {
       usuario: this.reqUsuario,
       matricula: this.reqMatricula,
-      cpf: this.reqCpf,
       nome: this.reqNome,
       unidade: this.reqUnidade,
-      senha: this.reqSenha
+      motivo: this.reqMotivo
     };
 
     this.authService.solicitarAcesso(dados).subscribe({
@@ -178,7 +180,11 @@ export class LoginComponent implements OnInit {
       },
       error: (err: any) => {
         console.error('Solicitar Acesso Error:', err);
-        this.requestError = 'Erro: ' + (err.error?.message || err.message || 'Falha ao enviar solicitação');
+        if (err.status === 429) {
+          this.requestError = 'Muitas solicitações enviadas em curto espaço de tempo. Aguarde 1 minuto para evitar sobrecarga no sistema.';
+        } else {
+          this.requestError = this.obterMensagemErro(err);
+        }
         this.requestLoading = false;
       }
     });
@@ -212,5 +218,36 @@ export class LoginComponent implements OnInit {
 
   toggleAdvancedMenu() {
     this.showAdvancedMenu = !this.showAdvancedMenu;
+  }
+
+  private obterMensagemErro(err: any): string {
+    const status = err.status;
+    const backendMessage = err.error?.message;
+
+    // Se o backend enviar uma mensagem específica já traduzida ou clara, aproveita:
+    if (backendMessage && typeof backendMessage === 'string' && backendMessage.toLowerCase().includes('senha')) {
+      return 'Usuário ou senha incorretos.';
+    }
+
+    switch (status) {
+      case 400:
+        return 'Os dados enviados estão incorretos ou incompletos. Verifique e tente novamente.';
+      case 401:
+        return 'Acesso negado: Usuário ou senha incorretos.';
+      case 403:
+        return 'Acesso negado: Você não tem permissão para realizar esta ação.';
+      case 404:
+        return 'O serviço ou usuário solicitado não foi encontrado.';
+      case 500:
+        return 'Ocorreu um erro interno no servidor. Por favor, tente novamente mais tarde.';
+      case 503:
+        return 'O sistema está temporariamente indisponível para manutenção. Tente novamente em breve.';
+      case 504:
+        return 'O servidor demorou muito para responder (Timeout). Verifique sua conexão e tente novamente.';
+      case 0:
+        return 'Não foi possível conectar ao servidor. Verifique sua conexão com a internet ou se você está na rede da corporação.';
+      default:
+        return backendMessage || 'Ocorreu um erro inesperado. Tente novamente mais tarde.';
+    }
   }
 }

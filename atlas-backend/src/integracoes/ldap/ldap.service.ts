@@ -20,7 +20,7 @@ import * as https from 'https';
 export class LdapService {
   private readonly logger = new Logger(LdapService.name);
 
-  constructor(private readonly configService: ConfigService) { }
+  constructor(private readonly configService: ConfigService) {}
 
   /**
    * Valida as credenciais (usuário e senha) na API LDAP do sistema corporativo PMPE e retorna o CPF.
@@ -39,24 +39,28 @@ export class LdapService {
       const cpfMock = allowedMocks[key];
 
       if (!cpfMock) {
-        this.logger.warn(`[MOCK DEV] Login LDAP negado para combinação inválida: ${usuario}`);
-        throw new UnauthorizedException('Usuário ou senha incorretos para modo de desenvolvimento.');
+        this.logger.warn(
+          `[MOCK DEV] Login LDAP negado para combinação inválida: ${usuario}`,
+        );
+        throw new UnauthorizedException(
+          'Usuário ou senha incorretos para modo de desenvolvimento.',
+        );
       }
 
-      this.logger.log(`[MOCK DEV] Login LDAP aceito para modo de desenvolvimento: ${usuario}`);
+      this.logger.log(
+        `[MOCK DEV] Login LDAP aceito para modo de desenvolvimento: ${usuario}`,
+      );
       return cpfMock;
     }
 
     // Build full LDAP endpoint URL using base and endpoint variables
-const apiBase = this.configService.get<string>('API_LDAP');
-if (!apiBase) {
-  this.logger.error('A variável API_LDAP não está definida no .env');
-  throw new Error('Configuração de autenticação LDAP ausente.');
-}
-// LDAP_AUTH_ENDPOINT não deve ser concatenado, pois a API raiz já é o endpoint de auth
-const apiUrl = apiBase;
-
-
+    const apiBase = this.configService.get<string>('API_LDAP');
+    if (!apiBase) {
+      this.logger.error('A variável API_LDAP não está definida no .env');
+      throw new Error('Configuração de autenticação LDAP ausente.');
+    }
+    // LDAP_AUTH_ENDPOINT não deve ser concatenado, pois a API raiz já é o endpoint de auth
+    const apiUrl = apiBase;
 
     const headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -69,10 +73,19 @@ const apiUrl = apiBase;
     const httpsAgent = new https.Agent({ family: 4 });
 
     try {
-      this.logger.log(`Disparando requisição real para o LDAP corporativo: ${apiUrl}`);
-      const response = await axios.post(apiUrl, payload, { headers, httpsAgent });
+      this.logger.log(
+        `Disparando requisição real para o LDAP corporativo: ${apiUrl}`,
+      );
+      const response = await axios.post(apiUrl, payload, {
+        headers,
+        httpsAgent,
+      });
 
-      if (!response.data || response.data === 'Usuário nao encontrado' || response.data.status !== 'success') {
+      if (
+        !response.data ||
+        response.data === 'Usuário nao encontrado' ||
+        response.data.status !== 'success'
+      ) {
         throw new UnauthorizedException('Usuário ou senha do LDAP incorretos.');
       }
 
@@ -88,7 +101,9 @@ const apiUrl = apiBase;
       });
 
       if (responseReturn.length === 0) {
-        throw new UnauthorizedException('Formato de resposta do LDAP inválido.');
+        throw new UnauthorizedException(
+          'Formato de resposta do LDAP inválido.',
+        );
       }
 
       return responseReturn[0];
@@ -98,13 +113,18 @@ const apiUrl = apiBase;
         throw error;
       }
       // Tenta extrair a mensagem de erro retornada pela API LDAP
-      const apiErrorMessage = error?.response?.data?.error || error?.response?.data?.message;
+      const apiErrorMessage =
+        error?.response?.data?.error || error?.response?.data?.message;
       const message = apiErrorMessage || error?.message || String(error);
-      this.logger.error(`Erro na autenticação LDAP real para ${usuario}: ${message}`);
+      this.logger.error(
+        `Erro na autenticação LDAP real para ${usuario}: ${message}`,
+      );
       if (apiErrorMessage) {
         throw new UnauthorizedException(`LDAP: ${apiErrorMessage}`);
       }
-      throw new UnauthorizedException('Matrícula ou senha incorretas no LDAP corporativo.');
+      throw new UnauthorizedException(
+        'Matrícula ou senha incorretas no LDAP corporativo.',
+      );
     }
   }
 }

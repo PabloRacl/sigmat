@@ -9,11 +9,18 @@
  *   - Controle estrito de acesso e delegação de lógica ao TransfersService.
  */
 
-import { Controller, Post, Get, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { TransfersService } from './transferencias.service';
 import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
 import { LoggedUser } from '../../comum/decoradores/logged-user.decorator';
-
 
 @Controller('transferencias')
 @UseGuards(JwtAuthGuard)
@@ -22,7 +29,8 @@ export class TransfersController {
 
   @Post('solicitar')
   solicitar(
-    @Body() body: { equipamentoId: number; destinoId: number; observacao?: string },
+    @Body()
+    body: { equipamentoId: number; destinoId: number; observacao?: string },
     @LoggedUser() usuario: any,
   ) {
     return this.TransfersService.solicitar(
@@ -36,7 +44,8 @@ export class TransfersController {
 
   @Post('solicitar-massa')
   solicitarMassa(
-    @Body() body: {
+    @Body()
+    body: {
       equipamentoIds: number[];
       destinoId: number;
       observacao?: string;
@@ -66,24 +75,12 @@ export class TransfersController {
   }
 
   @Post(':id/confirmar')
-  confirmar(
-    @Param('id', ParseIntPipe) id: number,
-    @LoggedUser() usuario: any,
-  ) {
+  confirmar(@Param('id', ParseIntPipe) id: number, @LoggedUser() usuario: any) {
     return this.TransfersService.confirmarRecebimento(id, usuario);
   }
 
   @Post(':id/cancelar')
-  cancelar(
-    @Param('id', ParseIntPipe) id: number,
-    @LoggedUser() usuario: any
-  ) {
+  cancelar(@Param('id', ParseIntPipe) id: number, @LoggedUser() usuario: any) {
     return this.TransfersService.cancelar(id, usuario);
   }
 }
-
-
-
-
-
-

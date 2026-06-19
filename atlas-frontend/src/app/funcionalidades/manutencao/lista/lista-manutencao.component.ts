@@ -1,9 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MaintenanceService } from '../../../nucleo/servicos/manutencao.service';
 import { EquipmentService } from '../../../nucleo/servicos/equipamentos.service';
 import { AuthService } from '../../../nucleo/servicos/autenticacao.service';
+import { Subject, takeUntil } from 'rxjs';
 
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -18,6 +19,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { DatePickerModule } from 'primeng/datepicker';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
+import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
 
 @Component({
   selector: 'app-lista-manutencao',
@@ -37,13 +39,15 @@ import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout
     TooltipModule,
     DatePickerModule,
     AutoCompleteModule,
-    LayoutPaginaComponent
+    LayoutPaginaComponent,
+    EstadoVazioComponent
   ],
   providers: [MessageService],
   templateUrl: './lista-manutencao.component.html',
   styleUrls: ['./lista-manutencao.component.scss']
 })
-export class MaintenanceListComponent implements OnInit {
+export class MaintenanceListComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   private maintenanceService = inject(MaintenanceService);
   private equipmentService = inject(EquipmentService);
   private authService = inject(AuthService);
@@ -129,7 +133,7 @@ export class MaintenanceListComponent implements OnInit {
     this.carregarDados();
 
     // Lógica inteligente de previsão de prazos automáticos baseado no status
-    this.statusForm.get('status')?.valueChanges.subscribe(status => {
+    this.statusForm.get('status')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(status => {
       if (!status || !this.osSelecionada) return;
       const dataAbertura = new Date(this.osSelecionada.dataAbertura);
       const dataAtual = new Date();
@@ -330,6 +334,11 @@ export class MaintenanceListComponent implements OnInit {
   isAtrasada(os: any): boolean {
     if (!os.dataPrevisao || this.isStatusFinal(os.status)) return false;
     return new Date(os.dataPrevisao) < new Date();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
 

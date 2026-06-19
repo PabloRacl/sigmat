@@ -16,8 +16,3 @@ describe('PrismaService', () => {
     expect(servico).toBeDefined();
   });
 });
-
-
-
-
-

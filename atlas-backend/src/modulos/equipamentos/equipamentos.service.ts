@@ -4,7 +4,12 @@
  * [Histórico de Modificações]: Isolamento do Prisma no EquipmentRepository; Atualização de lógica de auditoria (gerarDiffComLabels).
  * [Regras de Negócio Imutáveis]: Validações rigorosas de permissão por PerfilUsuario para criação/edição.
  */
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
 import { EquipmentRepository } from './equipamentos.repository';
 import { CriarEquipamentoDto } from './dto/criar-equipamento.dto';
 import { AtualizarEquipamentoDto } from './dto/atualizar-equipamento.dto';
@@ -24,42 +29,32 @@ export class EquipmentService {
     private readonly auditService: AuditService,
   ) {}
 
-  async listarTodos(usuario: any, params: { 
-    page?: number, 
-    limit?: number, 
-    search?: string,
-    tipoId?: number,
-    statusId?: number,
-    disponibilidadeId?: number,
-    secaoId?: number,
-    marcaId?: number,
-    patrimonio?: string,
-    sei?: string,
-    numeroSerie?: string,
-    dataAquisicao?: string,
-    observacao?: string
-  }) {
+  async listarTodos(
+    usuario: any,
+    params: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      tipoId?: number;
+      statusId?: number;
+      disponibilidadeId?: number;
+      secaoId?: number;
+      marcaId?: number;
+      patrimonio?: string;
+      sei?: string;
+      numeroSerie?: string;
+      dataAquisicao?: string;
+      observacao?: string;
+    },
+  ) {
     const page = Number(params.page) || 1;
     const limit = Number(params.limit) || 20;
     const skip = (page - 1) * limit;
     const search = params.search?.trim();
 
-    let userFull = await this.repository.findUsuarioCompleto(usuario.id);
+    const userFull = await this.repository.findUsuarioCompleto(usuario.id);
 
     if (!userFull) throw new NotFoundException('Usuário não encontrado');
-
-    // Mock mode: ignore permissions and return everything
-    if (process.env.USE_MOCK_AUTH === 'true') {
-      userFull = {
-        ...userFull,
-        perfil: PerfilUsuario.ADMIN_DTEC,
-        // ensures filter builder sees no restrictions
-        batalhaoId: null,
-        secaoId: null,
-        secoesPermitidas: [],
-        // any other fields required by builder can be left undefined
-      } as any;
-    }
 
     const where = new EquipamentoFiltroBuilder(userFull)
       .aplicarPermissoes()
@@ -67,11 +62,11 @@ export class EquipmentService {
       .aplicarFiltrosAvancados(params)
       .build();
 
-    this.logger.log(`Listando equipamentos para usuário: ${userFull!.login}`);
+    this.logger.log(`Listando equipamentos para usuário: ${userFull.login}`);
 
     const [total, itens] = await Promise.all([
       this.repository.countEquipamentos(where),
-      this.repository.findEquipamentos(where, skip, limit)
+      this.repository.findEquipamentos(where, skip, limit),
     ]);
 
     return {
@@ -79,7 +74,7 @@ export class EquipmentService {
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit),
     };
   }
 
@@ -94,38 +89,51 @@ export class EquipmentService {
   }
 
   async criar(dados: CriarEquipamentoDto, usuario: any) {
-    // Business rule: equipment must belong to a section (secao)
-    if (!dados.secaoId) {
-      throw new BadRequestException('Campo secaoId é obrigatório ao criar um equipamento.');
-    }
     this.logger.log(`Iniciando criação de equipamento: ${dados.patrimonio}`);
-    
+
     const userFull = await this.repository.findUsuarioCompleto(usuario.id);
 
     if (!userFull) throw new NotFoundException('Usuário não encontrado');
 
     if (userFull.perfil === PerfilUsuario.DIRETORIA) {
-      throw new ForbiddenException('Usuários de Diretoria não podem cadastrar equipamentos.');
+      throw new ForbiddenException(
+        'Usuários de Diretoria não podem cadastrar equipamentos.',
+      );
     }
 
     if (userFull.perfil !== PerfilUsuario.ADMIN_DTEC) {
       const secao = await this.repository.findSecaoById(dados.secaoId);
-      if (!secao) throw new NotFoundException('Seção de destino não encontrada.');
+      if (!secao)
+        throw new NotFoundException('Seção de destino não encontrada.');
 
       const userBatalhaoId = userFull.batalhaoId || userFull.secao?.batalhaoId;
       if (!userBatalhaoId || secao.batalhaoId !== userBatalhaoId) {
-        throw new ForbiddenException('Você só pode cadastrar equipamentos para sua unidade.');
+        throw new ForbiddenException(
+          'Você só pode cadastrar equipamentos para sua unidade.',
+        );
       }
     }
 
     try {
-      const { dataAquisicao, dataSolicitacao, dataRetornoEmprestimo, ...outrosDados } = dados;
+      const {
+        dataAquisicao,
+        dataSolicitacao,
+        dataRetornoEmprestimo,
+        ...outrosDados
+      } = dados;
+
+      if (!outrosDados.batalhaoId) {
+        const secao = await this.repository.findSecaoById(dados.secaoId);
+        if (secao?.batalhaoId) outrosDados.batalhaoId = secao.batalhaoId;
+      }
 
       const novoEquipamento = await this.repository.createEquipamento({
         ...outrosDados,
         dataAquisicao: dataAquisicao ? new Date(dataAquisicao) : null,
         dataSolicitacao: dataSolicitacao ? new Date(dataSolicitacao) : null,
-        dataRetornoEmprestimo: dataRetornoEmprestimo ? new Date(dataRetornoEmprestimo) : null,
+        dataRetornoEmprestimo: dataRetornoEmprestimo
+          ? new Date(dataRetornoEmprestimo)
+          : null,
       });
 
       await this.auditService.registrarLog({
@@ -151,38 +159,71 @@ export class EquipmentService {
     if (!userFull) throw new NotFoundException('Usuário não encontrado');
 
     if (usuario.perfil === PerfilUsuario.ADMIN_DTEC) {
-      return this.aplicarAtualizacaoDireta(id, dados, userId, equipamentoAtual, 'ADMIN');
+      return this.aplicarAtualizacaoDireta(
+        id,
+        dados,
+        userId,
+        equipamentoAtual,
+        'ADMIN',
+      );
     }
 
     if (usuario.perfil === PerfilUsuario.DIRETORIA) {
-      throw new ForbiddenException('Usuários de Diretoria não podem modificar equipamentos.');
+      throw new ForbiddenException(
+        'Usuários de Diretoria não podem modificar equipamentos.',
+      );
     }
 
     const userBatalhaoId = userFull.batalhaoId || userFull.secao?.batalhaoId;
-    if (!userBatalhaoId || equipamentoAtual.secao?.batalhaoId !== userBatalhaoId) {
-      throw new ForbiddenException('Você não tem permissão para alterar equipamentos de outra unidade.');
+    if (
+      !userBatalhaoId ||
+      equipamentoAtual.secao?.batalhaoId !== userBatalhaoId
+    ) {
+      throw new ForbiddenException(
+        'Você não tem permissão para alterar equipamentos de outra unidade.',
+      );
     }
 
     if (usuario.perfil === PerfilUsuario.COMANDANTE) {
-      return this.aplicarAtualizacaoDireta(id, dados, userId, equipamentoAtual, 'COMANDANTE');
+      return this.aplicarAtualizacaoDireta(
+        id,
+        dados,
+        userId,
+        equipamentoAtual,
+        'COMANDANTE',
+      );
     }
 
     return this.approvalsService.criarSolicitacao(
       id,
       userId,
       dados,
-      equipamentoAtual
+      equipamentoAtual,
     );
   }
 
-  private async aplicarAtualizacaoDireta(id: number, dados: any, userId: number, atual: any, perfilLabel: string) {
-    const { dataAquisicao, dataSolicitacao, dataRetornoEmprestimo, id: _id, ...outrosDados } = dados;
+  private async aplicarAtualizacaoDireta(
+    id: number,
+    dados: any,
+    userId: number,
+    atual: any,
+    perfilLabel: string,
+  ) {
+    const {
+      dataAquisicao,
+      dataSolicitacao,
+      dataRetornoEmprestimo,
+      id: _id,
+      ...outrosDados
+    } = dados;
 
     await this.repository.updateEquipamento(id, {
       ...outrosDados,
       dataAquisicao: dataAquisicao ? new Date(dataAquisicao) : undefined,
       dataSolicitacao: dataSolicitacao ? new Date(dataSolicitacao) : undefined,
-      dataRetornoEmprestimo: dataRetornoEmprestimo ? new Date(dataRetornoEmprestimo) : undefined,
+      dataRetornoEmprestimo: dataRetornoEmprestimo
+        ? new Date(dataRetornoEmprestimo)
+        : undefined,
     });
 
     const atualizado = await this.buscarPorId(id);
@@ -204,10 +245,10 @@ export class EquipmentService {
 
     if (usuario.perfil !== PerfilUsuario.ADMIN_DTEC) {
       return this.approvalsService.criarSolicitacao(
-        id, 
-        usuario.id, 
-        { _acao: 'DELETE' }, 
-        equipamento
+        id,
+        usuario.id,
+        { _acao: 'DELETE' },
+        equipamento,
       );
     }
 
@@ -233,7 +274,13 @@ export class EquipmentService {
 
     if (!userFull) throw new NotFoundException('Usuário não encontrado');
 
-    const { statusId, secaoId, disponibilidadeId, tipoAquisicaoId, observacao } = dados;
+    const {
+      statusId,
+      secaoId,
+      disponibilidadeId,
+      tipoAquisicaoId,
+      observacao,
+    } = dados;
     const updateData: any = {};
     if (statusId) updateData.statusId = statusId;
     if (secaoId) updateData.secaoId = secaoId;
@@ -244,17 +291,29 @@ export class EquipmentService {
     const equipamentos = await this.repository.findEquipamentosByIds(ids);
 
     if (userFull.perfil !== PerfilUsuario.ADMIN_DTEC) {
-      if (userFull.perfil === PerfilUsuario.DIRETORIA || userFull.perfil === PerfilUsuario.USUARIO_BATALHAO) {
-        throw new ForbiddenException('Somente administradores e comandantes podem efetuar atualizações em massa.');
+      if (
+        userFull.perfil === PerfilUsuario.DIRETORIA ||
+        userFull.perfil === PerfilUsuario.USUARIO_BATALHAO
+      ) {
+        throw new ForbiddenException(
+          'Somente administradores e comandantes podem efetuar atualizações em massa.',
+        );
       }
 
-      const idsInvalidos = equipamentos.filter(e => e.secao?.batalhaoId !== userFull.batalhaoId);
+      const idsInvalidos = equipamentos.filter(
+        (e) => e.secao?.batalhaoId !== userFull.batalhaoId,
+      );
       if (idsInvalidos.length > 0) {
-        throw new ForbiddenException('Você não tem permissão para editar equipamentos de outra unidade em lote.');
+        throw new ForbiddenException(
+          'Você não tem permissão para editar equipamentos de outra unidade em lote.',
+        );
       }
     }
 
-    const results = await this.repository.updateManyEquipamentosTransaction(equipamentos, updateData);
+    const results = await this.repository.updateManyEquipamentosTransaction(
+      equipamentos,
+      updateData,
+    );
 
     for (const eq of equipamentos) {
       await this.auditService.registrarLog({

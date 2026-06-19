@@ -1,4 +1,4 @@
-<app-layout-pagina 
+﻿<app-layout-pagina 
   [hasStats]="true" 
   [hasSearch]="true" 
   [noContentPadding]="true"
@@ -6,7 +6,7 @@
   <!-- Cabeçalho -->
   <div header-title>
     <h1>Gestão de Usuários</h1>
-    <p>Controle de acesso, perfis e permissões do sistema ATLAS</p>
+    <p>Controle de acesso, perfis e permissões do sistema atlas</p>
   </div>
 
   <div header-actions>
@@ -80,7 +80,7 @@
     <div class="us-requests-section" *ngIf="!carregando && solicitacoes.length > 0">
       <div class="us-requests-header">
         <h3><i class="pi pi-bell"></i> Solicitações de Acesso Pendentes ({{ solicitacoes.length }})</h3>
-        <p>Lembrete: O acesso verdadeiro é gerido pelo SGA. Confirme ou negue aqui apenas para controle do ATLAS.</p>
+        <p>Lembrete: O acesso verdadeiro é gerido pelo SGA. Confirme ou negue aqui apenas para controle do atlas.</p>
       </div>
       <div class="us-requests-list">
         <div class="us-request-card" *ngFor="let req of solicitacoes">
@@ -156,10 +156,7 @@
         </tr>
         <tr *ngIf="usuariosFiltrados.length === 0">
           <td colspan="7">
-            <div class="us-empty" style="text-align: center; padding: 2rem 0; color: #94a3b8;">
-              <i class="pi pi-users" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
-              <p>Nenhum usuário encontrado com os filtros aplicados.</p>
-            </div>
+            <app-estado-vazio mensagem="Nenhum usuário encontrado com os filtros aplicados."></app-estado-vazio>
           </td>
         </tr>
       </tbody>
@@ -240,6 +237,27 @@
           </button>
         </div>
       </form>
+    </p-dialog>
+
+    <p-dialog
+      [(visible)]="exibirDialogoRejeicao"
+      header="Rejeitar Solicitação"
+      [modal]="true"
+      [style]="{width: '450px'}"
+      [draggable]="false"
+      [resizable]="false"
+    >
+      <p *ngIf="solicitacaoRejeicao" style="margin-bottom: 1rem;">
+        Motivo para rejeitar a solicitação de <strong>{{ solicitacaoRejeicao.nome }}</strong>:
+      </p>
+      <textarea pTextarea [(ngModel)]="motivoRejeicao"
+        [ngModelOptions]="{standalone: true}"
+        rows="4" placeholder="Descreva o motivo da rejeição..."
+        class="w-full" autofocus></textarea>
+      <div class="us-dialog-footer" style="margin-top: 1rem;">
+        <button type="button" class="us-btn-ghost" (click)="exibirDialogoRejeicao = false; solicitacaoRejeicao = null; motivoRejeicao = ''">Cancelar</button>
+        <button type="button" class="us-btn-primary" (click)="confirmarRejeicao()" [disabled]="!motivoRejeicao.trim()">Rejeitar</button>
+      </div>
     </p-dialog>
 
     <p-toast position="bottom-right"></p-toast>

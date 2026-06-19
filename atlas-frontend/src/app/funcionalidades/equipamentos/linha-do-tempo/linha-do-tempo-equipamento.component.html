@@ -74,11 +74,6 @@
       </div>
     </div>
     
-    <!-- Empty State -->
-    <div class="eq-empty-timeline" *ngIf="history.length === 0 && !loading">
-      <i class="pi pi-calendar-times"></i>
-      <h3>Nenhum registro encontrado</h3>
-      <p>Este equipamento ainda não possui histórico de alterações cadastrado no banco de dados.</p>
-    </div>
+    <app-estado-vazio *ngIf="history.length === 0 && !loading" mensagem="Nenhum registro encontrado. Este equipamento ainda não possui histórico de alterações cadastrado no banco de dados."></app-estado-vazio>
   </div>
 </p-dialog>
