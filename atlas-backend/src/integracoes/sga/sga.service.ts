@@ -1,4 +1,4 @@
-﻿/**
+/**
  * [Estado Atual]: ServiÃ§o de integraÃ§Ã£o direta com as bases PostgreSQL do SGA e SGPM da corporaÃ§Ã£o.
  * [DependÃªncias TÃ©cnicas]:
  *   - Driver 'pg' (Pool de ConexÃ£o Postgres)
@@ -314,9 +314,6 @@ export class SgaService {
     }
   }
 
-  /**
-   * Mapeia os perfis recebidos do SGA para a enumeraÃ§Ã£o PerfilUsuario utilizada pelo Prisma.
-   */
   private mapearPerfilSga(perfilSga: string): PerfilUsuario {
     const p = String(perfilSga).toUpperCase().trim();
 
@@ -328,6 +325,9 @@ export class SgaService {
     }
     if (p.includes('COMANDANTE') || p.includes('CMT')) {
       return PerfilUsuario.COMANDANTE;
+    }
+    if (p.includes('POLICIAL') || p.includes('EFETIVO')) {
+      return PerfilUsuario.POLICIAL;
     }
 
     return PerfilUsuario.USUARIO_BATALHAO;

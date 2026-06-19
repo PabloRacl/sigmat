@@ -2,6 +2,8 @@ import { Component, OnInit, inject, ViewChild, ElementRef } from '@angular/core'
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LoansService } from '../../../nucleo/servicos/cautelas.service';
+import { UsersService } from '../../../nucleo/servicos/usuarios.service';
+import { AuthService } from '../../../nucleo/servicos/autenticacao.service';
 import { PdfService } from '../../../nucleo/servicos/pdf.service';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
@@ -43,6 +45,8 @@ export class LoansManagementComponent implements OnInit {
   private pdfService = inject(PdfService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
+  private usersService = inject(UsersService);
+  private authService = inject(AuthService);
 
   emprestados: any[]    = [];
   historico: any[]      = [];
@@ -53,6 +57,8 @@ export class LoansManagementComponent implements OnInit {
   abaAtiva              = '0';
   dataHoje              = new Date();
   filtroData: Date[]    = []; // Filtro de intervalo de datas para o histórico
+  isPolicial            = false;
+  usuarios: any[]       = [];
 
   // Modal SEI
   exibirModalSEI = false;
@@ -69,7 +75,7 @@ export class LoansManagementComponent implements OnInit {
   constructor() {
     this.formSaida = this.fb.group({
       equipamentoId: [null, Validators.required],
-      solicitante:   ['',   Validators.required],
+      usuarioResponsavelId: [null, Validators.required],
       dataSolicitacao:      [new Date(), Validators.required],
       dataRetornoEmprestimo: [null],
     });
@@ -90,7 +96,10 @@ export class LoansManagementComponent implements OnInit {
     });
   }
 
-  ngOnInit() { this.carregarTudo(); }
+  ngOnInit() { 
+    this.isPolicial = this.authService.getUsuario()?.perfil === 'POLICIAL';
+    this.carregarTudo(); 
+  }
 
   carregarTudo() {
     this.carregando = true;
@@ -101,6 +110,9 @@ export class LoansManagementComponent implements OnInit {
     this.LoansService.historico().subscribe(r => this.historico = r);
     this.LoansService.vencidos().subscribe(r => this.vencidos = r);
     this.pesquisarEquipamentosDisponiveis('');
+    if (!this.isPolicial) {
+      this.usersService.listarTodos().subscribe(u => this.usuarios = u);
+    }
   }
 
   pesquisarEquipamentosDisponiveis(termo: string) {
@@ -124,8 +136,10 @@ export class LoansManagementComponent implements OnInit {
   confirmarSaida() {
     if (this.formSaida.invalid) return;
     const v = this.formSaida.value;
+    const usu = this.usuarios.find(u => u.id === v.usuarioResponsavelId);
     const dados = {
-      solicitante: v.solicitante,
+      solicitante: usu ? usu.nome : 'Desconhecido',
+      usuarioResponsavelId: v.usuarioResponsavelId,
       dataSolicitacao: (v.dataSolicitacao as Date).toISOString(),
       dataRetornoEmprestimo: v.dataRetornoEmprestimo
         ? (v.dataRetornoEmprestimo as Date).toISOString()

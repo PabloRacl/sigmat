@@ -379,6 +379,7 @@ enum PerfilUsuario {
   DIRETORIA
   COMANDANTE
   USUARIO_BATALHAO
+  POLICIAL
 }
 
 enum StatusTransferencia {

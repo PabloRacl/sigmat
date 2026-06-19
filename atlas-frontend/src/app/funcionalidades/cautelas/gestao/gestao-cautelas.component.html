@@ -9,7 +9,7 @@
     <p>Controle de empréstimos, saídas e retornos de material na sua Unidade</p>
   </div>
 
-  <div header-actions>
+  <div header-actions *ngIf="!isPolicial">
     <button class="cd-btn-primary" (click)="abrirSaida()" 
       pTooltip="Registrar o acautelamento de um material (saída diária)" tooltipPosition="left">
       <i class="pi pi-external-link"></i>
@@ -78,7 +78,7 @@
     <!-- ABA 0: EMPRESTADOS ATIVOS -->
     <div *ngIf="!carregando && abaAtiva === '0'">
       <!-- Toolbar de Ações em Massa -->
-      <div class="cd-table-actions" *ngIf="selecionados.length > 0" style="display: flex; justify-content: space-between; align-items: center; background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px;">
+      <div class="cd-table-actions" *ngIf="selecionados.length > 0 && !isPolicial" style="display: flex; justify-content: space-between; align-items: center; background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px;">
         <div class="cd-table-actions__info" style="display: flex; align-items: center; gap: 8px; color: #1e40af; font-size: 0.9rem;">
           <i class="pi pi-check-square"></i>
           <span><strong>{{ selecionados.length }}</strong> itens selecionados</span>
@@ -150,7 +150,7 @@
                 <button class="cd-btn-icon" (click)="imprimirCautela(e)" pTooltip="Imprimir Cautela" style="width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; cursor: pointer; color: #475569;">
                   <i class="pi pi-print"></i>
                 </button>
-                <button class="cd-btn-icon-return" (click)="abrirRetorno(e)" pTooltip="Baixar Retorno" style="width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ecfdf5; border-color: #a7f3d0; color: #059669; cursor: pointer;">
+                <button *ngIf="!isPolicial" class="cd-btn-icon-return" (click)="abrirRetorno(e)" pTooltip="Baixar Retorno" style="width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ecfdf5; border-color: #a7f3d0; color: #059669; cursor: pointer;">
                   <i class="pi pi-arrow-down-left"></i>
                 </button>
               </div>
@@ -180,7 +180,7 @@
           </div>
           <div class="cd-item-card__footer" style="display: flex; gap: 8px;">
             <button class="cd-btn-ghost flex-1" (click)="imprimirCautela(e)" style="flex: 1; padding: 8px; border: 1px solid #e2e8f0; background: white; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; color: #475569;"><i class="pi pi-print"></i> Cautela</button>
-            <button class="cd-btn-danger flex-1" (click)="abrirRetorno(e)" style="flex: 1; padding: 8px; border: none; background: #ef4444; color: white; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;"><i class="pi pi-arrow-down-left"></i> Retorno</button>
+            <button *ngIf="!isPolicial" class="cd-btn-danger flex-1" (click)="abrirRetorno(e)" style="flex: 1; padding: 8px; border: none; background: #ef4444; color: white; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;"><i class="pi pi-arrow-down-left"></i> Retorno</button>
           </div>
         </div>
       </div>
@@ -279,8 +279,25 @@
           ></p-select>
         </div>
         <div class="cd-form__field" style="display: flex; flex-direction: column; gap: 4px;">
-          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Nome do Solicitante <span class="req" style="color: #ef4444;">*</span></label>
-          <input type="text" pInputText formControlName="solicitante" placeholder="Ex: Cap PM Silva" class="w-full" />
+          <label style="font-size: 0.85rem; font-weight: 600; color: #475569;">Usuário Solicitante (Responsável) <span class="req" style="color: #ef4444;">*</span></label>
+          <p-select
+            [options]="usuarios"
+            formControlName="usuarioResponsavelId"
+            optionLabel="nome"
+            optionValue="id"
+            [filter]="true"
+            filterBy="nome,login,matricula"
+            placeholder="Selecione o policial..."
+            appendTo="body"
+            styleClass="w-full"
+          >
+            <ng-template pTemplate="selectedItem" let-u>
+              <div *ngIf="u">{{ u.postoGraduacao ? u.postoGraduacao + ' ' : '' }}{{ u.nome }} ({{ u.login }})</div>
+            </ng-template>
+            <ng-template pTemplate="item" let-u>
+              <div>{{ u.postoGraduacao ? u.postoGraduacao + ' ' : '' }}{{ u.nome }} <span style="color: #94a3b8; font-size: 0.8em">({{ u.login }})</span></div>
+            </ng-template>
+          </p-select>
         </div>
         <div class="cd-form__row" style="display: flex; gap: 1rem;">
           <div class="cd-form__field flex-1" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">

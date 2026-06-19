@@ -37,6 +37,7 @@ export class LoansController {
     @Body()
     dados: {
       solicitante: string;
+      usuarioResponsavelId?: number;
       dataSolicitacao: string;
       dataRetornoEmprestimo?: string;
     },

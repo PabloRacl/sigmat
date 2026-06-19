@@ -91,6 +91,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return `${environment.apiAvatarUrl}${matricula}.jpg`;
   }
 
+  get isPolicial(): boolean {
+    return this.authService.getUsuario()?.perfil === 'POLICIAL';
+  }
+
   get podeVerUsuarios(): boolean {
     return this.isAdmin;
   }
@@ -101,7 +105,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   get podeVerAuditoria(): boolean {
-    return !this.isUsuarioBatalhao;
+    return !this.isUsuarioBatalhao && !this.isPolicial;
   }
 
   labelPerfil(perfil: string): string {
@@ -109,7 +113,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
       ADMIN_DTEC: 'Administrador',
       DIRETORIA: 'Diretoria',
       COMANDANTE: 'Comandante',
-      USUARIO_BATALHAO: 'Policial Militar',
+      USUARIO_BATALHAO: 'Gestor Batalhão',
+      POLICIAL: 'Policial Militar'
     };
     return labels[perfil] || perfil;
   }

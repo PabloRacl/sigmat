@@ -52,6 +52,7 @@ export class LoansService {
     equipamentoId: number,
     dados: {
       solicitante: string;
+      usuarioResponsavelId?: number;
       dataSolicitacao: string;
       dataRetornoEmprestimo?: string;
     },
@@ -75,6 +76,7 @@ export class LoansService {
       data: {
         disponibilidadeId: dispEmprestado.id,
         solicitante: dados.solicitante,
+        usuarioResponsavelId: dados.usuarioResponsavelId || null,
         dataSolicitacao: new Date(dados.dataSolicitacao),
         dataRetornoEmprestimo: dados.dataRetornoEmprestimo
           ? new Date(dados.dataRetornoEmprestimo)
@@ -114,6 +116,7 @@ export class LoansService {
       data: {
         disponibilidadeId: dispDisponivel.id,
         solicitante: null,
+        usuarioResponsavelId: null,
         dataSolicitacao: null,
         dataRetornoEmprestimo: null,
       },

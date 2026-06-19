@@ -14,13 +14,13 @@
 
     <nav class="nav-menu">
       <!-- VISÃO GERAL -->
-      <a [routerLink]="ROTAS_RELATIVAS.INICIO" routerLinkActive="active" class="nav-item" title="Visualizar gráficos e estatísticas">
+      <a *ngIf="!isPolicial" [routerLink]="ROTAS_RELATIVAS.INICIO" routerLinkActive="active" class="nav-item" title="Visualizar gráficos e estatísticas">
         <i class="pi pi-chart-bar icon"></i>
         <span class="text" *ngIf="!isSidebarCollapsed">Visão Geral</span>
       </a>
 
       <!-- GESTÃO DE ATIVOS -->
-      <div class="nav-group" [class.active]="menuExpandido === 'ativos'">
+      <div class="nav-group" *ngIf="!isPolicial" [class.active]="menuExpandido === 'ativos'">
         <div class="nav-group-header" (click)="toggleMenu('ativos')" pTooltip="Gestão de Ativos (Focado em hardware e logística)" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
           <i class="pi pi-folder group-icon"></i>
           <span class="nav-group-title" *ngIf="!isSidebarCollapsed">GESTÃO DE ATIVOS</span>
@@ -38,8 +38,14 @@
         </div>
       </div>
 
+      <!-- MINHA CARGA (Exclusivo Policial) -->
+      <a *ngIf="isPolicial" [routerLink]="ROTAS_RELATIVAS.CAUTELAS" routerLinkActive="active" class="nav-item" title="Visualizar minha carga pessoal">
+        <i class="pi pi-id-card icon"></i>
+        <span class="text" *ngIf="!isSidebarCollapsed">Minha Carga</span>
+      </a>
+
       <!-- OPERAÇÕES -->
-      <div class="nav-group" [class.active]="menuExpandido === 'operacoes'">
+      <div class="nav-group" *ngIf="!isPolicial" [class.active]="menuExpandido === 'operacoes'">
         <div class="nav-group-header" (click)="toggleMenu('operacoes')" pTooltip="Operações (Focado no dia a dia da unidade)" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
           <i class="pi pi-shield group-icon"></i>
           <span class="nav-group-title" *ngIf="!isSidebarCollapsed">OPERAÇÕES</span>
@@ -62,7 +68,7 @@
       </div>
 
       <!-- CONTROLE & RELATÓRIOS -->
-      <div class="nav-group" [class.active]="menuExpandido === 'relatorios'">
+      <div class="nav-group" *ngIf="!isPolicial" [class.active]="menuExpandido === 'relatorios'">
         <div class="nav-group-header" (click)="toggleMenu('relatorios')" pTooltip="Controle & Relatórios (Focado em dados e validação)" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
           <i class="pi pi-chart-pie group-icon"></i>
           <span class="nav-group-title" *ngIf="!isSidebarCollapsed">CONTROLE & RELATÓRIOS</span>

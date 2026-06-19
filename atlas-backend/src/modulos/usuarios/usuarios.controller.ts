@@ -30,7 +30,6 @@ import { AtualizarUsuarioDto } from './dto/atualizar-usuario.dto';
 
 @Controller('usuarios')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN_DTEC')
 export class UsersController {
   constructor(private readonly UsersService: UsersService) {}
 

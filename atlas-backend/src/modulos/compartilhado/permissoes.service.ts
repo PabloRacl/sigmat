@@ -79,6 +79,11 @@ export class PermissoesService {
       return [{ OR: or }];
     }
 
+    // PERFIL POLICIAL (Apenas sua própria carga)
+    if (userFull.perfil === PerfilUsuario.POLICIAL) {
+      return [{ usuarioResponsavelId: userFull.id }];
+    }
+
     // PERFIL PADRÃO (outros que tem batalhão)
     if (batalhaoId) {
       const or: any[] = [];
