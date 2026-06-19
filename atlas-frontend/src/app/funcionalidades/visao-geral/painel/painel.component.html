@@ -80,18 +80,21 @@
         </div>
       </div>
 
+      <!-- TABELAS BÁSICAS -->
+      <a *ngIf="podeVerSecoes" [routerLink]="ROTAS_RELATIVAS.CONFIGURACOES" routerLinkActive="active" class="nav-item" pTooltip="Tabelas Básicas" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
+        <i class="pi pi-sliders-h icon"></i>
+        <span class="text" *ngIf="!isSidebarCollapsed">Tabelas Básicas</span>
+      </a>
+
       <!-- CONFIGURAÇÕES -->
       <div class="nav-group" *ngIf="podeVerSecoes" [class.active]="menuExpandido === 'configuracoes'">
-        <div class="nav-group-header" (click)="toggleMenu('configuracoes')" pTooltip="Configurações (Tabelas básicas e acessos)" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
+        <div class="nav-group-header" (click)="toggleMenu('configuracoes')" pTooltip="Configurações (Acessos e seções)" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
           <i class="pi pi-cog group-icon"></i>
           <span class="nav-group-title" *ngIf="!isSidebarCollapsed">CONFIGURAÇÕES</span>
           <i class="pi pi-angle-down chevron" *ngIf="!isSidebarCollapsed" [class.rotated]="menuExpandido === 'configuracoes'"></i>
         </div>
         <div class="nav-submenu" [class.expanded]="menuExpandido === 'configuracoes'">
-          <a [routerLink]="ROTAS_RELATIVAS.CONFIGURACOES" routerLinkActive="active" class="nav-item">
-            <i class="pi pi-sliders-h icon"></i>
-            <span class="text">Tabelas Básicas</span>
-          </a>
+
           <a [routerLink]="ROTAS_RELATIVAS.SECOES" routerLinkActive="active" class="nav-item">
             <i class="pi pi-sitemap icon"></i>
             <span class="text">Seções Internas</span>
