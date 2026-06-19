@@ -24,7 +24,7 @@ export class ApprovalsController {
     return this.ApprovalsService.listarPendentesPorUnidade(batalhaoId);
   }
 
-  @Get('contagem')
+  @Get('pendentes/contagem')
   async contarPendentes(@LoggedUser() usuario: any) {
     const batalhaoId =
       usuario.perfil === 'ADMIN_DTEC' ? undefined : usuario.batalhaoId;

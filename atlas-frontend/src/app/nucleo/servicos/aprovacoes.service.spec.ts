@@ -37,14 +37,14 @@ describe('ApprovalsService', () => {
     req.flush(mockPendencias);
   });
 
-  it('obterContagem should call /contagem', () => {
+  it('obterContagem should call /pendentes/contagem', () => {
     const mockContagem = { total: 5 };
 
     service.obterContagem().subscribe((res) => {
       expect(res).toEqual(mockContagem);
     });
 
-    const req = httpMock.expectOne(`${service['apiUrl']}/contagem`);
+    const req = httpMock.expectOne(`${service['apiUrl']}/pendentes/contagem`);
     expect(req.request.method).toBe('GET');
     req.flush(mockContagem);
   });

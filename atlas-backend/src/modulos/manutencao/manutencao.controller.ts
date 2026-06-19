@@ -28,7 +28,7 @@ import {
 export class MaintenanceController {
   constructor(private readonly MaintenanceService: MaintenanceService) {}
 
-  @Get('contagem')
+  @Get('pendentes/contagem')
   contarPendentes(@LoggedUser() usuario: any) {
     return this.MaintenanceService.contarPendentes(usuario).then((total) => ({
       total,

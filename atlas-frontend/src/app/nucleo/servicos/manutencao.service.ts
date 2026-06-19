@@ -14,7 +14,7 @@ export class MaintenanceService {
   }
 
   contarPendentes() {
-    return this.http.get<{ total: number }>(`${this.API_URL}/contagem`);
+    return this.http.get<{ total: number }>(`${this.API_URL}/pendentes/contagem`);
   }
 
   buscarPorId(id: number) {

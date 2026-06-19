@@ -15,7 +15,7 @@ export class ApprovalsService {
   }
 
   obterContagem(): Observable<{ total: number }> {
-    return this.http.get<{ total: number }>(`${this.apiUrl}/contagem`);
+    return this.http.get<{ total: number }>(`${this.apiUrl}/pendentes/contagem`);
   }
 
   processarDecisao(id: number, aprovado: boolean, justificativa: string): Observable<any> {
