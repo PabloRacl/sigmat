@@ -44,10 +44,14 @@ export const routes: Routes = [
         data: { perfis: ['ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE'] }
       },
       {
-        path: 'secoes',
+        path: 'tabelas-basicas/secoes',
         loadComponent: () => import('./funcionalidades/configuracoes/secoes/secoes.component').then(m => m.SettingsSectionsComponent),
         canActivate: [RoleGuard],
         data: { perfis: ['ADMIN_DTEC', 'DIRETORIA'] }
+      },
+      {
+        path: 'secoes',
+        redirectTo: 'tabelas-basicas/secoes'
       },
       {
         path: 'configuracoes',
