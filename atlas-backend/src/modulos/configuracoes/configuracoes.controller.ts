@@ -60,6 +60,12 @@ export class SettingsController {
     return this.SettingsService.listarStatus();
   }
 
+  @Post('status')
+  @Roles('ADMIN_DTEC')
+  criarStatus(@Body() dados: { nome: string }) {
+    return this.SettingsService.criarStatus(dados);
+  }
+
   @Get('disponibilidades')
   listarDisponibilidades() {
     return this.SettingsService.listarDisponibilidades();

@@ -221,6 +221,12 @@ export class SettingsService {
     });
   }
 
+  async criarStatus(dados: { nome: string }) {
+    const nomeNormalizado = dados.nome?.trim();
+    if (!nomeNormalizado) throw new BadRequestException('Nome vazio.');
+    return this.prisma.statusEquipamento.create({ data: { nome: nomeNormalizado } });
+  }
+
   async listarDisponibilidades() {
     return this.prisma.disponibilidade.findMany({ 
       orderBy: { nome: 'asc' },
