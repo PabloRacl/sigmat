@@ -60,6 +60,7 @@ model Secao {
 model Usuario {
   id                        Int                      @id @default(autoincrement())
   login                     String                   @unique @db.VarChar(50)
+  cpf                       String?                  @db.VarChar(14)
   matricula                 String                   @db.VarChar(50)
   nome                      String                   @db.VarChar(200)
   email                     String?                  @db.VarChar(200)
@@ -94,6 +95,7 @@ model Usuario {
 model SolicitacaoAcesso {
   id                Int                @id @default(autoincrement())
   login             String             @db.VarChar(50)
+  cpf               String?            @db.VarChar(14)
   matricula         String?            @db.VarChar(50)
   nome              String             @db.VarChar(200)
   email             String?            @db.VarChar(200)

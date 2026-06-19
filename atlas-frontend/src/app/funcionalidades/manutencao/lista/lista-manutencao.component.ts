@@ -20,6 +20,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
 import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
+import { FiltroLateralComponent, FiltroConfig } from '../../../componentes/filtro-lateral/filtro-lateral.component';
 
 @Component({
   selector: 'app-lista-manutencao',
@@ -40,7 +41,8 @@ import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-v
     DatePickerModule,
     AutoCompleteModule,
     LayoutPaginaComponent,
-    EstadoVazioComponent
+    EstadoVazioComponent,
+    FiltroLateralComponent
   ],
   providers: [MessageService],
   templateUrl: './lista-manutencao.component.html',
@@ -67,6 +69,24 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
 
   // ── Filtro por Status ─────────────────────────────────────────────
   filtroStatus: string | null = null;
+  exibirFiltrosAvancados = false;
+  filtroAtivo = false;
+  modeloFiltros: Record<string, any> = {};
+
+  configFiltros: FiltroConfig[] = [
+    { key: 'dataAberturaInicio', label: 'Abertas a partir de', tipo: 'date' },
+    { key: 'dataAberturaFim', label: 'Abertas até', tipo: 'date' },
+    { key: 'tecnicoResponsavel', label: 'Técnico Responsável', tipo: 'text', placeholder: 'Ex: SD Silva' },
+    { key: 'solicitante', label: 'Solicitante', tipo: 'text', placeholder: 'Ex: Sgt Oliveira' },
+    { key: 'status', label: 'Status da OS', tipo: 'select', opcoes: [
+      { label: 'Todos os Status', value: null },
+      { label: 'Aberta', value: 'ABERTA' },
+      { label: 'Em Andamento', value: 'EM_ANDAMENTO' },
+      { label: 'Aguardando Peça', value: 'AGUARDANDO_PECA' },
+      { label: 'Concluída', value: 'CONCLUIDA' },
+      { label: 'Cancelada', value: 'CANCELADA' }
+    ]}
+  ];
 
   statusChips = [
     { label: 'Todas',           value: null,              icon: 'pi-list',           cor: 'all' },
@@ -180,22 +200,65 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
   // ── Filtros ──────────────────────────────────────────────────────
   aplicarFiltros() {
     const texto = this.buscaTexto.trim().toLowerCase();
+
+    // Atualiza a flag de filtro ativo baseado no lateral
+    this.filtroAtivo = Object.values(this.modeloFiltros).some(val => val !== null && val !== '');
+
     this.ordensFiltradas = this.todasOrdens.filter(os => {
-      const matchStatus = !this.filtroStatus || os.status === this.filtroStatus;
-      const matchTexto  = !texto || [
+      // 1. Filtro rápido de status (via cards superiores)
+      const matchStatusRapido = !this.filtroStatus || os.status === this.filtroStatus;
+      
+      // 2. Busca de texto (barra premium)
+      const matchTexto = !texto || [
         os.equipamento?.patrimonio,
         os.equipamento?.tipoEquipamento?.nome,
         os.tecnicoResponsavel,
         os.descricaoProblema,
         os.solicitante?.nome,
       ].some(v => v?.toLowerCase().includes(texto));
-      return matchStatus && matchTexto;
+
+      // 3. Filtros Avançados (Lateral)
+      let matchAvancado = true;
+      if (this.filtroAtivo) {
+        if (this.modeloFiltros['status'] && os.status !== this.modeloFiltros['status']) {
+          matchAvancado = false;
+        }
+        if (this.modeloFiltros['tecnicoResponsavel'] && (!os.tecnicoResponsavel || !os.tecnicoResponsavel.toLowerCase().includes(this.modeloFiltros['tecnicoResponsavel'].toLowerCase()))) {
+          matchAvancado = false;
+        }
+        if (this.modeloFiltros['solicitante'] && (!os.solicitante?.nome || !os.solicitante.nome.toLowerCase().includes(this.modeloFiltros['solicitante'].toLowerCase()))) {
+          matchAvancado = false;
+        }
+        
+        if (this.modeloFiltros['dataAberturaInicio'] && os.dataAbertura) {
+          const dataAbertura = new Date(os.dataAbertura);
+          if (dataAbertura < new Date(this.modeloFiltros['dataAberturaInicio'])) matchAvancado = false;
+        }
+        if (this.modeloFiltros['dataAberturaFim'] && os.dataAbertura) {
+          const dataAbertura = new Date(os.dataAbertura);
+          // Adicionar 23:59:59 ao dia de fim
+          const fim = new Date(this.modeloFiltros['dataAberturaFim']);
+          fim.setHours(23, 59, 59, 999);
+          if (dataAbertura > fim) matchAvancado = false;
+        }
+      }
+
+      return matchStatusRapido && matchTexto && matchAvancado;
     });
   }
 
   filtrarPorStatus(valor: string | null) {
     this.filtroStatus = valor;
     this.aplicarFiltros();
+  }
+
+  pesquisarAvancado() {
+    // Sincroniza o status card superior com o status do filtro avançado se houver
+    if (this.modeloFiltros['status'] !== undefined) {
+      this.filtroStatus = this.modeloFiltros['status'];
+    }
+    this.aplicarFiltros();
+    this.exibirFiltrosAvancados = false; // Fecha a gaveta após aplicar
   }
 
   onBuscaChange() {

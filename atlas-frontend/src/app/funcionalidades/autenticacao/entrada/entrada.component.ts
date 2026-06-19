@@ -26,6 +26,7 @@ export class LoginComponent implements OnInit {
 
   // Solicitar acesso fields
   reqUsuario = '';
+  reqCpf = '';
   reqMatricula = '';
   reqNome = '';
   reqUnidade = '';
@@ -147,6 +148,7 @@ export class LoginComponent implements OnInit {
     this.requestError = '';
     this.requestSuccess = '';
     this.reqUsuario = '';
+    this.reqCpf = '';
     this.reqMatricula = '';
     this.reqNome = '';
     this.reqUnidade = '';
@@ -167,6 +169,7 @@ export class LoginComponent implements OnInit {
 
     const dados = {
       usuario: this.reqUsuario,
+      cpf: this.reqCpf,
       matricula: this.reqMatricula,
       nome: this.reqNome,
       unidade: this.reqUnidade,

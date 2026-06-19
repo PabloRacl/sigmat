@@ -185,6 +185,7 @@ export class EquipmentFormComponent implements OnInit, OnDestroy {
     });
     this.configService.listarStatus().subscribe(res => {
       this.status = res;
+      this.aplicarFiltroStatus();
     });
     this.configService.listarDisponibilidades().subscribe(res => this.disponibilidades = res);
     this.configService.listarBatalhoes().subscribe(res => {
@@ -198,7 +199,18 @@ export class EquipmentFormComponent implements OnInit, OnDestroy {
   }
 
   refreshStatus() {
-    this.configService.listarStatus().subscribe(res => this.status = res);
+    this.configService.listarStatus().subscribe(res => {
+      this.status = res;
+      this.aplicarFiltroStatus();
+    });
+  }
+
+  aplicarFiltroStatus() {
+    if (!this.status || this.status.length === 0) return;
+    this.status = this.status.filter((s: any) => {
+      const isManutencao = s.nome.toLowerCase().includes('manuten') || s.nome.toLowerCase().includes('manutenç');
+      return !isManutencao || (this.equipment && this.equipment.statusId === s.id);
+    });
   }
 
   refreshTipos() {
@@ -339,6 +351,7 @@ export class EquipmentFormComponent implements OnInit, OnDestroy {
       dataAquisicao: eq.dataAquisicao ? new Date(eq.dataAquisicao) : null
     });
     if (batalhaoId) this.filtrarSecoesPorBatalhao(batalhaoId);
+    this.aplicarFiltroStatus();
   }
 
   atualizarCamposDinamicos(tipoId: number) {

@@ -19,6 +19,10 @@ export class SolicitarAcessoDto {
   @IsNotEmpty({ message: 'A matrícula é obrigatória' })
   matricula: string = '';
 
+  @IsString()
+  @IsNotEmpty({ message: 'O CPF é obrigatório' })
+  cpf: string = '';
+
 
   @IsString()
   @IsNotEmpty({ message: 'O nome é obrigatório' })

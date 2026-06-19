@@ -128,15 +128,25 @@
           </div>
         </div>
 
-        <div class="input-group">
-          <label for="requestUnidade">Unidade / Lotação</label>
-          <div class="input-wrapper">
-            <i class="pi pi-building"></i>
-            <input type="text" id="requestUnidade" name="requestUnidade" [(ngModel)]="reqUnidade" list="unidades-list"
-              placeholder="Digite ou selecione sua unidade..." class="unidade-input-with-datalist" autocomplete="off" />
-            <datalist id="unidades-list">
-              <option *ngFor="let u of unidades" [value]="u"></option>
-            </datalist>
+        <div class="input-row">
+          <div class="input-group half">
+            <label for="requestCpf">CPF</label>
+            <div class="input-wrapper">
+              <i class="pi pi-id-card"></i>
+              <input type="text" id="requestCpf" name="requestCpf" [(ngModel)]="reqCpf"
+                placeholder="Ex: 123.456.789-00" />
+            </div>
+          </div>
+          <div class="input-group half">
+            <label for="requestUnidade">Unidade / Lotação</label>
+            <div class="input-wrapper">
+              <i class="pi pi-building"></i>
+              <input type="text" id="requestUnidade" name="requestUnidade" [(ngModel)]="reqUnidade" list="unidades-list"
+                placeholder="Sua unidade..." class="unidade-input-with-datalist" autocomplete="off" />
+              <datalist id="unidades-list">
+                <option *ngFor="let u of unidades" [value]="u"></option>
+              </datalist>
+            </div>
           </div>
         </div>
 

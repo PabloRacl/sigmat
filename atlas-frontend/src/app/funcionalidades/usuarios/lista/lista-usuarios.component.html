@@ -1,4 +1,4 @@
-﻿<app-layout-pagina 
+<app-layout-pagina 
   [hasStats]="true" 
   [hasSearch]="true" 
   [noContentPadding]="true"
@@ -86,7 +86,7 @@
         <div class="us-request-card" *ngFor="let req of solicitacoes">
           <div class="us-request-info">
             <div class="us-request-user">
-              <strong>{{ req.nome }}</strong> ({{ req.cpf }})
+              <strong>{{ req.nome }}</strong> (CPF: {{ req.cpf || 'Não informado' }})
             </div>
             <div class="us-request-details">
               <span>Matrícula: {{ req.matricula || 'N/A' }}</span>

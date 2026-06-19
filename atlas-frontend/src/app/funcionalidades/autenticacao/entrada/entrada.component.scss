@@ -575,13 +575,12 @@
 
 .unidade-input-with-datalist {
   width: 100%;
-  padding: 10px 16px 10px 42px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
   color: #fff;
-  font-size: 14px;
   transition: all 0.3s ease;
+
+  &::-webkit-calendar-picker-indicator {
+    display: none !important;
+  }
 
   &:focus {
     outline: none;

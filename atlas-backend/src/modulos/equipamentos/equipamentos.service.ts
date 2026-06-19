@@ -158,6 +158,13 @@ export class EquipmentService {
     const userFull = await this.repository.findUsuarioCompleto(userId);
     if (!userFull) throw new NotFoundException('Usuário não encontrado');
 
+    if (dados.statusId && dados.statusId !== equipamentoAtual.statusId) {
+      const statusManutencao = await this.repository.findStatusEquipamentoByNome('Manutenção');
+      if (statusManutencao && dados.statusId === statusManutencao.id) {
+        throw new ForbiddenException('Para colocar o equipamento em manutenção, abra uma Ordem de Serviço formal pelo painel de Manutenção.');
+      }
+    }
+
     if (usuario.perfil === PerfilUsuario.ADMIN_DTEC) {
       return this.aplicarAtualizacaoDireta(
         id,
@@ -281,6 +288,14 @@ export class EquipmentService {
       tipoAquisicaoId,
       observacao,
     } = dados;
+
+    if (statusId) {
+      const statusManutencao = await this.repository.findStatusEquipamentoByNome('Manutenção');
+      if (statusManutencao && statusId === statusManutencao.id) {
+        throw new ForbiddenException('Não é permitido alterar para Manutenção em massa. Abra Ordens de Serviço formalmente.');
+      }
+    }
+
     const updateData: any = {};
     if (statusId) updateData.statusId = statusId;
     if (secaoId) updateData.secaoId = secaoId;

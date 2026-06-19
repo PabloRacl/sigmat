@@ -16,55 +16,97 @@
   </div>
 
   <!-- Cards Estatísticas/Resumo -->
-  <div class="mn-summary" stats>
-    <div class="mn-sum-card" [class.active]="filtroStatus === null" (click)="filtrarPorStatus(null)">
-      <span class="mn-sum-card__val">{{ contadorStatus.total }}</span>
-      <span class="mn-sum-card__label">Total</span>
+  <div class="atlas-stats" stats>
+    <div class="atlas-stat-card" [class.atlas-stat-card--active]="filtroStatus === null" (click)="filtrarPorStatus(null)" style="cursor:pointer;">
+      <div class="atlas-stat-card__icon gray"><i class="pi pi-inbox"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ contadorStatus.total }}</span>
+        <span class="atlas-stat-card__label">Total</span>
+      </div>
     </div>
-    <div class="mn-sum-card aberta" [class.active]="filtroStatus === 'ABERTA'" (click)="filtrarPorStatus('ABERTA')">
-      <span class="mn-sum-card__val">{{ contadorStatus.abertas }}</span>
-      <span class="mn-sum-card__label">Abertas</span>
+    <div class="atlas-stat-card" [class.atlas-stat-card--active]="filtroStatus === 'ABERTA'" (click)="filtrarPorStatus('ABERTA')" style="cursor:pointer;">
+      <div class="atlas-stat-card__icon blue"><i class="pi pi-exclamation-circle"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ contadorStatus.abertas }}</span>
+        <span class="atlas-stat-card__label">Abertas</span>
+      </div>
     </div>
-    <div class="mn-sum-card em_andamento" [class.active]="filtroStatus === 'EM_ANDAMENTO'" (click)="filtrarPorStatus('EM_ANDAMENTO')">
-      <span class="mn-sum-card__val">{{ contadorStatus.emAndamento }}</span>
-      <span class="mn-sum-card__label">Em Andamento</span>
+    <div class="atlas-stat-card" [class.atlas-stat-card--active]="filtroStatus === 'EM_ANDAMENTO'" (click)="filtrarPorStatus('EM_ANDAMENTO')" style="cursor:pointer;">
+      <div class="atlas-stat-card__icon indigo"><i class="pi pi-cog"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ contadorStatus.emAndamento }}</span>
+        <span class="atlas-stat-card__label">Em Andamento</span>
+      </div>
     </div>
-    <div class="mn-sum-card aguardando_peca" [class.active]="filtroStatus === 'AGUARDANDO_PECA'" (click)="filtrarPorStatus('AGUARDANDO_PECA')">
-      <span class="mn-sum-card__val">{{ contadorStatus.aguardando }}</span>
-      <span class="mn-sum-card__label">Aguardando Peça</span>
+    <div class="atlas-stat-card" [class.atlas-stat-card--active]="filtroStatus === 'AGUARDANDO_PECA'" (click)="filtrarPorStatus('AGUARDANDO_PECA')" style="cursor:pointer;">
+      <div class="atlas-stat-card__icon orange"><i class="pi pi-clock"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ contadorStatus.aguardando }}</span>
+        <span class="atlas-stat-card__label">Aguard. Peça</span>
+      </div>
     </div>
-    <div class="mn-sum-card concluida" [class.active]="filtroStatus === 'CONCLUIDA'" (click)="filtrarPorStatus('CONCLUIDA')">
-      <span class="mn-sum-card__val">{{ contadorStatus.concluidas }}</span>
-      <span class="mn-sum-card__label">Concluídas</span>
+    <div class="atlas-stat-card" [class.atlas-stat-card--active]="filtroStatus === 'CONCLUIDA'" (click)="filtrarPorStatus('CONCLUIDA')" style="cursor:pointer;">
+      <div class="atlas-stat-card__icon green"><i class="pi pi-check-circle"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ contadorStatus.concluidas }}</span>
+        <span class="atlas-stat-card__label">Concluídas</span>
+      </div>
     </div>
-    <div class="mn-sum-card cancelada" [class.active]="filtroStatus === 'CANCELADA'" (click)="filtrarPorStatus('CANCELADA')">
-      <span class="mn-sum-card__val">{{ contadorStatus.canceladas }}</span>
-      <span class="mn-sum-card__label">Canceladas</span>
+    <div class="atlas-stat-card" [class.atlas-stat-card--active]="filtroStatus === 'CANCELADA'" (click)="filtrarPorStatus('CANCELADA')" style="cursor:pointer;">
+      <div class="atlas-stat-card__icon" style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); color: #ef4444;"><i class="pi pi-times-circle"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ contadorStatus.canceladas }}</span>
+        <span class="atlas-stat-card__label">Canceladas</span>
+      </div>
     </div>
   </div>
 
-  <!-- Busca e Filtros -->
-  <div class="mn-toolbar" search-filters>
-    <div class="mn-search">
-      <i class="pi pi-search mn-search__icon"></i>
-      <input
-        id="mn-busca"
-        type="text"
-        class="mn-search__input"
-        placeholder="Buscar por patrimônio, técnico, problema..."
-        [(ngModel)]="buscaTexto"
-        (ngModelChange)="onBuscaChange()"
-      />
-      <button *ngIf="buscaTexto" class="mn-search__clear" (click)="buscaTexto=''; onBuscaChange()">
-        <i class="pi pi-times"></i>
-      </button>
+  <!-- Busca e Filtros Premium -->
+  <div class="atlas-search-wrap" search-filters>
+    <div class="atlas-search-premium">
+      <div class="search-input-wrapper">
+        <i class="pi pi-search search-icon"></i>
+        <input
+          type="text"
+          pInputText
+          class="search-input"
+          placeholder="Buscar por patrimônio, técnico, problema..."
+          [(ngModel)]="buscaTexto"
+          (keyup.enter)="aplicarFiltros()"
+        />
+        <button *ngIf="buscaTexto" class="clear-btn" (click)="buscaTexto=''; aplicarFiltros()" pTooltip="Limpar busca" tooltipPosition="top">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+
+      <div class="search-actions">
+        <button 
+          class="btn-action filter-btn" 
+          [ngClass]="{'active': exibirFiltrosAvancados || filtroAtivo}"
+          (click)="exibirFiltrosAvancados = true" 
+          pTooltip="Filtros Avançados"
+          tooltipPosition="top">
+          <i class="pi pi-filter"></i>
+          <span *ngIf="filtroAtivo" class="filter-badge"></span>
+        </button>
+        <button 
+          class="btn-action refresh-btn" 
+          (click)="carregarDados()" 
+          pTooltip="Recarregar Dados"
+          tooltipPosition="top">
+          <i class="pi pi-sync" [class.pi-spin]="carregando"></i>
+        </button>
+      </div>
     </div>
-    <div class="mn-toolbar__right">
-      <span class="mn-count">{{ ordensFiltradas.length }} resultado(s)</span>
-      <button class="mn-btn-ghost" (click)="carregarDados()" pTooltip="Recarregar" tooltipPosition="top">
-        <i class="pi pi-sync" [class.pi-spin]="carregando"></i>
-      </button>
-    </div>
+
+    <!-- Filtro Lateral Genérico para Manutenção -->
+    <app-filtro-lateral
+      titulo="Filtros de Manutenção"
+      [config]="configFiltros"
+      [(visible)]="exibirFiltrosAvancados"
+      [modelo]="modeloFiltros"
+      (aplicar)="pesquisarAvancado()"
+    ></app-filtro-lateral>
   </div>
 
   <!-- Grid Principal (Tabela) -->

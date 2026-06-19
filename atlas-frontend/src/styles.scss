@@ -203,7 +203,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: var(--atlas-page-padding);
+  padding: 0.5rem 1.5rem 1.5rem 1.5rem; /* Padding superior reduzido para padronizar e subir o texto */
   animation: fadeIn 0.4s ease-out;
 }
 
@@ -292,6 +292,146 @@ button {
     color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+  }
+
+  &--active {
+    border-color: rgba(99, 102, 241, 0.35);
+    box-shadow: 0 10px 22px -12px rgba(59, 130, 246, 0.2);
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-2px);
+
+    .atlas-stat-card__label { color: #6366f1; }
+    .atlas-stat-card__val   { color: #4338ca; }
+  }
+}
+
+// ── Search Bar Premium ─────────────────────────────────────────
+.atlas-search-wrap {
+  padding: 1rem 1.5rem;
+  background: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.atlas-search-premium {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 8px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04), inset 0 2px 0 rgba(255, 255, 255, 0.6);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:focus-within {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15), inset 0 2px 0 rgba(255, 255, 255, 1);
+    transform: translateY(-1px);
+  }
+
+  .search-input-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .search-icon {
+      color: #94a3b8;
+      font-size: 1.1rem;
+    }
+
+    .search-input {
+      flex: 1;
+      border: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #1e293b;
+      padding: 4px 0;
+
+      &::placeholder {
+        color: #cbd5e1;
+        font-weight: 400;
+      }
+    }
+
+    .clear-btn {
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      opacity: 0.7;
+      transition: all 0.2s;
+      
+      &:hover {
+        opacity: 1;
+        background: rgba(239, 68, 68, 0.1);
+      }
+    }
+  }
+
+  .search-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 12px;
+    border-left: 1px solid rgba(226, 232, 240, 0.8);
+
+    .btn-action {
+      position: relative;
+      background: transparent;
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      i { font-size: 1.1rem; }
+
+      &:hover {
+        background: rgba(241, 245, 249, 0.8);
+        color: #334155;
+      }
+
+      &.filter-btn {
+        &.active, &:hover {
+          color: #6366f1;
+          background: rgba(99, 102, 241, 0.1);
+        }
+
+        .filter-badge {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          width: 8px;
+          height: 8px;
+          background: #ef4444;
+          border-radius: 50%;
+          border: 2px solid white;
+        }
+      }
+
+      &.refresh-btn {
+        &:hover {
+          color: #10b981;
+          background: rgba(16, 185, 129, 0.1);
+        }
+      }
+    }
   }
 }
 

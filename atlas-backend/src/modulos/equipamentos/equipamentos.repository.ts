@@ -67,6 +67,12 @@ export class EquipmentRepository {
     });
   }
 
+  async findStatusEquipamentoByNome(nome: string) {
+    return this.prisma.statusEquipamento.findFirst({
+      where: { nome: { in: [nome, 'Em ' + nome, 'Em Manutenção'] } }
+    });
+  }
+
   async createEquipamento(dados: any) {
     return this.prisma.equipamento.create({
       data: dados,

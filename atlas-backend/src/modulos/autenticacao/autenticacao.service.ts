@@ -159,6 +159,7 @@ export class AuthService {
 
       const dadosCompletos = {
         login: loginInformado,
+        cpf: dto.cpf,
         matricula: dto.matricula,
         nome: dto.nome,
         email: '',
