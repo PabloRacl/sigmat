@@ -1,4 +1,4 @@
-﻿/**
+/**
  * [Estado Atual]: ServiÃ§o de negÃ³cios para autenticaÃ§Ã£o, controle de sessÃµes e revogaÃ§Ã£o de tokens.
  * [DependÃªncias TÃ©cnicas]:
  *   - AuthRepository
@@ -155,36 +155,21 @@ export class AuthService {
     dto: import('./dto/entrada.dto').SolicitarAcessoDto,
   ) {
     try {
-      const isMock = process.env.USE_MOCK_AUTH === 'true';
-      let cpfLdap = dto.cpf;
-      let sgpmData: any = {};
-      let sgaPermissao: any = { perfil: 'USUARIO_BATALHAO' };
-
-      if (!isMock) {
-        // Usa o campo 'usuario' diretamente, igual ao login principal
-        cpfLdap = await this.ldapService.autenticar(dto.usuario, dto.senha);
-        sgpmData = await this.sgaService
-          .obterDadosSgpm(cpfLdap)
-          .catch(() => ({}));
-        sgaPermissao = await this.sgaService
-          .obterPermissao(cpfLdap)
-          .catch(() => ({ perfil: 'USUARIO_BATALHAO' }));
-      }
+      const loginInformado = dto.usuario;
 
       const dadosCompletos = {
-        login: cpfLdap, // CPF real retornado pelo LDAP
-        cpf: cpfLdap,
-        matricula: sgpmData.matricula || dto.matricula || '',
-        nome: [sgpmData.sigla, sgpmData.nome_guerra].filter(Boolean).join(' ') || dto.nome || 'Policial Militar',
+        login: loginInformado,
+        matricula: dto.matricula,
+        nome: dto.nome,
         email: '',
-        postoGraduacao: sgpmData.sigla || '',
-        perfil: sgaPermissao.perfil,
-        organizacaoDisp: sgpmData.organizacao_disp || dto.unidade || 'DTEC',
-        secaoSigla:
-          sgpmData.secao || sgpmData.organizacao_disp || dto.unidade || 'DTEC',
+        postoGraduacao: '',
+        perfil: 'USUARIO_BATALHAO',
+        organizacaoDisp: dto.unidade,
+        secaoSigla: dto.unidade,
+        motivoSolicitacao: dto.motivo,
       };
 
-      const usuarioBanco = await this.usersService.buscarPorLogin(cpfLdap);
+      const usuarioBanco = await this.usersService.buscarPorLogin(loginInformado);
       if (usuarioBanco && usuarioBanco.autorizado === true) {
         return {
           message:

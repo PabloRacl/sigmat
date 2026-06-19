@@ -11,6 +11,7 @@ import { ButtonModule } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { RippleModule } from 'primeng/ripple';
+import { environment } from '../../../environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,13 +31,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
   usuario$!: Observable<any>;
   notificacoes: NotificacaoDetalhes = { total: 0, aprovacoes: 0, transferencias: 0, manutencao: 0, acesso: 0 };
   isSidebarCollapsed = false;
+  menuExpandido: string | null = null;
   termoBusca: string = '';
   showProfileMenu = false;
   showNotifMenu = false;
   avatarError = false;
 
+  saudacao = 'Bem-vindo';
+  tempoSessao = 3600; // 60 minutos
+  private intervalId: any;
+
   ngOnInit(): void {
     this.usuario$ = this.authService.usuario$;
+    this.definirSaudacao();
+    this.iniciarTimer();
 
     this.notificationsService.pendentes$.subscribe(detalhes => {
       this.notificacoes = detalhes;
@@ -78,6 +86,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return '';
   }
 
+  obterUrlAvatar(matricula: string | undefined): string {
+    if (!matricula) return '';
+    return `${environment.apiAvatarUrl}${matricula}.jpg`;
+  }
+
   get podeVerUsuarios(): boolean {
     return this.isAdmin;
   }
@@ -110,7 +123,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
   toggleNotifMenu(event: Event) {
     event.stopPropagation();
     this.showNotifMenu = !this.showNotifMenu;
-    if (this.showNotifMenu) this.showProfileMenu = false;
+    this.showProfileMenu = false;
+  }
+
+  getTimerClass(): string {
+    if (this.tempoSessao > 1800) {
+      return 'safe'; // > 30 min
+    } else if (this.tempoSessao > 600) {
+      return 'warning'; // entre 10 e 30 min
+    } else {
+      return 'danger'; // < 10 min
+    }
   }
 
   @HostListener('document:click')
@@ -136,9 +159,49 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
+    if (this.isSidebarCollapsed) {
+      this.menuExpandido = null;
+    }
+  }
+
+  toggleMenu(menu: string) {
+    if (this.isSidebarCollapsed) {
+      this.isSidebarCollapsed = false;
+    }
+    this.menuExpandido = this.menuExpandido === menu ? null : menu;
+  }
+
+  definirSaudacao() {
+    const hora = new Date().getHours();
+    if (hora >= 5 && hora < 12) {
+      this.saudacao = 'Bom dia';
+    } else if (hora >= 12 && hora < 18) {
+      this.saudacao = 'Boa tarde';
+    } else {
+      this.saudacao = 'Boa noite';
+    }
+  }
+
+  iniciarTimer() {
+    this.intervalId = setInterval(() => {
+      this.tempoSessao--;
+      if (this.tempoSessao <= 0) {
+        clearInterval(this.intervalId);
+        this.sair();
+      }
+    }, 1000);
+  }
+
+  formatarTempo(segundos: number): string {
+    const minutos = Math.floor(segundos / 60);
+    const seg = segundos % 60;
+    return `${minutos.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
   }
 
   ngOnDestroy(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
     this.destroy$.next();
     this.destroy$.complete();
   }

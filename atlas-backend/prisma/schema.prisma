@@ -92,20 +92,20 @@ model Usuario {
 }
 
 model SolicitacaoAcesso {
-  id               Int                @id @default(autoincrement())
-  login            String             @db.VarChar(50)
-  cpf              String?            @db.VarChar(20)
-  matricula        String?            @db.VarChar(50)
-  nome             String             @db.VarChar(200)
-  email            String?            @db.VarChar(200)
-  postoGraduacao   String?            @map("posto_graduacao") @db.VarChar(100)
-  organizacaoDisp  String?            @db.VarChar(100)
-  secaoSigla       String?            @db.VarChar(100)
-  perfil           PerfilUsuario?     
-  status           StatusSolicitacao  @default(PENDENTE)
-  motivoRejeicao   String?            @map("motivo_rejeicao") @db.VarChar(255)
-  createdAt        DateTime           @default(now()) @map("created_at")
-  updatedAt        DateTime           @updatedAt @map("updated_at")
+  id                Int                @id @default(autoincrement())
+  login             String             @db.VarChar(50)
+  matricula         String?            @db.VarChar(50)
+  nome              String             @db.VarChar(200)
+  email             String?            @db.VarChar(200)
+  postoGraduacao    String?            @map("posto_graduacao") @db.VarChar(100)
+  organizacaoDisp   String?            @db.VarChar(100)
+  secaoSigla        String?            @db.VarChar(100)
+  perfil            PerfilUsuario?     
+  status            StatusSolicitacao  @default(PENDENTE)
+  motivoRejeicao    String?            @map("motivo_rejeicao") @db.VarChar(255)
+  motivoSolicitacao String?            @map("motivo_solicitacao") @db.Text
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
 
   @@map("solicitacoes_acesso")
 }

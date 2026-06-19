@@ -31,7 +31,7 @@ import { LocalStrategy } from './strategies/local.strategy';
             'JWT_SECRET não está definido nas variáveis de ambiente',
           );
         }
-        return { secret, signOptions: { expiresIn: '8h' } };
+        return { secret, signOptions: { expiresIn: '60m' } };
       },
     }),
   ],

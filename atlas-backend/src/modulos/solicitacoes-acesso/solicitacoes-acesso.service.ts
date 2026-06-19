@@ -26,7 +26,6 @@ export class AccessRequestsService {
     const novaSolicitacao = await this.repository.create({
       data: {
         login: dados.login,
-        cpf: dados.cpf,
         matricula: dados.matricula,
         nome: dados.nome,
         email: dados.email,

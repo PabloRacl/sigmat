@@ -185,6 +185,18 @@ button {
   --atlas-radius-large: 16px;
   --atlas-radius-medium: 12px;
   --atlas-border-color: #e2e8f0;
+
+  /* Cores Padrão PMPE */
+  --bg-primary: #2F3B68;
+  --bg-secondary: #242c50;
+  --bg-tertiary: #19203b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --accent-color: #3b82f6;
+  --accent-glow: rgba(255, 255, 255, .2);
+  --glass-bg: rgba(25, 32, 59, .6);
+  --glass-border: rgba(255, 255, 255, .12);
+  --font-family: "Inter", sans-serif;
 }
 
 .atlas-layout {

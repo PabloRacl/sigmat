@@ -7,9 +7,9 @@
 
 .sidebar {
   width: 240px;
-  background: #2b3655;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  color: white;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--glass-border);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   padding: 24px 16px;
@@ -96,7 +96,73 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 8px; /* Espaço ajustado para accordion */
+
+    .nav-group {
+      display: flex;
+      flex-direction: column;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      background: transparent;
+
+      &.active {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .nav-group-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 16px;
+        cursor: pointer;
+        border-radius: 12px;
+        color: var(--text-secondary);
+        transition: all 0.2s ease;
+        font-weight: 500;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.05);
+          color: var(--text-primary);
+        }
+
+        .group-icon {
+          font-size: 1.1rem;
+        }
+
+        .nav-group-title {
+          font-size: 0.85rem;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          flex: 1;
+        }
+
+        .chevron {
+          font-size: 0.9rem;
+          transition: transform 0.3s ease;
+          &.rotated {
+            transform: rotate(180deg);
+          }
+        }
+      }
+
+      .nav-submenu {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-in-out, opacity 0.3s ease;
+        opacity: 0;
+        padding-left: 12px; /* Indentação dos submenus */
+
+        &.expanded {
+          max-height: 400px; /* Suficiente para expandir */
+          opacity: 1;
+          margin-top: 4px;
+          margin-bottom: 8px;
+        }
+      }
+    }
 
     .nav-item {
       display: flex;
@@ -105,7 +171,7 @@
       padding: 14px 16px;
       border-radius: 12px;
       text-decoration: none;
-      color: #94a3b8;
+      color: var(--text-secondary);
       transition: all 0.2s ease;
       font-weight: 500;
 
@@ -114,19 +180,48 @@
 
       &:hover:not(.disabled) {
         background: rgba(255, 255, 255, 0.05);
-        color: #ffffff;
+        color: var(--text-primary);
       }
 
       &.active {
-        background: #3b82f6;
-        color: #ffffff;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        background: var(--accent-color);
+        color: var(--text-primary);
+        box-shadow: 0 4px 12px var(--accent-glow);
       }
 
       &.disabled {
         opacity: 0.4;
         cursor: not-allowed;
       }
+    }
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--glass-border);
+
+    .logout-btn-sidebar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #ef4444; /* Vermelho para destaque de saída */
+      background: transparent;
+      border: none;
+      width: 100%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      font-size: 0.95rem;
+
+      &:hover {
+        background: rgba(239, 68, 68, 0.1);
+      }
+
+      .icon { font-size: 1.1rem; }
     }
   }
 }
@@ -139,13 +234,13 @@
 }
 
 .topbar {
-  height: 80px;
-  background: #2b3655;
+  height: 64px;
+  background: var(--bg-secondary);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--glass-border);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 5;
 
@@ -358,25 +453,130 @@
       }
     }
 
+    @keyframes radarPulse {
+      0% { box-shadow: 0 0 0 0 rgba(var(--radar-color-rgb), 0.7); }
+      70% { box-shadow: 0 0 0 8px rgba(var(--radar-color-rgb), 0); }
+      100% { box-shadow: 0 0 0 0 rgba(var(--radar-color-rgb), 0); }
+    }
+
+    .session-timer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+
+      .timer-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+      
+      .timer-value {
+        font-variant-numeric: tabular-nums;
+        min-width: 45px;
+      }
+
+      .radar-blip {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      &.safe {
+        color: #10b981;
+        --radar-color-rgb: 16, 185, 129;
+        .radar-blip {
+          background-color: #10b981;
+          animation: radarPulse 2s infinite;
+        }
+      }
+
+      &.warning {
+        color: #f59e0b;
+        --radar-color-rgb: 245, 158, 11;
+        background: rgba(245, 158, 11, 0.05);
+        border-color: rgba(245, 158, 11, 0.2);
+        .radar-blip {
+          background-color: #f59e0b;
+          animation: radarPulse 1.2s infinite;
+        }
+      }
+
+      &.danger {
+        color: #ef4444;
+        --radar-color-rgb: 239, 68, 68;
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
+        .radar-blip {
+          background-color: #ef4444;
+          animation: radarPulse 0.6s infinite;
+        }
+      }
+    }
+
+    .logout-btn-top {
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &:hover {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.6);
+      }
+    }
+
+    .user-greeting {
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      margin-right: 8px;
+      font-weight: 500;
+    }
+
     .user-profile {
       display: flex;
       align-items: center;
       gap: 1rem;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
 
       .user-info {
         display: flex;
-        flex-direction: column;
-        align-items: flex-end;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
 
         .user-name {
           font-size: 0.95rem;
           font-weight: 700;
-          color: #ffffff;
+          color: var(--text-primary);
+        }
+
+        .user-role-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          border-left: 1px solid rgba(255,255,255,0.2);
+          padding-left: 8px;
         }
 
         .user-role {
           font-size: 0.75rem;
-          color: #cbd5e1;
+          color: var(--text-secondary);
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.5px;
@@ -384,10 +584,11 @@
 
         .user-affiliation {
           font-size: 0.72rem;
-          color: #94a3b8;
+          color: var(--text-secondary);
           font-weight: 600;
-          letter-spacing: 0.4px;
-          margin-top: 2px;
+          background: rgba(255,255,255,0.05);
+          padding: 2px 6px;
+          border-radius: 4px;
         }
       }
 
@@ -397,23 +598,23 @@
       }
 
       .user-avatar {
-        width: 44px;
-        height: 44px;
+        width: 36px;
+        height: 36px;
         background: linear-gradient(135deg, #3b82f6, #6366f1);
         color: white;
-        border-radius: 12px;
+        border-radius: 10px;
         display: flex;
         justify-content: center;
         align-items: center;
         font-weight: 800;
-        font-size: 1.25rem;
+        font-size: 1rem;
         box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
       }
 
       .user-avatar-img {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
         object-fit: cover;
         flex-shrink: 0;
       }
