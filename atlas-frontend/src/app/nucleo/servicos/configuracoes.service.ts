@@ -44,6 +44,11 @@ export class SettingsService {
     return this.http.post<any>(`${this.API_URL}/tipos`, dados);
   }
 
+  atualizarTipo(id: number, dados: { nome: string }): Observable<any> {
+    if (this.mockMode.useMock) return of({ ...dados, id });
+    return this.http.put<any>(`${this.API_URL}/tipos/${id}`, dados);
+  }
+
   criarMarca(dados: { nome: string }): Observable<any> {
     if (this.mockMode.useMock) {
       return of({ id: Date.now(), ...dados });
@@ -51,11 +56,21 @@ export class SettingsService {
     return this.http.post<any>(`${this.API_URL}/marcas`, dados);
   }
 
+  atualizarMarca(id: number, dados: { nome: string }): Observable<any> {
+    if (this.mockMode.useMock) return of({ ...dados, id });
+    return this.http.put<any>(`${this.API_URL}/marcas/${id}`, dados);
+  }
+
   criarModelo(dados: { nome: string; marcaId?: number }): Observable<any> {
     if (this.mockMode.useMock) {
       return of({ id: Date.now(), ...dados });
     }
     return this.http.post<any>(`${this.API_URL}/modelos`, dados);
+  }
+
+  atualizarModelo(id: number, dados: { nome: string; marcaId?: number }): Observable<any> {
+    if (this.mockMode.useMock) return of({ ...dados, id });
+    return this.http.put<any>(`${this.API_URL}/modelos/${id}`, dados);
   }
 
   excluirTipo(id: number): Observable<any> {
@@ -112,6 +127,21 @@ export class SettingsService {
       return of(MOCK_DISPONIBILIDADES);
     }
     return this.http.get<any[]>(`${this.API_URL}/disponibilidades`);
+  }
+
+  criarDisponibilidade(dados: { nome: string }): Observable<any> {
+    if (this.mockMode.useMock) return of({ id: Date.now(), ...dados });
+    return this.http.post<any>(`${this.API_URL}/disponibilidades`, dados);
+  }
+
+  atualizarDisponibilidade(id: number, dados: { nome: string }): Observable<any> {
+    if (this.mockMode.useMock) return of({ ...dados, id });
+    return this.http.put<any>(`${this.API_URL}/disponibilidades/${id}`, dados);
+  }
+
+  excluirDisponibilidade(id: number): Observable<any> {
+    if (this.mockMode.useMock) return of({ success: true });
+    return this.http.delete<any>(`${this.API_URL}/disponibilidades/${id}`);
   }
 
   listarTiposAquisicao(): Observable<any[]> {

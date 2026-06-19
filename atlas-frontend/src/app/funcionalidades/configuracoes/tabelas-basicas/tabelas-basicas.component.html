@@ -31,7 +31,8 @@
           <th style="width: 80px;" pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
           <th pSortableColumn="nome">Descrição do Registro <p-sortIcon field="nome"></p-sortIcon></th>
           <th *ngIf="entidade === 'modelos'" pSortableColumn="marca.nome">Marca Associada <p-sortIcon field="marca.nome"></p-sortIcon></th>
-          <th style="width: 120px; text-align: center;" *ngIf="entidade !== 'disponibilidades'">Ações</th>
+          <th style="width: 150px; text-align: center;" pSortableColumn="_count.equipamentos">Qtd. Equipamentos <p-sortIcon field="_count.equipamentos"></p-sortIcon></th>
+          <th style="width: 120px; text-align: center;">Ações</th>
         </tr>
       </ng-template>
 
@@ -51,9 +52,15 @@
             </div>
             <span class="text-color-secondary" *ngIf="!item.marca">-</span>
           </td>
-          <td style="text-align: center;" *ngIf="entidade !== 'disponibilidades'">
+          <td style="text-align: center;">
+            <div class="count-badge" [class.count-zero]="!item._count?.equipamentos">
+              {{ item._count?.equipamentos || 0 }}
+            </div>
+          </td>
+          <td style="text-align: center;">
             <div class="action-buttons">
-              <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text action-btn" (click)="excluir(item.id)" pTooltip="Excluir Permanentemente" tooltipPosition="left"></button>
+              <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-info p-button-text action-btn" (click)="editar(item)" pTooltip="Editar" tooltipPosition="left"></button>
+              <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text action-btn" (click)="excluir(item.id)" pTooltip="Excluir Permanentemente" tooltipPosition="left" [disabled]="item._count?.equipamentos > 0"></button>
             </div>
           </td>
         </tr>
@@ -77,11 +84,11 @@
 </div>
 
 <!-- Modal Premium -->
-<p-dialog [(visible)]="modalVisivel" [header]="'Novo(a) ' + titulo" [modal]="true" [style]="{width: '500px'}" [draggable]="false" [resizable]="false" styleClass="premium-modal" [closable]="false">
+<p-dialog [(visible)]="modalVisivel" [header]="(modoEdicao ? 'Editar ' : 'Novo(a) ') + titulo" [modal]="true" [style]="{width: '500px'}" [draggable]="false" [resizable]="false" styleClass="premium-modal" [closable]="false">
   <ng-template pTemplate="header">
     <div class="modal-header-custom">
-      <div class="modal-icon"><i class="pi pi-file-edit"></i></div>
-      <h3>Criar {{ titulo }}</h3>
+      <div class="modal-icon"><i class="pi" [ngClass]="modoEdicao ? 'pi-pencil' : 'pi-file-edit'"></i></div>
+      <h3>{{ modoEdicao ? 'Editar' : 'Criar' }} {{ titulo }}</h3>
     </div>
   </ng-template>
   

@@ -102,15 +102,57 @@ export class SettingsController {
     return this.SettingsService.excluirTipo(Number(id));
   }
 
+  @Put('tipos/:id')
+  @Roles('ADMIN_DTEC')
+  atualizarTipo(@Param('id') id: string, @Body() dados: { nome: string }) {
+    return this.SettingsService.atualizarTipo(Number(id), dados);
+  }
+
   @Delete('marcas/:id')
   @Roles('ADMIN_DTEC')
   excluirMarca(@Param('id') id: string) {
     return this.SettingsService.excluirMarca(Number(id));
   }
 
+  @Put('marcas/:id')
+  @Roles('ADMIN_DTEC')
+  atualizarMarca(@Param('id') id: string, @Body() dados: { nome: string }) {
+    return this.SettingsService.atualizarMarca(Number(id), dados);
+  }
+
   @Delete('modelos/:id')
   @Roles('ADMIN_DTEC')
   excluirModelo(@Param('id') id: string) {
     return this.SettingsService.excluirModelo(Number(id));
+  }
+
+  @Put('modelos/:id')
+  @Roles('ADMIN_DTEC')
+  atualizarModelo(@Param('id') id: string, @Body() dados: { nome: string; marcaId?: number }) {
+    return this.SettingsService.atualizarModelo(Number(id), dados);
+  }
+
+  @Post('disponibilidades')
+  @Roles('ADMIN_DTEC')
+  criarDisponibilidade(@Body() dados: { nome: string }) {
+    return this.SettingsService.criarDisponibilidade(dados);
+  }
+
+  @Put('disponibilidades/:id')
+  @Roles('ADMIN_DTEC')
+  atualizarDisponibilidade(@Param('id') id: string, @Body() dados: { nome: string }) {
+    return this.SettingsService.atualizarDisponibilidade(Number(id), dados);
+  }
+
+  @Delete('disponibilidades/:id')
+  @Roles('ADMIN_DTEC')
+  excluirDisponibilidade(@Param('id') id: string) {
+    return this.SettingsService.excluirDisponibilidade(Number(id));
+  }
+
+  @Put('status/:id')
+  @Roles('ADMIN_DTEC')
+  atualizarStatus(@Param('id') id: string, @Body() dados: { nome: string }) {
+    return this.SettingsService.atualizarStatus(Number(id), dados);
   }
 }

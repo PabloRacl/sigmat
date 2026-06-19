@@ -13,7 +13,10 @@ export class SettingsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async listarTipos() {
-    return this.prisma.tipoEquipamento.findMany({ orderBy: { nome: 'asc' } });
+    return this.prisma.tipoEquipamento.findMany({ 
+      orderBy: { nome: 'asc' },
+      include: { _count: { select: { equipamentos: true } } }
+    });
   }
 
   private async findUsuarioCompleto(usuarioId: number) {
@@ -91,13 +94,20 @@ export class SettingsService {
   }
 
   async listarMarcas() {
-    return this.prisma.marca.findMany({ orderBy: { nome: 'asc' } });
+    return this.prisma.marca.findMany({ 
+      orderBy: { nome: 'asc' },
+      include: { _count: { select: { equipamentos: true } } }
+    });
   }
 
   async listarModelos(marcaId?: number) {
     return this.prisma.modelo.findMany({
       where: marcaId ? { marcaId } : {},
       orderBy: { nome: 'asc' },
+      include: { 
+        marca: true,
+        _count: { select: { equipamentos: true } } 
+      }
     });
   }
 
@@ -126,6 +136,15 @@ export class SettingsService {
     });
   }
 
+  async atualizarTipo(id: number, dados: { nome: string }) {
+    const nomeNormalizado = dados.nome?.trim();
+    if (!nomeNormalizado) throw new BadRequestException('Nome vazio.');
+    return this.prisma.tipoEquipamento.update({
+      where: { id },
+      data: { nome: nomeNormalizado },
+    });
+  }
+
   async criarMarca(dados: { nome: string }) {
     const nomeNormalizado = dados.nome?.trim();
     if (!nomeNormalizado) {
@@ -145,6 +164,15 @@ export class SettingsService {
       );
     }
     return this.prisma.marca.create({ data: { nome: nomeNormalizado } });
+  }
+
+  async atualizarMarca(id: number, dados: { nome: string }) {
+    const nomeNormalizado = dados.nome?.trim();
+    if (!nomeNormalizado) throw new BadRequestException('Nome vazio.');
+    return this.prisma.marca.update({
+      where: { id },
+      data: { nome: nomeNormalizado },
+    });
   }
 
   async criarModelo(dados: { nome: string; marcaId?: number }) {
@@ -176,12 +204,64 @@ export class SettingsService {
     });
   }
 
+  async atualizarModelo(id: number, dados: { nome: string; marcaId?: number }) {
+    const nomeNormalizado = dados.nome?.trim();
+    if (!nomeNormalizado) throw new BadRequestException('Nome vazio.');
+    if (!dados.marcaId) throw new BadRequestException('Marca não informada.');
+    return this.prisma.modelo.update({
+      where: { id },
+      data: { nome: nomeNormalizado, marcaId: dados.marcaId },
+    });
+  }
+
   async listarStatus() {
-    return this.prisma.statusEquipamento.findMany({ orderBy: { nome: 'asc' } });
+    return this.prisma.statusEquipamento.findMany({ 
+      orderBy: { nome: 'asc' },
+      include: { _count: { select: { equipamentos: true } } }
+    });
   }
 
   async listarDisponibilidades() {
-    return this.prisma.disponibilidade.findMany({ orderBy: { nome: 'asc' } });
+    return this.prisma.disponibilidade.findMany({ 
+      orderBy: { nome: 'asc' },
+      include: { _count: { select: { equipamentos: true } } }
+    });
+  }
+
+  async criarDisponibilidade(dados: { nome: string }) {
+    const nomeNormalizado = dados.nome?.trim();
+    if (!nomeNormalizado) throw new BadRequestException('Nome vazio.');
+    return this.prisma.disponibilidade.create({ data: { nome: nomeNormalizado } });
+  }
+
+  async atualizarDisponibilidade(id: number, dados: { nome: string }) {
+    const nomeNormalizado = dados.nome?.trim();
+    if (!nomeNormalizado) throw new BadRequestException('Nome vazio.');
+    return this.prisma.disponibilidade.update({
+      where: { id },
+      data: { nome: nomeNormalizado },
+    });
+  }
+
+  async excluirDisponibilidade(id: number) {
+    const equipamentosCount = await this.prisma.equipamento.count({
+      where: { disponibilidadeId: id },
+    });
+    if (equipamentosCount > 0) {
+      throw new ConflictException(
+        `Não é possível excluir esta disponibilidade porque existem ${equipamentosCount} equipamento(s) vinculados a ela.`,
+      );
+    }
+    return this.prisma.disponibilidade.delete({ where: { id } });
+  }
+
+  async atualizarStatus(id: number, dados: { nome: string }) {
+    const nomeNormalizado = dados.nome?.trim();
+    if (!nomeNormalizado) throw new BadRequestException('Nome vazio.');
+    return this.prisma.statusEquipamento.update({
+      where: { id },
+      data: { nome: nomeNormalizado },
+    });
   }
 
   async listarTiposAquisicao() {

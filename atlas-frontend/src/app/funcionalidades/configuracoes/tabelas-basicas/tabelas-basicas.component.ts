@@ -30,6 +30,7 @@ export class TabelasBasicasComponent implements OnInit {
 
   modalVisivel = false;
   salvando = false;
+  modoEdicao = false;
   novoRegistro: any = { nome: '' };
 
   // Usado apenas para 'modelos'
@@ -94,10 +95,17 @@ export class TabelasBasicasComponent implements OnInit {
   }
 
   abrirModalNovo() {
+    this.modoEdicao = false;
     this.novoRegistro = { nome: '' };
     if (this.entidade === 'modelos') {
       this.novoRegistro.marcaId = null;
     }
+    this.modalVisivel = true;
+  }
+
+  editar(item: any) {
+    this.modoEdicao = true;
+    this.novoRegistro = { ...item };
     this.modalVisivel = true;
   }
 
@@ -119,17 +127,22 @@ export class TabelasBasicasComponent implements OnInit {
     this.salvando = true;
     let observable;
 
-    switch (this.entidade) {
-      case 'tipos': observable = this.settingsService.criarTipo({ nome: this.novoRegistro.nome }); break;
-      case 'marcas': observable = this.settingsService.criarMarca({ nome: this.novoRegistro.nome }); break;
-      case 'modelos': observable = this.settingsService.criarModelo({ nome: this.novoRegistro.nome, marcaId: this.novoRegistro.marcaId }); break;
-      case 'status': observable = this.settingsService.criarStatus({ nome: this.novoRegistro.nome }); break;
-      case 'disponibilidades': 
-        // Não temos endpoint criarDisponibilidade, a API base talvez não permita criar? 
-        // Caso não exista, simulamos falha ou tratamos se existir
-        this.mostrarErro('Criação de disponibilidades não suportada');
-        this.salvando = false;
-        return;
+    if (this.modoEdicao) {
+      switch (this.entidade) {
+        case 'tipos': observable = this.settingsService.atualizarTipo(this.novoRegistro.id, { nome: this.novoRegistro.nome }); break;
+        case 'marcas': observable = this.settingsService.atualizarMarca(this.novoRegistro.id, { nome: this.novoRegistro.nome }); break;
+        case 'modelos': observable = this.settingsService.atualizarModelo(this.novoRegistro.id, { nome: this.novoRegistro.nome, marcaId: this.novoRegistro.marcaId }); break;
+        case 'status': observable = this.settingsService.atualizarStatus(this.novoRegistro.id, { nome: this.novoRegistro.nome }); break;
+        case 'disponibilidades': observable = this.settingsService.atualizarDisponibilidade(this.novoRegistro.id, { nome: this.novoRegistro.nome }); break;
+      }
+    } else {
+      switch (this.entidade) {
+        case 'tipos': observable = this.settingsService.criarTipo({ nome: this.novoRegistro.nome }); break;
+        case 'marcas': observable = this.settingsService.criarMarca({ nome: this.novoRegistro.nome }); break;
+        case 'modelos': observable = this.settingsService.criarModelo({ nome: this.novoRegistro.nome, marcaId: this.novoRegistro.marcaId }); break;
+        case 'status': observable = this.settingsService.criarStatus({ nome: this.novoRegistro.nome }); break;
+        case 'disponibilidades': observable = this.settingsService.criarDisponibilidade({ nome: this.novoRegistro.nome }); break;
+      }
     }
 
     if (observable) {
@@ -137,7 +150,7 @@ export class TabelasBasicasComponent implements OnInit {
         next: () => {
           this.salvando = false;
           this.fecharModal();
-          this.mostrarSucesso('Registro criado com sucesso');
+          this.mostrarSucesso(this.modoEdicao ? 'Registro atualizado com sucesso' : 'Registro criado com sucesso');
           this.carregarDados();
         },
         error: (err) => {
@@ -157,9 +170,7 @@ export class TabelasBasicasComponent implements OnInit {
       case 'marcas': observable = this.settingsService.excluirMarca(id); break;
       case 'modelos': observable = this.settingsService.excluirModelo(id); break;
       case 'status': observable = this.settingsService.excluirStatus(id); break;
-      case 'disponibilidades': 
-        this.mostrarErro('Exclusão de disponibilidades não suportada');
-        return;
+      case 'disponibilidades': observable = this.settingsService.excluirDisponibilidade(id); break;
     }
 
     if (observable) {
