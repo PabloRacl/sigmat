@@ -24,11 +24,16 @@ export class ApprovalsController {
     return this.ApprovalsService.listarPendentesPorUnidade(batalhaoId);
   }
 
-  @Get(['pendentes/contagem', 'contagem'])
+  @Get('contagem')
   async contarPendentes(@LoggedUser() usuario: any) {
     const batalhaoId =
       usuario.perfil === 'ADMIN_DTEC' ? undefined : usuario.batalhaoId;
     return { total: await this.ApprovalsService.contarPendentes(batalhaoId) };
+  }
+
+  @Get('pendentes/contagem')
+  async contarPendentesLegacy(@LoggedUser() usuario: any) {
+    return this.contarPendentes(usuario);
   }
 
   @Get(':id')
