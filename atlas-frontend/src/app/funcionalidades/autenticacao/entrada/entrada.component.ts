@@ -1,5 +1,6 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -59,6 +60,11 @@ export class LoginComponent implements OnInit {
 
   ngOnInit() {
     this.carregarUnidades();
+    this.route.queryParams.subscribe(params => {
+      if (params['returnUrl']) {
+        this.returnUrl = params['returnUrl'];
+      }
+    });
   }
 
   @HostListener('document:click', ['$event'])
@@ -108,6 +114,8 @@ export class LoginComponent implements OnInit {
     this.unidadesBusca = '';
   }
 
+  loadingProgress = 0;
+
   login() {
     if (!this.username || !this.password) {
       this.error = 'Por favor, preencha todos os campos.';
@@ -115,6 +123,7 @@ export class LoginComponent implements OnInit {
     }
 
     this.loading = true;
+    this.loadingProgress = 0;
     this.error = '';
 
     if (this.mockModeService.useMock !== this.mockMode) {
@@ -123,16 +132,34 @@ export class LoginComponent implements OnInit {
 
     this.authService.login(this.username, this.password).subscribe({
       next: () => {
-        this.router.navigateByUrl(this.returnUrl);
+        // Dispara progresso dinâmico de 0 a 100% que vai acelerar os cubos no DOM
+        const duration = 2800; // 2.8 segundos de experiência visual premium
+        const intervalTime = 30;
+        const steps = duration / intervalTime;
+        let currentStep = 0;
+
+        const timer = setInterval(() => {
+          currentStep++;
+          // Curva de aceleração não-linear (acelera no final)
+          const ratio = currentStep / steps;
+          this.loadingProgress = Math.min(Math.round(Math.pow(ratio, 1.5) * 100), 100);
+
+          if (currentStep >= steps) {
+            clearInterval(timer);
+            this.router.navigateByUrl(this.returnUrl);
+          }
+        }, intervalTime);
       },
-      error: (err: any) => {
-        console.error('Login Error:', err);
-        if (err.status === 429) {
+      error: (err: HttpErrorResponse | Error | unknown) => {
+        const e = err as HttpErrorResponse;
+        console.error('Login Error:', e);
+        if (e.status === 429) {
           this.error = 'Muitas tentativas inválidas. Por segurança contra ataques, seu IP foi temporariamente bloqueado. Aguarde 1 minuto e tente novamente.';
         } else {
           this.error = this.obterMensagemErro(err);
         }
         this.loading = false;
+        this.loadingProgress = 0;
       }
     });
   }
@@ -177,13 +204,14 @@ export class LoginComponent implements OnInit {
     };
 
     this.authService.solicitarAcesso(dados).subscribe({
-      next: (res: any) => {
-        this.requestSuccess = res?.message || 'Solicitação enviada com sucesso. Aguarde retorno da DTEC.';
+      next: (res: Record<string, unknown>) => {
+        this.requestSuccess = (res?.['message'] as string) || 'Solicitação enviada com sucesso. Aguarde retorno da DTEC.';
         this.requestLoading = false;
       },
-      error: (err: any) => {
-        console.error('Solicitar Acesso Error:', err);
-        if (err.status === 429) {
+      error: (err: HttpErrorResponse | Error | unknown) => {
+        const e = err as HttpErrorResponse;
+        console.error('Solicitar Acesso Error:', e);
+        if (e.status === 429) {
           this.requestError = 'Muitas solicitações enviadas em curto espaço de tempo. Aguarde 1 minuto para evitar sobrecarga no sistema.';
         } else {
           this.requestError = this.obterMensagemErro(err);
@@ -223,9 +251,10 @@ export class LoginComponent implements OnInit {
     this.showAdvancedMenu = !this.showAdvancedMenu;
   }
 
-  private obterMensagemErro(err: any): string {
-    const status = err.status;
-    const backendMessage = err.error?.message;
+  private obterMensagemErro(err: unknown): string {
+        const e = err as HttpErrorResponse;
+    const status = e.status;
+    const backendMessage = e.error?.message;
 
     // Se o backend enviar uma mensagem específica já traduzida ou clara, aproveita:
     if (backendMessage && typeof backendMessage === 'string' && backendMessage.toLowerCase().includes('senha')) {

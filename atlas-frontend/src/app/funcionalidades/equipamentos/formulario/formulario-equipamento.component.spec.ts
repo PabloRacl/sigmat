@@ -27,6 +27,7 @@ class MockSettingsService {
   listarStatus = jasmine.createSpy('listarStatus').and.returnValue(of([]));
   listarDisponibilidades = jasmine.createSpy('listarDisponibilidades').and.returnValue(of([]));
   listarSecoes = jasmine.createSpy('listarSecoes').and.returnValue(of([]));
+  listarBatalhoes = jasmine.createSpy('listarBatalhoes').and.returnValue(of([]));
   criarStatus = jasmine.createSpy('criarStatus').and.returnValue(of({ id: 1 }));
   criarTipo = jasmine.createSpy('criarTipo').and.returnValue(of({ id: 10 }));
   criarMarca = jasmine.createSpy('criarMarca').and.returnValue(of({ id: 20 }));
@@ -129,6 +130,7 @@ describe('EquipmentFormComponent', () => {
     settingsService.listarStatus.and.returnValue(of(mockStatus));
     settingsService.listarDisponibilidades.and.returnValue(of(mockDisponibilidades));
     settingsService.listarSecoes.and.returnValue(of(mockSecoes));
+    settingsService.listarBatalhoes.and.returnValue(of([]));
     equipmentService.listarTodos.and.returnValue(of({ itens: [], total: 0 }));
 
     fixture.detectChanges();

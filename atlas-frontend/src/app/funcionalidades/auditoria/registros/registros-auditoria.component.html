@@ -12,67 +12,72 @@
   <!-- Conteúdo Principal -->
   <div content>
     <!-- Filtros de Auditoria integrados no topo do card -->
-    <div class="au-filters">
-      <div class="au-filters-title">
+    <div class="atlas-panel" style="margin-bottom: 1rem;">
+      <div class="atlas-form-group" style="margin-bottom: 1.5rem;">
         <strong>Filtros de Auditoria</strong>
         <p>Use busca e filtros para localizar ações, usuários e patrimônio.</p>
       </div>
 
       <div class="au-filter-row">
-        <div class="au-filter-item">
+        <div class="atlas-form-group">
           <label>Ação</label>
-          <select [(ngModel)]="filtros.acao" class="au-input">
+          <select [(ngModel)]="filtros.acao" class="atlas-input-field">
             <option value="">Todas</option>
             <option *ngFor="let a of acoesDisponiveis" [value]="a">{{a}}</option>
           </select>
         </div>
 
-        <div class="au-filter-item">
+        <div class="atlas-form-group">
           <label>Usuário</label>
-          <input type="text" [(ngModel)]="filtros.usuario" placeholder="nome ou matrícula" class="au-input" />
+          <input type="text" [(ngModel)]="filtros.usuario" placeholder="nome ou matrícula" class="atlas-input-field" />
         </div>
 
-        <div class="au-filter-item">
+        <div class="atlas-form-group">
           <label>Patrimônio</label>
-          <input type="text" [(ngModel)]="filtros.patrimonio" placeholder="nº patrimônio" class="au-input" />
+          <input type="text" [(ngModel)]="filtros.patrimonio" placeholder="nº patrimônio" class="atlas-input-field" />
         </div>
       </div>
 
       <div class="au-filter-row">
-        <div class="au-filter-item">
+        <div class="atlas-form-group">
           <label>Data início</label>
-          <input type="date" [(ngModel)]="filtros.startDate" class="au-input" />
+          <input type="date" [(ngModel)]="filtros.startDate" class="atlas-input-field" />
         </div>
 
-        <div class="au-filter-item">
+        <div class="atlas-form-group">
           <label>Data fim</label>
-          <input type="date" [(ngModel)]="filtros.endDate" class="au-input" />
+          <input type="date" [(ngModel)]="filtros.endDate" class="atlas-input-field" />
         </div>
 
-        <div class="au-filter-item">
+        <div class="atlas-form-group">
           <label>Descrição</label>
-          <input type="text" [(ngModel)]="filtros.descricao" placeholder="texto na descrição" class="au-input" />
+          <input type="text" [(ngModel)]="filtros.descricao" placeholder="texto na descrição" class="atlas-input-field" />
         </div>
       </div>
 
-      <div class="au-filter-actions">
-        <button class="au-btn au-btn-secondary" (click)="limparFiltros()">Limpar Todos os Filtros</button>
-        <button class="au-btn" (click)="aplicarFiltros()">
+      <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+        <button class="atlas-btn atlas-btn-ghost" (click)="limparFiltros()">Limpar Todos os Filtros</button>
+        <button class="atlas-btn atlas-btn-primary" (click)="aplicarFiltros()">
           <i class="pi pi-search"></i> Filtrar Agora
         </button>
       </div>
     </div>
 
     <!-- Barra de Busca Rápida Local -->
-    <div class="au-search-wrap">
-      <i class="pi pi-search au-search-icon"></i>
-      <input 
-        type="text" 
-        pInputText 
-        class="au-search-input"
-        placeholder="Buscar dentro dos resultados..." 
-        (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-      />
+    <div class="atlas-search-wrap" style="margin-top: 1rem;">
+      <div class="atlas-search-premium">
+        <div class="search-input-wrapper">
+          <i class="pi pi-search search-icon"></i>
+          <input #searchInput type="text"
+            class="search-input"
+            placeholder="Buscar dentro dos resultados..."
+            (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+          />
+          <button *ngIf="searchInput.value" class="clear-btn" (click)="searchInput.value=''; dt.filterGlobal('', 'contains')" pTooltip="Limpar busca" tooltipPosition="top">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Tabela Principal -->
@@ -82,7 +87,7 @@
       [loading]="carregando"
       [paginator]="true" 
       [rows]="20"
-      [globalFilterFields]="['usuario.nome', 'equipamento.patrimonio', 'descricao', 'acao']"
+      [globalFilterFields]="['id', 'usuario.nome', 'equipamento.patrimonio', 'descricao', 'acao']"
       responsiveLayout="scroll"
       styleClass="p-datatable-sm au-table"
     >

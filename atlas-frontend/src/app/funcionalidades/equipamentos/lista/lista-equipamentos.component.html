@@ -19,70 +19,71 @@
   </div>
 
   <!-- Seção: Cards de Estatísticas -->
-  <div class="eq-stats" stats>
-    <div class="eq-stat-card" [class.eq-stat-card--filtered]="filtroAtivo">
-      <div class="eq-stat-card__icon" [ngClass]="filtroAtivo ? 'indigo' : 'gray'">
+  <div class="atlas-stats" stats>
+    <div class="atlas-stat-card" [class.atlas-stat-card--filtered]="filtroAtivo">
+      <div class="atlas-stat-card__icon" [ngClass]="filtroAtivo ? 'indigo' : 'gray'">
         <i [class]="filtroAtivo ? 'pi pi-filter-fill' : 'pi pi-box'"></i>
       </div>
-      <div class="eq-stat-card__info">
+      <div class="atlas-stat-card__info">
         <!-- Spinner enquanto conta -->
-        <span class="eq-stat-card__val" *ngIf="contandoFiltro">
+        <span class="atlas-stat-card__val" *ngIf="contandoFiltro">
           <i class="pi pi-spinner pi-spin" style="font-size:1.5rem; color:#6366f1;"></i>
         </span>
         <!-- Contagem filtrada -->
-        <span class="eq-stat-card__val" *ngIf="!contandoFiltro && filtroAtivo">
+        <span class="atlas-stat-card__val" *ngIf="!contandoFiltro && filtroAtivo">
           {{ totalFiltrado ?? '—' }}
         </span>
         <!-- Total geral sem filtro -->
-        <span class="eq-stat-card__val" *ngIf="!contandoFiltro && !filtroAtivo">
-          {{ stats.total }}
+        <span class="atlas-stat-card__val" *ngIf="!contandoFiltro && !filtroAtivo">
+          {{ stats['total'] }}
         </span>
-        <span class="eq-stat-card__label">{{ filtroAtivo ? 'Filtrados' : 'Total Geral' }}</span>
+        <span class="atlas-stat-card__label">{{ filtroAtivo ? 'Filtrados' : 'Total Geral' }}</span>
       </div>
     </div>
-    <div class="eq-stat-card">
-      <div class="eq-stat-card__icon green"><i class="pi pi-check-circle"></i></div>
-      <div class="eq-stat-card__info">
-        <span class="eq-stat-card__val">{{ stats.ativos }}</span>
-        <span class="eq-stat-card__label">Ativos</span>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon green"><i class="pi pi-check-circle"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ stats['ativos'] }}</span>
+        <span class="atlas-stat-card__label">Ativos</span>
       </div>
     </div>
-    <div class="eq-stat-card">
-      <div class="eq-stat-card__icon blue"><i class="pi pi-sync"></i></div>
-      <div class="eq-stat-card__info">
-        <span class="eq-stat-card__val">{{ stats.emprestados }}</span>
-        <span class="eq-stat-card__label">Emprestados</span>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon blue"><i class="pi pi-sync"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ stats['emprestados'] }}</span>
+        <span class="atlas-stat-card__label">Emprestados</span>
       </div>
     </div>
-    <div class="eq-stat-card" (click)="filtrarPorStatusNome('MANUTENÇÃO')" style="cursor:pointer;" pTooltip="Filtrar equipamentos em manutenção" tooltipPosition="top">
-      <div class="eq-stat-card__icon orange"><i class="pi pi-cog"></i></div>
-      <div class="eq-stat-card__info">
-        <span class="eq-stat-card__val">{{ stats.manutencao }}</span>
-        <span class="eq-stat-card__label">Em Manutenção</span>
+    <div class="atlas-stat-card" (click)="filtrarPorStatusNome('MANUTENÇÃO')" style="cursor:pointer;" pTooltip="Filtrar equipamentos em manutenção" tooltipPosition="top">
+      <div class="atlas-stat-card__icon orange"><i class="pi pi-cog"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ stats['manutencao'] }}</span>
+        <span class="atlas-stat-card__label">Em Manutenção</span>
       </div>
     </div>
   </div>
 
   <!-- Busca e Filtros -->
-  <div class="eq-search-wrap" search-filters>
-    <!-- Busca Premium (Glassmorphism e Glow) -->
-    <div class="eq-search-premium">
+  <div search-filters>
+    <!-- Busca Premium Global (Skeuomorphism) -->
+    <div class="atlas-search-premium" (click)="searchInput.focus()">
       <div class="search-input-wrapper">
         <i class="pi pi-search search-icon"></i>
         <input
+          #searchInput
           type="text"
           pInputText
           class="search-input"
-          placeholder="Buscar patrimônio, série, SEI, tipo..."
+          placeholder="Buscar por nº de patrimônio, nº de série, processo SEI, tipo de equipamento ou marca..."
           [(ngModel)]="filtroGlobal"
           (keyup.enter)="pesquisar()"
         />
-        <button *ngIf="filtroGlobal" class="clear-btn" (click)="filtroGlobal=''; pesquisar()" pTooltip="Limpar busca" tooltipPosition="top">
+        <button *ngIf="filtroGlobal" class="clear-btn" (click)="filtroGlobal=''; pesquisar(); $event.stopPropagation()" pTooltip="Limpar busca" tooltipPosition="top">
           <i class="pi pi-times"></i>
         </button>
       </div>
 
-      <div class="search-actions">
+      <div class="search-actions" (click)="$event.stopPropagation()">
         <button 
           class="btn-action filter-btn" 
           [ngClass]="{'active': exibirFiltrosAvancados || (filtroAtivo && !filtroGlobal)}"
@@ -144,7 +145,7 @@
   </div>
 
   <!-- Tabela Grid Principal -->
-  <div class="eq-table-scroll-wrapper" content>
+  <div class="eq-table-scroll-wrapper" content style="position: relative;">
     <p-table 
       [value]="equipamentos"
       [(selection)]="selecionados"
@@ -160,33 +161,32 @@
       [paginatorDropdownAppendTo]="'body'"
       styleClass="p-datatable-sm p-datatable-gridlines"
       [scrollable]="true"
-      scrollHeight="calc(100vh - 300px)"
     >
       <ng-template pTemplate="header">
         <tr>
-          <th pFrozenColumn style="width: 4rem">
+          <th pFrozenColumn [frozen]="!isMobile" style="width: 4rem">
             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
           </th>
-          <th pFrozenColumn style="width: 70px; text-align:center">AÇÕES</th>
-          <th style="min-width: 140px; text-align:center">DISPONIBILIDADE</th>
-          <th style="min-width: 120px">SEÇÃO</th>
-          <th style="min-width: 150px">TIPO</th>
-          <th style="min-width: 150px">PATRIMÔNIO</th>
-          <th style="min-width: 140px">SEI</th>
-          <th style="min-width: 140px">N.SÉRIE</th>
-          <th style="min-width: 130px">MARCA</th>
-          <th style="min-width: 130px">MODELO</th>
-          <th style="min-width: 110px; text-align:center">STATUS</th>
-          <th style="min-width: 130px">DATA AQUISIÇÃO</th>
-          <th style="min-width: 200px">OBSERVAÇÃO</th>
+          <th pFrozenColumn [frozen]="!isMobile" style="width: 70px; text-align:center">AÇÕES</th>
+          <th style="width: 130px; text-align:center">DISPONIBILIDADE</th>
+          <th style="width: 170px; max-width: 170px;">SEÇÃO</th>
+          <th style="width: 100px; max-width: 100px;">TIPO</th>
+          <th style="width: 110px; max-width: 110px;">PATRIMÔNIO</th>
+          <th style="width: 120px; max-width: 120px;">SEI</th>
+          <th style="width: 100px; max-width: 100px;">N.SÉRIE</th>
+          <th style="width: 100px; max-width: 100px;">MARCA</th>
+          <th style="width: 100px; max-width: 100px;">MODELO</th>
+          <th style="width: 110px; text-align:center">STATUS</th>
+          <th style="width: 110px;">DATA AQUISIÇÃO</th>
+          <th style="width: 140px; max-width: 140px;">OBSERVAÇÃO</th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-eq>
         <tr>
-          <td pFrozenColumn>
+          <td pFrozenColumn [frozen]="!isMobile">
             <p-tableCheckbox [value]="eq"></p-tableCheckbox>
           </td>
-          <td pFrozenColumn style="text-align:center">
+          <td pFrozenColumn [frozen]="!isMobile" style="text-align:center">
             <div class="eq-actions-inline">
               <button class="eq-btn-icon view" (click)="verDetalhes(eq)" pTooltip="Ver Detalhes">
                 <i class="pi pi-eye"></i>
@@ -202,34 +202,49 @@
           <td style="text-align:center">
             <app-indicador-status [valor]="eq.disponibilidade?.nome || '—'" tipo="disponibilidade"></app-indicador-status>
           </td>
-          <td>
+          <td style="width: 170px; max-width: 170px;">
             <div class="eq-sec-cell" [pTooltip]="eq.secao?.nome + (eq.secao?.batalhao ? ' - ' + eq.secao?.batalhao?.nome : '')" tooltipPosition="top">
-              <span class="eq-sec-badge">
+              <span class="eq-sec-badge truncate-text" style="max-width: 95px;">
                 <i class="pi pi-building"></i>
                 <span>{{ eq.secao?.sigla || '—' }}</span>
               </span>
-              <span class="eq-bat-badge" *ngIf="eq.secao?.batalhao">
+              <span class="eq-bat-badge truncate-text" style="max-width: 60px;" *ngIf="eq.secao?.batalhao" [pTooltip]="eq.secao?.batalhao?.nome" tooltipPosition="top">
                 {{ eq.secao?.batalhao?.sigla }}
               </span>
             </div>
           </td>
-          <td>{{ eq.tipoEquipamento?.nome || '—' }}</td>
-          <td><strong>{{ eq.patrimonio }}</strong></td>
-          <td>{{ eq.sei || '—' }}</td>
-          <td>{{ eq.numeroSerie || '—' }}</td>
-          <td>{{ eq.marca?.nome || '—' }}</td>
-          <td>{{ eq.modelo?.nome || '—' }}</td>
-          <td style="text-align:center">
+          <td style="width: 100px; max-width: 100px;">
+            <span class="truncate-text" [pTooltip]="eq.tipoEquipamento?.nome" tooltipPosition="top">{{ eq.tipoEquipamento?.nome || '—' }}</span>
+          </td>
+          <td style="width: 110px; max-width: 110px;">
+            <strong class="truncate-text" [pTooltip]="eq.patrimonio" tooltipPosition="top">{{ eq.patrimonio }}</strong>
+          </td>
+          <td style="width: 120px; max-width: 120px;">
+            <span class="truncate-text" [pTooltip]="eq.sei" tooltipPosition="top">{{ eq.sei || '—' }}</span>
+          </td>
+          <td style="width: 100px; max-width: 100px;">
+            <span class="truncate-text" [pTooltip]="eq.numeroSerie" tooltipPosition="top">{{ eq.numeroSerie || '—' }}</span>
+          </td>
+          <td style="width: 100px; max-width: 100px;">
+            <span class="truncate-text" [pTooltip]="eq.marca?.nome" tooltipPosition="top">{{ eq.marca?.nome || '—' }}</span>
+          </td>
+          <td style="width: 100px; max-width: 100px;">
+            <span class="truncate-text" [pTooltip]="eq.modelo?.nome" tooltipPosition="top">{{ eq.modelo?.nome || '—' }}</span>
+          </td>
+          <td style="width: 110px; text-align:center">
             <app-indicador-status [valor]="eq.status?.nome || '—'" tipo="status"></app-indicador-status>
           </td>
-          <td>{{ eq.dataAquisicao ? (eq.dataAquisicao | date:'dd/MM/yyyy') : '—' }}</td>
-          <td><span class="eq-obs-cell" [pTooltip]="eq.observacao" tooltipPosition="top">{{ eq.observacao || '—' }}</span></td>
+          <td style="width: 110px;">{{ eq.dataAquisicao ? (eq.dataAquisicao | date:'dd/MM/yyyy') : '—' }}</td>
+          <td style="width: 140px; max-width: 140px;">
+            <span class="truncate-text" [pTooltip]="eq.observacao" tooltipPosition="top">{{ eq.observacao || '—' }}</span>
+          </td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr><td colspan="13"><app-estado-vazio mensagem="Nenhum equipamento encontrado." icone="pi-search"></app-estado-vazio></td></tr>
       </ng-template>
     </p-table>
+    <app-tabela-scroll></app-tabela-scroll>
   </div>
 
   <!-- Modais e Elementos Adicionais -->
@@ -258,7 +273,7 @@
       </div>
       <div class="eq-basket-drawer__body">
         <div class="eq-basket-item" *ngFor="let item of selecionados">
-          <div class="eq-basket-item__info"><span class="eq-basket-item__pat">{{ item.patrimonio }}</span><span class="eq-basket-item__meta">{{ item.tipoEquipamento?.nome }} · {{ item.secao?.sigla }}</span></div>
+          <div class="eq-basket-item__info"><span class="eq-basket-item__pat">{{ item.patrimonio }}</span><span class="eq-basket-item__meta">{{ item.tipoEquipamento.nome }} · {{ item.secao.sigla }}</span></div>
           <button class="eq-basket-remove" (click)="removerDaSelecao(item)"><i class="pi pi-times"></i></button>
         </div>
       </div>
@@ -342,8 +357,8 @@
         <div class="eq-transfer-card-flow">
           <div class="flow-step current">
             <span class="flow-label">SEÇÃO ATUAL (ORIGEM)</span>
-            <span class="flow-val">{{ selecionados[0].secao?.sigla || '—' }}</span>
-            <small class="flow-sub" [pTooltip]="selecionados[0].secao?.nome">{{ selecionados[0].secao?.nome || '' }}</small>
+            <span class="flow-val">{{ selecionados[0].secao.sigla || '—' }}</span>
+            <small class="flow-sub" [pTooltip]="selecionados[0].secao.nome">{{ selecionados[0].secao.nome || '' }}</small>
           </div>
           <div class="flow-arrow">
             <i class="pi pi-arrow-right"></i>
@@ -363,8 +378,8 @@
         <div class="bulk-list-items">
           <div class="bulk-list-item" *ngFor="let item of selecionados">
             <span class="pat">{{ item.patrimonio }}</span>
-            <span class="tipo">{{ item.tipoEquipamento?.nome }}</span>
-            <span class="origem">Seção Atual: <strong>{{ item.secao?.sigla }}</strong></span>
+            <span class="tipo">{{ item.tipoEquipamento.nome }}</span>
+            <span class="origem">Seção Atual: <strong>{{ item.secao.sigla }}</strong></span>
           </div>
         </div>
       </div>

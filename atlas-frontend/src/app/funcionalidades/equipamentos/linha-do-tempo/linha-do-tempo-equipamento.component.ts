@@ -46,7 +46,7 @@ export class EquipmentTimelineComponent {
       next: (res) => {
         this.history = res.map(log => ({
           ...log,
-          parsedDiff: this.parseDiff(log.dadosAlterados)
+          parsedDiff: this.parseDiff(log['dadosAlterados'])
         }));
         this.loading = false;
       },

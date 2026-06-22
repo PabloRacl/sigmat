@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { SettingsService } from './configuracoes.service';
-import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
+import { JwtAuthGuard } from '../acesso/guardas/jwt-autenticacao.guard';
 import { RolesGuard } from '../../comum/guardas/roles.guard';
 import { Roles } from '../../comum/decoradores/roles.decorator';
 import { CriarTipoDto } from './dto/criar-tipo.dto';
@@ -19,6 +19,8 @@ import { CriarMarcaDto } from './dto/criar-marca.dto';
 import { CriarModeloDto } from './dto/criar-modelo.dto';
 import { CriarSecaoDto } from './dto/criar-secao.dto';
 import { AtualizarSecaoDto } from './dto/atualizar-secao.dto';
+import { LoggedUser } from '../../comum/decoradores/logged-user.decorator';
+import type { UsuarioLogado } from '../../comum/interfaces/usuario-logado.interface';
 
 @Controller('configuracoes')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -77,14 +79,14 @@ export class SettingsController {
   }
 
   @Get('secoes')
-  listarSecoes(@Req() req: any) {
-    return this.SettingsService.listarSecoes(req.user);
+  listarSecoes(@LoggedUser() usuario: UsuarioLogado) {
+    return this.SettingsService.listarSecoes(usuario);
   }
 
   @Post('secoes')
   @Roles('ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE')
-  criarSecao(@Body() dados: CriarSecaoDto, @Req() req: any) {
-    return this.SettingsService.criarSecao(dados, req.user);
+  criarSecao(@Body() dados: CriarSecaoDto, @LoggedUser() usuario: UsuarioLogado) {
+    return this.SettingsService.criarSecao(dados, usuario);
   }
 
   @Put('secoes/:id')
@@ -92,14 +94,19 @@ export class SettingsController {
   atualizarSecao(
     @Param('id') id: string,
     @Body() dados: AtualizarSecaoDto,
-    @Req() req: any,
+    @LoggedUser() usuario: UsuarioLogado,
   ) {
-    return this.SettingsService.atualizarSecao(Number(id), dados, req.user);
+    return this.SettingsService.atualizarSecao(Number(id), dados, usuario);
   }
 
   @Get('batalhoes')
   listarBatalhoes() {
     return this.SettingsService.listarBatalhoes();
+  }
+
+  @Get('diretorias')
+  listarDiretorias() {
+    return this.SettingsService.listarDiretorias();
   }
 
   @Delete('tipos/:id')

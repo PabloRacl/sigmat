@@ -8,11 +8,16 @@ export class NotificationsService {
   /**
    * Notifica sobre uma nova transferência pendente para os comandantes da unidade de destino
    */
-  notificarNovaTransferencia(batalhaoId: number, dados: any) {
-    // Aqui poderíamos filtrar usuários por batalhão, mas por enquanto vamos emitir um evento global
-    // ou um evento específico para quem estiver ouvindo por unidade
-    this.gateway.enviarParaTodos(`nova_transferencia_${batalhaoId}`, {
+  notificarNovaTransferencia(batalhaoId: number, dados: Record<string, any>) {
+    // Agora enviamos a notificação estritamente para o room do batalhão destino
+    this.gateway.enviarParaBatalhao(batalhaoId, `nova_transferencia_${batalhaoId}`, {
       mensagem: `Nova transferência solicitada para sua unidade.`,
+      equipamento: dados.patrimonio,
+      origem: dados.origem,
+    });
+    // Também podemos notificar os admins, se desejado
+    this.gateway.enviarParaAdmin('nova_transferencia', {
+      mensagem: `Nova transferência solicitada.`,
       equipamento: dados.patrimonio,
       origem: dados.origem,
     });
@@ -53,7 +58,8 @@ export class NotificationsService {
     this.gateway.enviarParaTodos('atualizar_notificacoes', {});
   }
 
-  notificarNovaSolicitacaoAcesso(payload: any) {
-    this.gateway.enviarParaTodos('nova_solicitacao_acesso', payload);
+  notificarNovaSolicitacaoAcesso(payload: Record<string, any>) {
+    // Solicitações de acesso são apenas para a DTEC aprovar
+    this.gateway.enviarParaAdmin('nova_solicitacao_acesso', payload);
   }
 }

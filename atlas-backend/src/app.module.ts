@@ -2,11 +2,11 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './banco-dados/banco-dados.module';
-import { LdapModule } from './integracoes/ldap/ldap.module';
-import { SgaModule } from './integracoes/sga/sga.module';
-import { AuthModule } from './modulos/autenticacao/autenticacao.module';
-import { UsersModule } from './modulos/usuarios/usuarios.module';
-import { EquipmentModule } from './modulos/equipamentos/equipamentos.module';
+import { LdapModule } from './integracoes/validacao-ldap/validacao-ldap.module';
+import { SgaModule } from './integracoes/bases-corporativas/bases-corporativas.module';
+import { AcessoModule } from './modulos/acesso/acesso.module';
+import { UsersModule } from './modulos/pessoal/pessoal.module';
+import { EquipmentModule } from './modulos/materiais/materiais.module';
 import { ApprovalsModule } from './modulos/aprovacoes/aprovacoes.module';
 import { LoansModule } from './modulos/cautelas/cautelas.module';
 import { ReportsModule } from './modulos/relatorios/relatorios.module';
@@ -16,13 +16,15 @@ import { SettingsModule } from './modulos/configuracoes/configuracoes.module';
 
 import { ConfigModule } from '@nestjs/config';
 import { DashboardModule as PainelModule } from './modulos/visao-geral/painel.module';
-import { TransfersModule } from './modulos/transferencias/transferencias.module';
+import { TransfersModule } from './modulos/movimentacoes/movimentacoes.module';
 import { SharedModule } from './compartilhado/shared.module';
-import { MaintenanceModule } from './modulos/manutencao/manutencao.module';
+import { MaintenanceModule } from './modulos/assistencia-tecnica/assistencia-tecnica.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { NotificationsModule } from './modulos/notificacoes/notificacoes.module';
 import { PdfModule } from './modulos/pdf/pdf.module';
+import { HealthModule } from './health/health.module';
+import { ImportacaoModule } from './modulos/importacao/importacao.module';
 
 @Module({
   imports: [
@@ -39,7 +41,7 @@ import { PdfModule } from './modulos/pdf/pdf.module';
     NotificationsModule,
     LdapModule,
     SgaModule,
-    AuthModule,
+    AcessoModule,
     UsersModule,
     EquipmentModule,
     ApprovalsModule,
@@ -52,6 +54,8 @@ import { PdfModule } from './modulos/pdf/pdf.module';
     PainelModule,
     TransfersModule,
     MaintenanceModule,
+    HealthModule,
+    ImportacaoModule,
   ],
   controllers: [AppController],
   providers: [

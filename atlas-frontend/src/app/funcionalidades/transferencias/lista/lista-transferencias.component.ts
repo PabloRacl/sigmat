@@ -5,6 +5,8 @@ import { TransfersService } from '../../../nucleo/servicos/transferencias.servic
 import { AuthService } from '../../../nucleo/servicos/autenticacao.service';
 import { SettingsService } from '../../../nucleo/servicos/configuracoes.service';
 import { EquipmentService } from '../../../nucleo/servicos/equipamentos.service';
+import { Equipamento } from '../../../nucleo/interfaces/equipamento.interface';
+import { UsuarioLogado } from '../../../nucleo/interfaces/usuario.interface';
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
@@ -39,9 +41,9 @@ export class TransfersListComponent implements OnInit {
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
 
-  pendentes: any[] = [];
-  equipamentosDisponiveis: any[] = [];
-  secoes: any[] = [];
+  pendentes: Record<string, unknown>[] = [];
+  equipamentosDisponiveis: Equipamento[] = [];
+  secoes: Record<string, unknown>[] = [];
   carregando = false;
 
   // Modal Solicitar
@@ -52,7 +54,7 @@ export class TransfersListComponent implements OnInit {
     observacao: ''
   };
 
-  usuarioLogado: any = null;
+  usuarioLogado: UsuarioLogado | null = null;
 
   ngOnInit() {
     this.usuarioLogado = this.authService.getUsuario();
@@ -78,8 +80,12 @@ export class TransfersListComponent implements OnInit {
   carregarAuxiliares() {
     this.configService.listarSecoes().subscribe(res => this.secoes = res);
     this.equipmentService.listarTodos(1, 1000).subscribe(res => {
-      // Apenas equipamentos da seção do usuário logado
-      this.equipamentosDisponiveis = res.itens.filter((e: any) => e.secaoId === this.usuarioLogado.secaoId);
+      // Administradores podem ver todos os equipamentos. Usuários comuns só veem os da própria seção.
+      if (this.usuarioLogado?.perfil === 'ADMIN_DTEC' || this.usuarioLogado?.perfil === 'COMANDANTE') {
+        this.equipamentosDisponiveis = res.itens;
+      } else {
+        this.equipamentosDisponiveis = res.itens.filter((e) => e.secao?.id === this.usuarioLogado?.secaoId);
+      }
     });
   }
 
@@ -91,7 +97,7 @@ export class TransfersListComponent implements OnInit {
   confirmarSolicitacao() {
     if (!this.novaTransferencia.equipamentoId || !this.novaTransferencia.destinoId) return;
 
-    this.transferService.solicitar(this.novaTransferencia as any).subscribe({
+    this.transferService.solicitar(this.novaTransferencia as unknown as { equipamentoId: number; destinoId: number; observacao?: string }).subscribe({
       next: () => {
         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Transferência solicitada!' });
         this.exibirModalSolicitar = false;

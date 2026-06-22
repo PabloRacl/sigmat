@@ -8,7 +8,7 @@ import {
   Body,
 } from '@nestjs/common';
 import { AccessRequestsService } from './solicitacoes-acesso.service';
-import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
+import { JwtAuthGuard } from '../acesso/guardas/jwt-autenticacao.guard';
 import { RolesGuard } from '../../comum/guardas/roles.guard';
 import { Roles } from '../../comum/decoradores/roles.decorator';
 
@@ -24,8 +24,11 @@ export class AccessRequestsController {
   }
 
   @Patch(':id/aprovar')
-  async aprovar(@Param('id', ParseIntPipe) id: number) {
-    return this.accessRequestsService.aprovar(id);
+  async aprovar(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dadosCuradoria: { perfil?: string; secaoId?: number; batalhaoId?: number }
+  ) {
+    return this.accessRequestsService.aprovar(id, dadosCuradoria);
   }
 
   @Patch(':id/rejeitar')

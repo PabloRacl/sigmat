@@ -60,6 +60,12 @@ export const routes: Routes = [
         data: { perfis: ['ADMIN_DTEC', 'DIRETORIA'] }
       },
       {
+        path: 'configuracoes/importacao',
+        loadComponent: () => import('./funcionalidades/configuracoes/importacao-dados/importacao-dados.component').then(m => m.ImportacaoDadosComponent),
+        canActivate: [RoleGuard],
+        data: { perfis: ['ADMIN_DTEC'] }
+      },
+      {
         path: 'transferencias',
         loadComponent: () => import('./funcionalidades/transferencias/lista/lista-transferencias.component').then(m => m.TransfersListComponent),
         canActivate: [RoleGuard],

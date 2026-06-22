@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { LoansService } from '../../../nucleo/servicos/cautelas.service';
 import { UsersService } from '../../../nucleo/servicos/usuarios.service';
 import { AuthService } from '../../../nucleo/servicos/autenticacao.service';
+import { UsuarioListagem } from '../../../nucleo/interfaces/usuario.interface';
 import { PdfService } from '../../../nucleo/servicos/pdf.service';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
@@ -48,29 +49,29 @@ export class LoansManagementComponent implements OnInit {
   private usersService = inject(UsersService);
   private authService = inject(AuthService);
 
-  emprestados: any[]    = [];
-  historico: any[]      = [];
-  vencidos: any[]       = [];
-  equipamentos: any[]   = [];
-  selecionados: any[]   = []; // Itens marcados na tabela
+  emprestados: Record<string, any>[]    = [];
+  historico: Record<string, any>[]      = [];
+  vencidos: Record<string, any>[]       = [];
+  equipamentos: Record<string, any>[]   = [];
+  selecionados: Record<string, any>[]   = []; // Itens marcados na tabela
   carregando            = true;
   abaAtiva              = '0';
   dataHoje              = new Date();
   filtroData: Date[]    = []; // Filtro de intervalo de datas para o histórico
   isPolicial            = false;
-  usuarios: any[]       = [];
+  usuarios: UsuarioListagem[]       = [];
 
   // Modal SEI
   exibirModalSEI = false;
 
   // Modal saída
   exibirModalSaida = false;
-  equipamentoSelecionado: any = null;
+  equipamentoSelecionado: Record<string, any> | null = null;
   formSaida: FormGroup;
 
   // Modal retorno
   exibirModalRetorno = false;
-  itemRetorno: any = null;
+  itemRetorno: Record<string, any> | null = null;
 
   constructor() {
     this.formSaida = this.fb.group({
@@ -81,7 +82,7 @@ export class LoansManagementComponent implements OnInit {
     });
   }
 
-  get historicoFiltrado(): any[] {
+  get historicoFiltrado(): Record<string, any>[] {
     if (!this.filtroData || this.filtroData.length < 2 || !this.filtroData[0] || !this.filtroData[1]) {
       return this.historico;
     }
@@ -91,13 +92,13 @@ export class LoansManagementComponent implements OnInit {
     fim.setHours(23, 59, 59, 999);
 
     return this.historico.filter(it => {
-      const data = new Date(it.dataSolicitacao);
+      const data = new Date(it['dataSolicitacao'] as string);
       return data >= inicio && data <= fim;
     });
   }
 
   ngOnInit() { 
-    this.isPolicial = this.authService.getUsuario()?.perfil === 'POLICIAL';
+    this.isPolicial = (this.authService.getUsuario()?.perfil as string) === 'POLICIAL';
     this.carregarTudo(); 
   }
 
@@ -119,12 +120,12 @@ export class LoansManagementComponent implements OnInit {
     this.LoansService.listarEquipamentosDisponiveis(termo).subscribe(r => {
       const itens = r.itens || [];
       // Filtra apenas os que estão como DISPONÍVEL no sistema
-      this.equipamentos = itens.filter((e: any) => e.disponibilidade?.nome?.toUpperCase() === 'DISPONÍVEL');
+      this.equipamentos = itens.filter((e: Record<string, any>) => (e['disponibilidade'] as Record<string, any>)?.['nome']?.toString().toUpperCase() === 'DISPONÍVEL');
     });
   }
 
-  onFiltrarEquipamento(event: any) {
-    this.pesquisarEquipamentosDisponiveis(event.filter || '');
+  onFiltrarEquipamento(event: Record<string, any>) {
+    this.pesquisarEquipamentosDisponiveis((event['filter'] as string) || '');
   }
 
   abrirSaida() {
@@ -155,14 +156,14 @@ export class LoansManagementComponent implements OnInit {
     });
   }
 
-  abrirRetorno(item: any) {
+  abrirRetorno(item: Record<string, any>) {
     this.itemRetorno = item;
     this.exibirModalRetorno = true;
   }
 
   confirmarRetorno() {
     if (!this.itemRetorno) return;
-    this.LoansService.registrarRetorno(this.itemRetorno.id).subscribe({
+    this.LoansService.registrarRetorno(this.itemRetorno['id'] as number).subscribe({
       next: () => {
         this.messageService.add({ severity: 'success', summary: 'Retorno confirmado!', detail: 'Equipamento marcado como Disponível.' });
         this.exibirModalRetorno = false;
@@ -173,7 +174,7 @@ export class LoansManagementComponent implements OnInit {
     });
   }
 
-  imprimirCautela(item: any) {
+  imprimirCautela(item: Record<string, any>) {
     this.pdfService.gerarCautela(item);
   }
 
@@ -190,7 +191,7 @@ export class LoansManagementComponent implements OnInit {
       icon: 'pi pi-check-circle',
       accept: () => {
         this.carregando = true;
-        const requests = this.selecionados.map(item => this.LoansService.registrarRetorno(item.id));
+        const requests = this.selecionados.map(item => this.LoansService.registrarRetorno(item['id'] as number));
         let concluidos = 0;
         requests.forEach(req => {
           req.subscribe({
@@ -250,18 +251,18 @@ export class LoansManagementComponent implements OnInit {
     }
   }
 
-  isVencido(item: any): boolean {
-    if (!item.dataRetornoEmprestimo) return false;
-    return new Date(item.dataRetornoEmprestimo) < new Date();
+  isVencido(item: Record<string, any>): boolean {
+    if (!item['dataRetornoEmprestimo']) return false;
+    return new Date(item['dataRetornoEmprestimo'] as string) < new Date();
   }
 
-  severidadeVencimento(item: any): SeveridadeStatus {
+  severidadeVencimento(item: Record<string, any>): SeveridadeStatus {
     return this.isVencido(item) ? 'perigo' : 'sucesso';
   }
 
-  diasAtraso(item: any): number {
-    if (!item.dataRetornoEmprestimo) return 0;
-    const diff = new Date().getTime() - new Date(item.dataRetornoEmprestimo).getTime();
+  diasAtraso(item: Record<string, any>): number {
+    if (!item['dataRetornoEmprestimo']) return 0;
+    const diff = new Date().getTime() - new Date(item['dataRetornoEmprestimo'] as string).getTime();
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 }

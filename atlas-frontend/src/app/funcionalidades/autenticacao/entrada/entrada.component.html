@@ -14,7 +14,57 @@
       <p>PMPE</p>
     </div>
 
-    <form class="login-form" (ngSubmit)="login()">
+    <div class="loader-3d-container" [class.accelerating]="loadingProgress > 60" [class.welded]="loadingProgress >= 85" [style.--progress]="loadingProgress" *ngIf="loading">
+      <div class="loader-isometric-grid">
+        <!-- Ponto de solda / Efeito de fusão -->
+        <div class="welding-flash"></div>
+        <div class="welding-sparks"></div>
+        <div class="tesseract-outer"></div>
+
+        <!-- Cubo 1 -->
+        <div class="cube-item cube-1">
+          <div class="cube-face face-top"></div>
+          <div class="cube-face face-bottom"></div>
+          <div class="cube-face face-front"></div>
+          <div class="cube-face face-back"></div>
+          <div class="cube-face face-left"></div>
+          <div class="cube-face face-right"></div>
+        </div>
+        <!-- Cubo 2 -->
+        <div class="cube-item cube-2">
+          <div class="cube-face face-top"></div>
+          <div class="cube-face face-bottom"></div>
+          <div class="cube-face face-front"></div>
+          <div class="cube-face face-back"></div>
+          <div class="cube-face face-left"></div>
+          <div class="cube-face face-right"></div>
+        </div>
+        <!-- Cubo 3 -->
+        <div class="cube-item cube-3">
+          <div class="cube-face face-top"></div>
+          <div class="cube-face face-bottom"></div>
+          <div class="cube-face face-front"></div>
+          <div class="cube-face face-back"></div>
+          <div class="cube-face face-left"></div>
+          <div class="cube-face face-right"></div>
+        </div>
+        <!-- Cubo 4 -->
+        <div class="cube-item cube-4">
+          <div class="cube-face face-top"></div>
+          <div class="cube-face face-bottom"></div>
+          <div class="cube-face face-front"></div>
+          <div class="cube-face face-back"></div>
+          <div class="cube-face face-left"></div>
+          <div class="cube-face face-right"></div>
+        </div>
+      </div>
+      <div class="loader-text">
+        <h3>Montando seu inventário ({{ loadingProgress }}%)</h3>
+        <p>Organizando equipamentos e conexões...</p>
+      </div>
+    </div>
+
+    <form class="login-form" (ngSubmit)="login()" *ngIf="!loading">
       <div class="input-group">
         <label for="username">Login</label>
         <div class="input-wrapper">

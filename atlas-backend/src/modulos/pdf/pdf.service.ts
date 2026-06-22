@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import PDFDocument = require('pdfkit');
 import * as fs from 'fs';
 import * as path from 'path';
@@ -25,17 +25,17 @@ export class PdfService {
       const pageWidth = this.mmToPt(210);
       const pageHeight = this.mmToPt(297);
 
-      // CabeÃ§alho com fundo azul escuro
+      // Cabeçalho com fundo azul escuro
       doc
         .rect(0, 0, pageWidth, this.mmToPt(38))
         .fillAndStroke('#0f163a', '#0f163a');
 
-      // Textos do cabeÃ§alho (em branco)
+      // Textos do cabeçalho (em branco)
       doc.fillColor('#ffffff');
       doc.font('Helvetica-Bold');
       doc.fontSize(11);
       doc.text(
-        'POLÃCIA MILITAR DE PERNAMBUCO  |  DTEC - atlas V2',
+        'POLÍCIA MILITAR DE PERNAMBUCO  |  DTEC - atlas V2',
         this.mmToPt(20),
         this.mmToPt(14),
       );
@@ -44,7 +44,7 @@ export class PdfService {
       doc.text('CAUTELA DE MATERIAL', this.mmToPt(20), this.mmToPt(22));
 
       doc.fontSize(9);
-      doc.text(`NÂº CAU-${Date.now()}`, this.mmToPt(20), this.mmToPt(30));
+      doc.text(`Nº CAU-${Date.now()}`, this.mmToPt(20), this.mmToPt(30));
 
       // Corpo do documento
       doc.fillColor('#000000');
@@ -52,7 +52,7 @@ export class PdfService {
 
       let cursorY = this.mmToPt(50);
 
-      // DeclaraÃ§Ã£o
+      // Declaração
       const dataAtual = new Date().toLocaleDateString('pt-BR');
       const horaAtual = new Date().toLocaleTimeString('pt-BR', {
         hour: '2-digit',
@@ -75,19 +75,19 @@ export class PdfService {
         doc.font('Helvetica-Bold');
         doc.fontSize(10);
         doc.text(
-          'ATENÃ‡ÃƒO: EMPRESTIMO VENCIDO â€” DEVOLUÃ‡ÃƒO EM ATRASO',
+          'ATENÇÃO: EMPRÉSTIMO VENCIDO — DEVOLUÇÃO EM ATRASO',
           this.mmToPt(20),
           cursorY - this.mmToPt(8),
         );
         cursorY -= this.mmToPt(20);
       }
 
-      // Texto de declaraÃ§Ã£o
+      // Texto de declaração
       doc.fillColor('#333333');
       doc.font('Helvetica');
       doc.fontSize(11);
       const declaracao =
-        'Pelo presente termo, declaro ter recebido da carga do atlas/PMPE o material descrito abaixo, assumindo plena responsabilidade por sua guarda e conservaÃ§Ã£o:';
+        'Pelo presente termo, declaro ter recebido da carga do atlas/PMPE o material descrito abaixo, assumindo plena responsabilidade por sua guarda e conservação:';
       doc.text(declaracao, this.mmToPt(16), cursorY, {
         width: this.mmToPt(178),
       });
@@ -98,11 +98,11 @@ export class PdfService {
       doc.font('Helvetica-Bold');
       doc.fontSize(10);
       const dados = [
-        ['PatrimÃ´nio atlas', item.patrimonio || 'â€”'],
-        ['Tipo de Material', item.tipoEquipamento?.nome || 'â€”'],
-        ['Marca', item.marca?.nome || 'â€”'],
-        ['NÃºmero de SÃ©rie', item.numeroSerie || 'â€”'],
-        ['SeÃ§Ã£o / Unidade', item.secao?.sigla || 'â€”'],
+        ['Patrimônio atlas', item.patrimonio || '—'],
+        ['Tipo de Material', item.tipoEquipamento?.nome || '—'],
+        ['Marca', item.marca?.nome || '—'],
+        ['Número de Série', item.numeroSerie || '—'],
+        ['Seção / Unidade', item.secao?.sigla || '—'],
         [
           'Data da SaÃ­da',
           item.dataSolicitacao
@@ -145,29 +145,32 @@ export class PdfService {
         width: this.mmToPt(170),
       });
 
-      // RodapÃ©
+      // Rodapé
       doc.fontSize(7);
       doc.text(
-        `Documento gerado automaticamente pelo atlas em ${dataAtual} Ã s ${horaAtual}`,
+        `Documento gerado automaticamente pelo atlas em ${dataAtual} às ${horaAtual}`,
         this.mmToPt(20),
         this.mmToPt(18),
       );
-
       doc.end();
     });
   }
 
-  // Duplicate gerarEtiqueta implementation removed
   async gerarEtiqueta(item: any): Promise<Buffer> {
     return new Promise(async (resolve, reject) => {
-      // Determine label orientation and dimensions (mm)
-      const isVertical = item.layout === 'vertical';
+      // Check if item is celular to apply custom layout
+      const isCelular = item.tipoEquipamento?.nome?.toLowerCase() === 'celular';
+      const isVertical = isCelular || item.layout === 'vertical';
       const widthMm = isVertical ? 40 : 60; // label width in mm
       const heightMm = isVertical ? 60 : 40; // label height in mm
 
-      // Create A4 PDF document to hold five labels
+      // Convert label dimensions to points (pdfkit uses points)
+      const labelWidthPt = this.mmToPt(widthMm);
+      const labelHeightPt = this.mmToPt(heightMm);
+
+      // Create PDF document with exact label size
       const doc = new PDFDocument({
-        size: 'A4',
+        size: [labelWidthPt, labelHeightPt],
         margins: { top: 0, left: 0, right: 0, bottom: 0 },
       });
 
@@ -176,14 +179,10 @@ export class PdfService {
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
 
-      // Convert label dimensions to points (pdfkit uses points)
-      const labelWidthPt = this.mmToPt(widthMm);
-      const labelHeightPt = this.mmToPt(heightMm);
-      const pageWidth = this.mmToPt(210); // A4 width in points
-
-      // Prepare QR code and logo buffers (reuse for all labels)
-      const qrContent = `https://atlas.local/etiqueta/${item.patrimonio}`;
-      const qrDataUrl = await QRCode.toDataURL(qrContent);
+      // Prepare QR code and logo buffers
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+      const qrContent = `${frontendUrl}/qrcode/${item.id}`;
+      const qrDataUrl = await QRCode.toDataURL(qrContent, { margin: 1 });
       const qrBase64 = qrDataUrl.replace(/^data:image\/png;base64,/, '');
       const qrBuffer = Buffer.from(qrBase64, 'base64');
       const logoPath = path.resolve(
@@ -192,136 +191,221 @@ export class PdfService {
       );
       const logoBuffer = fs.readFileSync(logoPath);
 
-      // Helper to draw a single label at a given vertical offset
-      const drawLabel = (offsetY: number) => {
-        // Header (premium background)
-        const headerHeight = this.mmToPt(9);
-        doc
-          .rect(0, offsetY, labelWidthPt, headerHeight)
-          .fillAndStroke('#0f163a', '#0f163a');
+      // Parse specs JSON safely
+      let specs: any = {};
+      if (item.especificacoes) {
+        if (typeof item.especificacoes === 'string') {
+          try {
+            specs = JSON.parse(item.especificacoes);
+          } catch {
+            specs = {};
+          }
+        } else {
+          specs = item.especificacoes;
+        }
+      }
+      const imei = specs.imei || specs.imei1 || '—';
+      const telefone = specs.telefone || '—';
 
-        // Logo in header left corner
-        const logoWidthMm = 4;
-        const logoX = this.mmToPt(2);
-        const logoY = offsetY + (headerHeight - this.mmToPt(logoWidthMm)) / 2;
-        doc.image(logoBuffer, logoX, logoY, {
-          width: this.mmToPt(logoWidthMm),
-        });
+      // Header (premium gradient background)
+      const headerHeight = this.mmToPt(isCelular ? 11 : 8);
+      const headerGrad = doc.linearGradient(0, 0, labelWidthPt, 0);
+      headerGrad.stop(0, '#2563eb');
+      headerGrad.stop(1, '#1e3a8a');
+      doc
+        .rect(0, 0, labelWidthPt, headerHeight)
+        .fill(headerGrad);
 
-        // Centered header text
-        doc.fillColor('#ffffff');
-        doc.font('Helvetica-Bold');
-        const headerTextX =
-          this.mmToPt(2) + this.mmToPt(logoWidthMm) + this.mmToPt(1);
-        const headerTextWidth = labelWidthPt - headerTextX - this.mmToPt(2);
-        doc.fontSize(3);
+      // Logo in header left corner
+      const logoWidthMm = 5;
+      const logoX = this.mmToPt(3);
+      const logoY = (headerHeight - this.mmToPt(logoWidthMm)) / 2;
+      doc.image(logoBuffer, logoX, logoY, {
+        width: this.mmToPt(logoWidthMm),
+      });
+
+      // Centered header text
+      doc.fillColor('#ffffff');
+      doc.font('Helvetica-Bold');
+      const headerTextX = this.mmToPt(3) + this.mmToPt(logoWidthMm) + this.mmToPt(2);
+      const headerTextWidth = labelWidthPt - headerTextX - this.mmToPt(3);
+
+      if (isCelular) {
+        doc.fontSize(6);
         doc.text(
-          'POLÃCIA MILITAR DE PERNAMBUCO',
+          'PMPE',
           headerTextX,
-          offsetY + this.mmToPt(1.5),
+          this.mmToPt(2.2),
           { width: headerTextWidth, align: 'center' },
         );
+        doc.fontSize(4.5);
+        doc.text(
+          'DIRETORIA DE TECNOLOGIA',
+          headerTextX,
+          this.mmToPt(5.5),
+          { width: headerTextWidth, align: 'center' },
+        );
+      } else {
+        doc.fontSize(4.5);
+        doc.text(
+          'POLÍCIA MILITAR DE PERNAMBUCO',
+          headerTextX,
+          (headerHeight - 4.5) / 2,
+          { width: headerTextWidth, align: 'center' },
+        );
+      }
 
-        // Adjust body top and QR size based on orientation
-        const bodyTop =
-          offsetY + headerHeight + this.mmToPt(isVertical ? 1 : 0.5);
-        const columnGap = this.mmToPt(1);
-        const columnWidth = (labelWidthPt - columnGap) / 2;
-        const qrSize = this.mmToPt(18); // larger QR for better scanability
-        const qrX = labelWidthPt - qrSize - this.mmToPt(2);
-        const qrY = bodyTop;
+      // Footer (premium gradient background)
+      const footerHeight = this.mmToPt(7);
+      const footerY = labelHeightPt - footerHeight;
+      const footerGrad = doc.linearGradient(0, footerY, labelWidthPt, footerY);
+      footerGrad.stop(0, '#2563eb');
+      footerGrad.stop(1, '#1e3a8a');
+      doc
+        .rect(0, footerY, labelWidthPt, footerHeight)
+        .fill(footerGrad);
+
+      doc.fillColor('#ffffff');
+      doc.font('Helvetica-Bold');
+      doc.fontSize(4.5);
+      doc.text(
+        'DTEC ‑ UTEL',
+        this.mmToPt(2),
+        footerY + this.mmToPt(1.5),
+        { width: labelWidthPt - this.mmToPt(4), align: 'center' },
+      );
+      doc.font('Helvetica');
+      doc.fontSize(3.5);
+      doc.text(
+        'DTEC / SISTEMAS AUDITORIA VIA QR CODE',
+        this.mmToPt(2),
+        footerY + this.mmToPt(3.8),
+        { width: labelWidthPt - this.mmToPt(4), align: 'center' },
+      );
+
+      // Body layout
+      doc.fillColor('#000000');
+      const textX = this.mmToPt(3);
+
+      if (isVertical) {
+        // Vertical Layout: 40mm x 60mm
+        if (isCelular) {
+          // Celular stacked layout Y coordinates adjusted for 11mm header
+          // Patrimonio
+          doc.font('Helvetica-Bold');
+          doc.fontSize(4.5);
+          doc.text('PATRIMÔNIO', textX, this.mmToPt(13));
+          doc.font('Helvetica-Bold');
+          doc.fontSize(8.5);
+          doc.text(item.patrimonio || 'S/PAT', textX, this.mmToPt(14.5));
+
+          // Telefone
+          doc.font('Helvetica-Bold');
+          doc.fontSize(4.5);
+          doc.text('Nº TELEFONE', textX, this.mmToPt(19.5));
+          doc.font('Helvetica');
+          doc.fontSize(6);
+          doc.text(`N: ${telefone}`, textX, this.mmToPt(21));
+
+          // IMEI
+          doc.font('Helvetica-Bold');
+          doc.fontSize(4.5);
+          doc.text('IMEI', textX, this.mmToPt(25.5));
+          doc.font('Helvetica');
+          doc.fontSize(6);
+          doc.text(imei, textX, this.mmToPt(27));
+        } else {
+          // Regular vertical layout (10mm starting Y)
+          // Patrimonio
+          doc.font('Helvetica-Bold');
+          doc.fontSize(4.5);
+          doc.text('PATRIMÔNIO', textX, this.mmToPt(10));
+          doc.font('Helvetica-Bold');
+          doc.fontSize(8.5);
+          doc.text(item.patrimonio || 'S/PAT', textX, this.mmToPt(11.5));
+
+          // Tipo de Material
+          doc.font('Helvetica-Bold');
+          doc.fontSize(4.5);
+          doc.text('TIPO DE MATERIAL', textX, this.mmToPt(16.5));
+          doc.font('Helvetica');
+          doc.fontSize(6);
+          doc.text(item.tipoEquipamento?.nome || '—', textX, this.mmToPt(18));
+
+          // Marca / Modelo
+          doc.font('Helvetica-Bold');
+          doc.fontSize(4.5);
+          doc.text('MARCA / MODELO', textX, this.mmToPt(22.5));
+          doc.font('Helvetica');
+          doc.fontSize(6);
+          const marca = `${item.marca?.nome || '—'} ${item.modelo?.nome || ''}`.trim();
+          doc.text(marca, textX, this.mmToPt(24));
+
+          // Seção / Unidade
+          doc.font('Helvetica-Bold');
+          doc.fontSize(4.5);
+          doc.text('SEÇÃO / UNIDADE', textX, this.mmToPt(28.5));
+          doc.font('Helvetica-Bold');
+          doc.fontSize(6.5);
+          doc.text(item.secao?.sigla || 'DTEC', textX, this.mmToPt(30));
+        }
+
+        // QR Code centered horizontally
+        const qrSize = this.mmToPt(18);
+        const qrX = (labelWidthPt - qrSize) / 2;
+        const qrY = this.mmToPt(isCelular ? 32.5 : 34.5);
+        doc.image(qrBuffer, qrX, qrY, { width: qrSize });
+      } else {
+        // Horizontal Layout: 60mm x 40mm
+        // Left Column (Text) and Right Column (QR Code)
+        const qrSize = this.mmToPt(18);
+        const qrX = labelWidthPt - qrSize - this.mmToPt(3);
+        const qrY = headerHeight + (labelHeightPt - headerHeight - footerHeight - qrSize) / 2;
         doc.image(qrBuffer, qrX, qrY, { width: qrSize });
 
-        // Left column
-        const leftX = this.mmToPt(2);
-        doc.fillColor('#000000');
-        // Left column (starts at top after header)
+        // Patrimonio
         doc.font('Helvetica-Bold');
-        doc.fontSize(3);
-        doc.text('PATRIMÃ”NIO', leftX, bodyTop + this.mmToPt(2));
-        doc.font('Helvetica');
-        doc.fontSize(5);
-        doc.text(item.patrimonio || 'S/PAT', leftX, bodyTop + this.mmToPt(5));
+        doc.fontSize(4.5);
+        doc.text('PATRIMÔNIO', textX, this.mmToPt(10.5));
         doc.font('Helvetica-Bold');
-        doc.fontSize(4);
-        doc.text('TIPO DE MATERIAL', leftX, bodyTop + this.mmToPt(9));
-        doc.font('Helvetica');
-        doc.fontSize(5);
-        doc.text(
-          item.tipoEquipamento?.nome || 'â€”',
-          leftX,
-          bodyTop + this.mmToPt(11),
-        );
-        doc.font('Helvetica-Bold');
-        doc.fontSize(4);
-        doc.text('MARCA / MODELO', leftX, bodyTop + this.mmToPt(15));
-        doc.font('Helvetica');
-        doc.fontSize(5);
-        const marca =
-          `${item.marca?.nome || 'â€”'} ${item.modelo?.nome || ''}`.trim();
-        doc.text(marca, leftX, bodyTop + this.mmToPt(17));
+        doc.fontSize(7.5);
+        doc.text(item.patrimonio || 'S/PAT', textX, this.mmToPt(12));
 
-        // Section / Unidade placed below QR code
-        const secY = bodyTop + qrSize + this.mmToPt(20);
+        // Tipo de Material
         doc.font('Helvetica-Bold');
-        doc.fontSize(4);
-        doc.text('SEÃ‡ÃƒO / UNIDADE', qrX, secY, {
-          width: qrSize,
-          align: 'center',
-        });
-        doc.fontSize(5);
-        doc.text(item.secao?.sigla || 'DTEC', qrX, secY + this.mmToPt(3), {
-          width: qrSize,
-          align: 'center',
-        });
-
-        // Footer (premium background)
-        const footerHeight = this.mmToPt(9);
-        doc
-          .rect(
-            0,
-            offsetY + labelHeightPt - footerHeight,
-            labelWidthPt,
-            footerHeight,
-          )
-          .fillAndStroke('#0f163a', '#0f163a');
-        doc.fillColor('#ffffff');
-        doc.font('Helvetica-Bold');
-        doc.fontSize(4);
-        doc.text(
-          'DTECâ€‘UTEL',
-          this.mmToPt(2),
-          offsetY + labelHeightPt - footerHeight + this.mmToPt(2),
-          { width: labelWidthPt - this.mmToPt(4), align: 'center' },
-        );
+        doc.fontSize(4.5);
+        doc.text('TIPO DE MATERIAL', textX, this.mmToPt(16.5));
         doc.font('Helvetica');
-        doc.fontSize(3);
-        doc.text(
-          'DTEC / SISTEMAS AUDITORIA VIA QR CODE',
-          this.mmToPt(2),
-          offsetY + labelHeightPt - footerHeight + this.mmToPt(5),
-          { width: labelWidthPt - this.mmToPt(4), align: 'center' },
-        );
-      };
+        doc.fontSize(5.5);
+        doc.text(item.tipoEquipamento?.nome || '—', textX, this.mmToPt(18));
 
-      // Draw a single label (no stacking)
-      const offsetY = 0;
-      drawLabel(offsetY);
+        // Marca / Modelo
+        doc.font('Helvetica-Bold');
+        doc.fontSize(4.5);
+        doc.text('MARCA / MODELO', textX, this.mmToPt(22));
+        doc.font('Helvetica');
+        doc.fontSize(5.5);
+        const marca = `${item.marca?.nome || '—'} ${item.modelo?.nome || ''}`.trim();
+        doc.text(marca, textX, this.mmToPt(23.5));
+
+        // Seção / Unidade
+        doc.font('Helvetica-Bold');
+        doc.fontSize(4.5);
+        doc.text('SEÇÃO / UNIDADE', textX, this.mmToPt(27.5));
+        doc.font('Helvetica-Bold');
+        doc.fontSize(6);
+        doc.text(item.secao?.sigla || 'DTEC', textX, this.mmToPt(29));
+      }
 
       doc.end();
     });
   }
 
-  async gerarTabelaPDF(
-    titulo: string,
-    subtitulo: string,
-    colunas: string[],
-    linhas: string[][],
-  ): Promise<Buffer> {
+  async gerarTabelaPDF(data: any): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const doc = new PDFDocument({
-        size: [this.mmToPt(297), this.mmToPt(210)],
-        margin: this.mmToPt(16),
+        size: 'A4',
+        margin: this.mmToPt(10), // Reduced margins to fit wide tables
       });
 
       const buffers: Buffer[] = [];
@@ -329,50 +413,216 @@ export class PdfService {
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
 
-      const margin = this.mmToPt(16);
-      let cursorY = doc.page.height - margin;
+      const margin = this.mmToPt(10);
+      const pageWidth = doc.page.width;
+      const contentWidth = pageWidth - 2 * margin;
+      let cursorY = margin;
 
-      // TÃ­tulo
-      doc.font('Helvetica-Bold');
-      doc.fontSize(14);
-      doc.text(titulo, margin, cursorY);
-
-      cursorY -= this.mmToPt(7);
-
-      // SubtÃ­tulo
-      doc.font('Helvetica');
-      doc.fontSize(9);
-      doc.text(subtitulo, margin, cursorY);
-
-      cursorY -= this.mmToPt(11);
-
-      // CabeÃ§alho da tabela
-      doc.font('Helvetica-Bold');
-      doc.fontSize(8);
-      doc.text(colunas.join(' | '), margin, cursorY);
-
-      cursorY -= this.mmToPt(6.5);
-
-      // Linhas da tabela
-      doc.font('Helvetica');
-      for (const row of linhas) {
-        if (cursorY < margin + this.mmToPt(10)) {
-          doc.addPage();
-          cursorY = doc.page.height - margin;
+      // Function to draw the PMPE Header
+      const desenharCabecalho = () => {
+        try {
+          const logoPath = path.resolve(__dirname, '../../../../atlas-frontend/src/assets/cropped-logo-pmpe-150x150.png');
+          const logoSize = this.mmToPt(15);
+          doc.image(logoPath, (pageWidth - logoSize) / 2, cursorY, { width: logoSize });
+          cursorY += logoSize + this.mmToPt(2);
+        } catch (e) {
+          // Logo missing fallback
         }
 
-        const rowText = row
-          .map((cell, index) => {
-            const value = String(cell || '')
-              .replace(/\s+/g, ' ')
-              .trim();
-            return value.length > 32 ? value.slice(0, 29) + '...' : value;
-          })
-          .join(' | ');
+        doc.fillColor('#000000');
+        doc.font('Helvetica-Bold');
+        doc.fontSize(14);
+        doc.text('POLÍCIA MILITAR DE PERNAMBUCO', margin, cursorY, { align: 'center', width: contentWidth });
+        cursorY += this.mmToPt(6);
+
+        doc.font('Helvetica');
+        doc.fontSize(11);
+        doc.text(data.titulo || 'Relatório de Fiscalização', margin, cursorY, { align: 'center', width: contentWidth });
+        cursorY += this.mmToPt(5);
 
         doc.fontSize(8);
-        doc.text(rowText, margin, cursorY);
-        cursorY -= this.mmToPt(6.5);
+        const dateStr = new Date().toLocaleString('pt-BR');
+        doc.text(`Gerado em: ${dateStr}`, margin, cursorY, { align: 'center', width: contentWidth });
+        cursorY += this.mmToPt(4);
+
+        // Divisor Line
+        doc.moveTo(margin, cursorY).lineTo(pageWidth - margin, cursorY).lineWidth(0.5).stroke('#aaaaaa');
+        cursorY += this.mmToPt(4);
+
+        // Fiscal Metadata
+        doc.font('Helvetica');
+        doc.fontSize(9);
+        const yMetadata = cursorY;
+        
+        doc.text('Fiscal:', margin, yMetadata);
+        doc.font('Helvetica-Bold');
+        doc.text(data.fiscal?.toUpperCase() || '—', margin + this.mmToPt(12), yMetadata);
+
+        doc.font('Helvetica');
+        doc.text('Matrícula:', margin + this.mmToPt(120), yMetadata);
+        doc.font('Helvetica-Bold');
+        doc.text(data.matricula || '—', margin + this.mmToPt(135), yMetadata);
+
+        cursorY += this.mmToPt(5);
+
+        doc.font('Helvetica');
+        doc.text('OME:', margin, cursorY);
+        doc.font('Helvetica-Bold');
+        doc.text(data.ome?.toUpperCase() || '—', margin + this.mmToPt(12), cursorY);
+
+        cursorY += this.mmToPt(6);
+      };
+
+      const checkPageBreak = (neededHeight: number) => {
+        if (cursorY + neededHeight > doc.page.height - margin) {
+          doc.addPage();
+          cursorY = margin;
+          desenharCabecalho();
+        }
+      };
+
+      desenharCabecalho();
+
+      // Fallback para Cautela Coletiva Antiga caso não passe 'grupos'
+      const grupos = data.grupos && data.grupos.length > 0 ? data.grupos : [{
+        colunas: data.colunas,
+        linhas: data.linhas
+      }];
+
+      for (const grupo of grupos) {
+        checkPageBreak(this.mmToPt(50));
+
+        // Group Header (Operação, Local, etc)
+        if (grupo.operacao || grupo.tituloGeral) {
+          cursorY += this.mmToPt(4);
+          doc.font('Helvetica');
+          doc.fontSize(9);
+          
+          const col1X = margin;
+          const val1X = margin + this.mmToPt(25);
+          const col2X = margin + this.mmToPt(100);
+          const val2X = margin + this.mmToPt(120);
+
+          let gy = cursorY;
+
+          // Row 1
+          doc.text('Operação:', col1X, gy);
+          doc.font('Helvetica-Bold');
+          doc.text((grupo.operacao || grupo.tituloGeral || '').toUpperCase(), val1X, gy);
+
+          doc.font('Helvetica');
+          doc.text('Evento:', col2X, gy);
+          doc.font('Helvetica-Bold');
+          doc.text((grupo.evento || '').toUpperCase(), val2X, gy);
+
+          gy += this.mmToPt(5);
+
+          // Row 2
+          doc.font('Helvetica');
+          doc.text('Local:', col1X, gy);
+          doc.font('Helvetica-Bold');
+          doc.text((grupo.local || '').toUpperCase(), val1X, gy);
+
+          doc.font('Helvetica');
+          doc.text('Data:', col2X, gy);
+          doc.font('Helvetica-Bold');
+          doc.text((grupo.data || '').toUpperCase(), val2X, gy);
+
+          gy += this.mmToPt(5);
+
+          // Row 3
+          doc.font('Helvetica');
+          doc.text('Ome Beneficiada:', col1X, gy);
+          doc.font('Helvetica-Bold');
+          doc.text((grupo.omeBeneficiada || '').toUpperCase(), val1X, gy);
+
+          doc.font('Helvetica');
+          doc.text('Período:', col2X, gy);
+          doc.font('Helvetica-Bold');
+          doc.text((grupo.periodo || '').toUpperCase(), val2X, gy);
+
+          gy += this.mmToPt(5);
+
+          // Row 4
+          doc.font('Helvetica');
+          doc.text('Ome Cedente:', col1X, gy);
+          doc.font('Helvetica-Bold');
+          doc.text((grupo.omeCedente || '').toUpperCase(), val1X, gy);
+
+          doc.font('Helvetica');
+          doc.text('Modalidade:', col2X, gy);
+          doc.font('Helvetica-Bold');
+          doc.text((grupo.modalidade || '').toUpperCase(), val2X, gy);
+
+          cursorY = gy + this.mmToPt(8);
+        }
+
+        // Draw Table
+        const rowHeight = this.mmToPt(7);
+        const colunas = grupo.colunas || [];
+        const linhas = grupo.linhas || [];
+        
+        if (colunas.length === 0) continue;
+
+        const colWidth = contentWidth / colunas.length;
+
+        // Table Header
+        checkPageBreak(rowHeight * 2);
+        
+        doc.rect(margin, cursorY, contentWidth, rowHeight).fill('#1E3A5F');
+        doc.fillColor('#ffffff');
+        doc.font('Helvetica-Bold');
+        doc.fontSize(8);
+
+        for (let i = 0; i < colunas.length; i++) {
+          doc.text(colunas[i], margin + (i * colWidth), cursorY + this.mmToPt(2), {
+            width: colWidth,
+            align: 'center'
+          });
+          // Draw vertical separator
+          if (i > 0) {
+            doc.moveTo(margin + (i * colWidth), cursorY).lineTo(margin + (i * colWidth), cursorY + rowHeight).lineWidth(0.5).stroke('#4a6080');
+          }
+        }
+        cursorY += rowHeight;
+
+        // Table Rows
+        doc.fillColor('#333333');
+        doc.font('Helvetica');
+        
+        for (let r = 0; r < linhas.length; r++) {
+          checkPageBreak(rowHeight);
+          
+          const rowY = cursorY;
+          // Row Background (Zebra)
+          if (r % 2 === 0) {
+            doc.rect(margin, rowY, contentWidth, rowHeight).fill('#f9fafb');
+          }
+          
+          doc.fillColor('#000000');
+          for (let c = 0; c < colunas.length; c++) {
+            const val = String(linhas[r][c] || '').replace(/\s+/g, ' ').trim();
+            // Truncate if too long
+            const truncated = val.length > 50 ? val.substring(0, 47) + '...' : val;
+            
+            doc.text(truncated, margin + (c * colWidth) + this.mmToPt(1), rowY + this.mmToPt(2), {
+              width: colWidth - this.mmToPt(2),
+              align: 'center'
+            });
+
+            // Vertical line
+            doc.moveTo(margin + (c * colWidth), rowY).lineTo(margin + (c * colWidth), rowY + rowHeight).lineWidth(0.5).stroke('#e5e7eb');
+          }
+          
+          // Outer right border and bottom border
+          doc.moveTo(margin + contentWidth, rowY).lineTo(margin + contentWidth, rowY + rowHeight).stroke('#e5e7eb');
+          doc.moveTo(margin, rowY + rowHeight).lineTo(margin + contentWidth, rowY + rowHeight).stroke('#e5e7eb');
+          
+          cursorY += rowHeight;
+        }
+
+        // Faltas / Remanejamentos blocks (optional, as seen in image)
+        cursorY += this.mmToPt(8);
       }
 
       doc.end();

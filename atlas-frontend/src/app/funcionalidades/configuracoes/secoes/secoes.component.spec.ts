@@ -955,7 +955,7 @@ describe('SettingsSectionsComponent', () => {
   });
 
   it('deve manter dialogVisivel false se salvar falhar', () => {
-    settingsService.criarSecao.and.returnValue(throwError(() => new Error('Erro')));
+    settingsService.criarSecao.and.returnValue(throwError(() => ({ error: { message: 'Erro' } })));
     component.editando = false;
     component.form.patchValue({ sigla: 'SEC', nome: 'Secao', batalhaoId: 10 });
     component.dialogVisivel = true;

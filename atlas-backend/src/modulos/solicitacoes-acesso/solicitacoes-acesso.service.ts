@@ -1,12 +1,18 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, Logger } from '@nestjs/common';
 import { AccessRequestsRepository } from './solicitacoes-acesso.repository';
 import { NotificationsService } from '../notificacoes/notificacoes.service';
+import { PrismaService } from '../../banco-dados/prisma.service';
+import { BasesCorporativasService } from '../../integracoes/bases-corporativas/bases-corporativas.service';
 
 @Injectable()
 export class AccessRequestsService {
+  private readonly logger = new Logger(AccessRequestsService.name);
+
   constructor(
     private readonly repository: AccessRequestsRepository,
     private readonly notificationsService: NotificationsService,
+    private readonly prisma: PrismaService,
+    private readonly sgaService: BasesCorporativasService,
   ) {}
 
   async solicitarAcesso(dados: any) {
@@ -55,13 +61,47 @@ export class AccessRequestsService {
     });
   }
 
-  async aprovar(id: number) {
-    const solicitacao = await this.repository.update({
+  async aprovar(id: number, dadosCuradoria?: { perfil?: string; secaoId?: number; batalhaoId?: number }) {
+    // 1. Recuperar os dados completos da solicitação
+    const solicitacao = await this.repository.findFirst({ where: { id } });
+    if (!solicitacao) throw new Error("Solicitação não encontrada.");
+
+    const perfilFinal = dadosCuradoria?.perfil || solicitacao.perfil || 'USUARIO_BATALHAO';
+
+    // 2. Criar localmente o usuário no banco de dados Atlas
+    const usuarioLocal = await this.prisma.usuario.create({
+      data: {
+        login: solicitacao.login,
+        nome: solicitacao.nome,
+        cpf: solicitacao.cpf,
+        matricula: solicitacao.matricula || solicitacao.login,
+        email: solicitacao.email,
+        postoGraduacao: solicitacao.postoGraduacao,
+        perfil: perfilFinal as any,
+        secaoId: dadosCuradoria?.secaoId,
+        batalhaoId: dadosCuradoria?.batalhaoId,
+        autorizado: true,
+      }
+    });
+
+    this.logger.log(`Usuário ${usuarioLocal.login} criado localmente com sucesso (Perfil Final: ${perfilFinal})!`);
+
+    const solicitacaoFinal = { ...solicitacao, perfil: perfilFinal };
+
+    // 3. Provisionamento no sistema SGA
+    try {
+      await this.sgaService.provisionarUsuarioSga(solicitacaoFinal);
+    } catch (e) {
+      this.logger.warn(`Falha não obstrutiva no provisionamento para o SGA: ${e}`);
+    }
+
+    // 4. Marcar solicitação como aprovada
+    const solicitacaoAtualizada = await this.repository.update({
       where: { id },
       data: { status: 'APROVADA' },
     });
-    // Lógica para notificar ou criar usuário pode ser adicionada aqui se necessário
-    return solicitacao;
+    
+    return solicitacaoAtualizada;
   }
 
   async rejeitar(id: number, motivo?: string) {

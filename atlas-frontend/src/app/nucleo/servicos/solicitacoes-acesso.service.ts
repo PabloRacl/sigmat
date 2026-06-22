@@ -12,8 +12,8 @@ export class AccessRequestsFrontendService {
     return this.http.get<any[]>(`${this.apiUrl}/pendentes`);
   }
 
-  aprovar(id: number): Observable<any> {
-    return this.http.patch<any>(`${this.apiUrl}/${id}/aprovar`, {});
+  aprovar(id: number, dadosCuradoria?: { perfil?: string; secaoId?: number; batalhaoId?: number }): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/${id}/aprovar`, dadosCuradoria || {});
   }
 
   rejeitar(id: number, motivo?: string): Observable<any> {

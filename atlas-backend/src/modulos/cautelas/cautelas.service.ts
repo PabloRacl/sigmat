@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../banco-dados/prisma.service';
 import { AcaoLog } from '@prisma/client';
+import { Inject } from '@nestjs/common';
 import { AuditService } from '../../compartilhado/servicos/audit.service';
 
 const INCLUDE_EMPRESTIMO = {
@@ -11,40 +12,25 @@ const INCLUDE_EMPRESTIMO = {
   disponibilidade: true,
 };
 
+import { I_LOANS_REPOSITORY } from './repositorios/cautelas.repository.interface';
+import type { ILoansRepository } from './repositorios/cautelas.repository.interface';
+
 @Injectable()
 export class LoansService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(I_LOANS_REPOSITORY)
+    private readonly repository: ILoansRepository,
     private readonly auditService: AuditService,
   ) {}
 
   /** Lista todos os equipamentos atualmente emprestados */
   async listarEmprestados() {
-    const dispEmprestado = await this.prisma.disponibilidade.findFirst({
-      where: { nome: { equals: 'EMPRESTIMO', mode: 'insensitive' } },
-    });
-    if (!dispEmprestado) return [];
-
-    return this.prisma.equipamento.findMany({
-      where: { disponibilidadeId: dispEmprestado.id },
-      include: INCLUDE_EMPRESTIMO,
-      orderBy: { dataSolicitacao: 'desc' },
-    });
+    return this.repository.listarEmprestados();
   }
 
   /** Histórico de todos os empréstimos (retornados e ativos) */
   async historico() {
-    return this.prisma.equipamento.findMany({
-      where: {
-        OR: [
-          { solicitante: { not: null } },
-          { dataSolicitacao: { not: null } },
-        ],
-      },
-      include: INCLUDE_EMPRESTIMO,
-      orderBy: { updatedAt: 'desc' },
-      take: 50,
-    });
+    return this.repository.historico();
   }
 
   /** Registrar saída — marca equipamento como Emprestado */
@@ -58,31 +44,23 @@ export class LoansService {
     },
     usuario: any,
   ) {
-    const equip = await this.prisma.equipamento.findUnique({
-      where: { id: equipamentoId },
-    });
+    const equip = await this.repository.buscarPorId(equipamentoId);
     if (!equip) throw new NotFoundException('Equipamento não encontrado');
 
-    const dispEmprestado = await this.prisma.disponibilidade.findFirst({
-      where: { nome: { equals: 'EMPRESTIMO', mode: 'insensitive' } },
-    });
+    const dispEmprestado = await this.repository.obterDisponibilidadeId('EMPRESTIMO');
     if (!dispEmprestado)
       throw new NotFoundException(
         'Disponibilidade "EMPRESTIMO" não cadastrada',
       );
 
-    const resultado = await this.prisma.equipamento.update({
-      where: { id: equipamentoId },
-      data: {
-        disponibilidadeId: dispEmprestado.id,
-        solicitante: dados.solicitante,
-        usuarioResponsavelId: dados.usuarioResponsavelId || null,
-        dataSolicitacao: new Date(dados.dataSolicitacao),
-        dataRetornoEmprestimo: dados.dataRetornoEmprestimo
-          ? new Date(dados.dataRetornoEmprestimo)
-          : null,
-      },
-      include: INCLUDE_EMPRESTIMO,
+    const resultado = await this.repository.atualizar(equipamentoId, {
+      disponibilidadeId: dispEmprestado,
+      solicitante: dados.solicitante,
+      usuarioResponsavelId: dados.usuarioResponsavelId || null,
+      dataSolicitacao: new Date(dados.dataSolicitacao),
+      dataRetornoEmprestimo: dados.dataRetornoEmprestimo
+        ? new Date(dados.dataRetornoEmprestimo)
+        : null,
     });
 
     await this.auditService.registrarLog({
@@ -98,29 +76,21 @@ export class LoansService {
 
   /** Registrar retorno — marca equipamento como Disponível e limpa os dados de empréstimo */
   async registrarRetorno(equipamentoId: number, usuario: any) {
-    const equip = await this.prisma.equipamento.findUnique({
-      where: { id: equipamentoId },
-    });
+    const equip = await this.repository.buscarPorId(equipamentoId);
     if (!equip) throw new NotFoundException('Equipamento não encontrado');
 
-    const dispDisponivel = await this.prisma.disponibilidade.findFirst({
-      where: { nome: { equals: 'DISPONÍVEL', mode: 'insensitive' } },
-    });
+    const dispDisponivel = await this.repository.obterDisponibilidadeId('DISPONÍVEL');
     if (!dispDisponivel)
       throw new NotFoundException(
         'Disponibilidade "DISPONÍVEL" não cadastrada',
       );
 
-    const resultado = await this.prisma.equipamento.update({
-      where: { id: equipamentoId },
-      data: {
-        disponibilidadeId: dispDisponivel.id,
-        solicitante: null,
-        usuarioResponsavelId: null,
-        dataSolicitacao: null,
-        dataRetornoEmprestimo: null,
-      },
-      include: INCLUDE_EMPRESTIMO,
+    const resultado = await this.repository.atualizar(equipamentoId, {
+      disponibilidadeId: dispDisponivel,
+      solicitante: null,
+      usuarioResponsavelId: null,
+      dataSolicitacao: null,
+      dataRetornoEmprestimo: null,
     });
 
     await this.auditService.registrarLog({
@@ -139,18 +109,6 @@ export class LoansService {
 
   /** Equipamentos com retorno vencido (data de retorno no passado e ainda emprestados) */
   async listarVencidos() {
-    const dispEmprestado = await this.prisma.disponibilidade.findFirst({
-      where: { nome: { equals: 'EMPRESTIMO', mode: 'insensitive' } },
-    });
-    if (!dispEmprestado) return [];
-
-    return this.prisma.equipamento.findMany({
-      where: {
-        disponibilidadeId: dispEmprestado.id,
-        dataRetornoEmprestimo: { lt: new Date() },
-      },
-      include: INCLUDE_EMPRESTIMO,
-      orderBy: { dataRetornoEmprestimo: 'asc' },
-    });
+    return this.repository.listarVencidos();
   }
 }

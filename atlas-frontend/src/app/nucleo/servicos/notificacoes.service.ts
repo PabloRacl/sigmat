@@ -31,7 +31,7 @@ export class NotificationsService {
   pendentes$ = this.pendentesSubject.asObservable();
 
   private socket!: Socket;
-  private intervalId: any;
+  private intervalId: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
     if (this.mockMode.useMock) {
@@ -73,21 +73,24 @@ export class NotificationsService {
       return;
     }
 
+    const isAdminDtec = user.perfil === 'ADMIN_DTEC';
+    const isAdmin = isAdminDtec || user.perfil === 'DIRETORIA';
+
     forkJoin({
       aprovacoes: this.approvalsService.obterContagem().pipe(catchError(() => of({ total: 0 }))),
       transferencias: this.transfersService.listarPendentes().pipe(catchError(() => of([]))),
       manutencao: this.maintenanceService.contarPendentes().pipe(catchError(() => of({ total: 0 }))),
-      acesso: this.accessRequestsService.listarPendentes().pipe(catchError(() => of([]))),
+      acesso: isAdminDtec ? this.accessRequestsService.listarPendentes().pipe(catchError(() => of([]))) : of([]),
     }).subscribe(({ aprovacoes, transferencias, manutencao, acesso }) => {
-      const totalAprovacoes = (aprovacoes as any).total || 0;
+      const totalAprovacoes = (aprovacoes as { total?: number }).total || 0;
 
-      const isAdmin = user.perfil === 'ADMIN_DTEC' || user.perfil === 'DIRETORIA';
+      const transferenciasList = transferencias as { destinoId?: number }[];
       const recebidas = isAdmin
-        ? (transferencias as any[]).length
-        : (transferencias as any[]).filter(t => t.destinoId === user.secaoId).length;
+        ? transferenciasList.length
+        : transferenciasList.filter(t => t.destinoId === user.secaoId).length;
 
-      const totalManutencao = (manutencao as any).total || 0;
-      const totalAcesso = (acesso as any[]).length;
+      const totalManutencao = (manutencao as { total?: number }).total || 0;
+      const totalAcesso = (acesso as unknown[]).length;
 
       this.pendentesSubject.next({
         total: totalAprovacoes + recebidas + totalManutencao + totalAcesso,

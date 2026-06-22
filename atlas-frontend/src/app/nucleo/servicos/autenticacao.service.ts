@@ -5,6 +5,7 @@ import { BehaviorSubject, of, throwError } from 'rxjs';
 import { environment } from '../../environment';
 import { MockModeService } from './modo-mock.service';
 import { USUARIOS_MOCK } from '../dados-teste/usuarios.teste';
+import { UsuarioLogado } from '../interfaces/usuario.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,7 @@ export class AuthService {
   private mockMode = inject(MockModeService);
   private readonly API_URL = `${environment.apiUrl}/autenticacao`;
 
-  private usuarioSubject = new BehaviorSubject<any>(this.getUsuario());
+  private usuarioSubject = new BehaviorSubject<UsuarioLogado | null>(this.getUsuario());
   public usuario$ = this.usuarioSubject.asObservable();
 
   login(matricula: string, senha: string) {
@@ -37,7 +38,7 @@ export class AuthService {
       return throwError(() => new Error('Usuário ou senha inválidos'));
     }
 
-    return this.http.post<any>(`${this.API_URL}/login-sei`, { usuario: matricula, senha })
+    return this.http.post<{ access_token: string; refresh_token: string; usuario: UsuarioLogado }>(`${this.API_URL}/login-sei`, { usuario: matricula, senha })
       .pipe(
         tap(res => {
           if (res.access_token) {
@@ -57,25 +58,25 @@ export class AuthService {
       return of(mockResponse).pipe(
         tap(res => {
           if (res.access_token) {
-            this.salvarSessao(res.access_token, res.refresh_token, this.getUsuario());
+            this.salvarSessao(res.access_token, res.refresh_token, this.getUsuario()!);
           }
         })
       );
     }
 
     const refreshToken = this.getRefreshToken();
-    return this.http.post<any>(`${this.API_URL}/refresh`, { refresh_token: refreshToken })
+    return this.http.post<{ access_token: string; refresh_token: string }>(`${this.API_URL}/refresh`, { refresh_token: refreshToken })
       .pipe(
         tap(res => {
           if (res.access_token) {
-            this.salvarSessao(res.access_token, res.refresh_token, this.getUsuario());
+            this.salvarSessao(res.access_token, res.refresh_token, this.getUsuario()!);
           }
         })
       );
   }
 
   solicitarAcesso(dados: { usuario: string, matricula: string, nome: string, unidade: string, motivo: string }) {
-    return this.http.post<any>(`${this.API_URL}/solicitar-acesso`, dados);
+    return this.http.post<{ message: string }>(`${this.API_URL}/solicitar-acesso`, dados);
   }
 
   buscarUnidades() {
@@ -99,7 +100,7 @@ export class AuthService {
     }
   }
 
-  private salvarSessao(access: string, refresh: string, user: any) {
+  private salvarSessao(access: string, refresh: string, user: UsuarioLogado) {
     localStorage.setItem('atlas_token', access);
     localStorage.setItem('atlas_refresh', refresh);
     localStorage.setItem('atlas_user', JSON.stringify(user));
@@ -124,7 +125,7 @@ export class AuthService {
   getUsuario() {
     const user = localStorage.getItem('atlas_user');
     try {
-      return user ? JSON.parse(user) : null;
+      return user ? JSON.parse(user) as UsuarioLogado : null;
     } catch {
       return null;
     }
@@ -132,6 +133,21 @@ export class AuthService {
 
   isAutenticado(): boolean {
     return !!this.getToken();
+  }
+
+  getTokenExpirationTime(): number {
+    const token = this.getToken();
+    if (!token) return 0;
+    
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return 0;
+      
+      const payload = JSON.parse(atob(parts[1]));
+      return payload.exp ? payload.exp * 1000 : 0;
+    } catch {
+      return 0;
+    }
   }
 }
 

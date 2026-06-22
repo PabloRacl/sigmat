@@ -42,6 +42,17 @@ export class AprovacaoRepositorioPrisma implements IAprovacaoRepositorio {
     });
   }
 
+  async listarTodas(): Promise<any[]> {
+    return this.prisma.alteracaoPendente.findMany({
+      orderBy: { dataSolicitacao: 'desc' },
+      include: {
+        equipamento: { include: { tipoEquipamento: true, marca: true } },
+        solicitante: true,
+        aprovadoPor: true,
+      },
+    });
+  }
+
   async contarPendentes(batalhaoId?: number): Promise<number> {
     return this.prisma.alteracaoPendente.count({
       where: {

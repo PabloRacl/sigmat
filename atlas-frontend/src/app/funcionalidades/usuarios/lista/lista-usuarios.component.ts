@@ -12,10 +12,28 @@ import { Textarea } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
+import { TimelineModule } from 'primeng/timeline';
+import { BadgeModule } from 'primeng/badge';
 import { ConfirmationService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
+import { UsuarioListagem } from '../../../nucleo/interfaces/usuario.interface';
+
+export interface SolicitacaoAcesso {
+  id: number;
+  nome: string;
+  usuario: string;
+  matricula: string;
+  cpf?: string;
+  unidade: string;
+  motivo: string;
+  status?: string;
+  organizacaoDisp?: string;
+  secaoSigla?: string;
+  createdAt?: Date | string;
+  [key: string]: unknown;
+}
 
 const PERFIS = [
   { label: 'Administrador DTEC', value: 'ADMIN_DTEC' },
@@ -37,6 +55,8 @@ const POSTOS = [
     CommonModule, FormsModule, ReactiveFormsModule,
     DialogModule, SelectModule, ButtonModule, InputTextModule, Textarea, ToastModule, TooltipModule,
     ConfirmDialogModule,
+    TimelineModule,
+    BadgeModule,
     EstadoVazioComponent,
     LayoutPaginaComponent
   ],
@@ -52,18 +72,25 @@ export class UsersListComponent implements OnInit {
   private confirmationService = inject(ConfirmationService);
   private accessReqService = inject(AccessRequestsFrontendService);
 
-  usuarios: any[] = [];
-  solicitacoes: any[] = [];
+  usuarios: UsuarioListagem[] = [];
+  solicitacoes: SolicitacaoAcesso[] = [];
   exibirDialogoRejeicao = false;
-  solicitacaoRejeicao: any = null;
+  solicitacaoRejeicao: SolicitacaoAcesso | null = null;
   motivoRejeicao = '';
   carregando = true;
   exibirModal = false;
   editando = false;
   filtroNome = '';
+  aprovandoSolicitacaoId: number | null = null;
 
-  secoes: any[] = [];
-  batalhoes: any[] = [];
+  // Gestão de Perfil de Usuário
+  exibirFicha = false;
+  usuarioSelecionado: UsuarioListagem | null = null;
+  logsUsuario: any[] = [];
+  carregandoLogs = false;
+
+  secoes: Record<string, any>[] = [];
+  batalhoes: Record<string, any>[] = [];
   perfis = PERFIS;
   postos = POSTOS.map(p => ({ label: p, value: p }));
 
@@ -85,8 +112,8 @@ export class UsersListComponent implements OnInit {
 
   ngOnInit(): void {
     this.carregar();
-    this.configService.listarSecoes().subscribe((r: any[]) => this.secoes = r);
-    this.configService.listarBatalhoes().subscribe((r: any[]) => this.batalhoes = r);
+    this.configService.listarSecoes().subscribe((r: Record<string, any>[]) => this.secoes = r);
+    this.configService.listarBatalhoes().subscribe((r: Record<string, any>[]) => this.batalhoes = r);
   }
 
   carregar() {
@@ -112,24 +139,21 @@ export class UsersListComponent implements OnInit {
     });
   }
 
-  aprovarSolicitacao(req: any) {
-    this.confirmationService.confirm({
-      message: `Aprovar a solicitação de ${req.nome}? O acesso real precisa ser liberado no SGA.`,
-      header: 'Aprovar Solicitação',
-      icon: 'pi pi-check-circle',
-      accept: () => {
-        this.accessReqService.aprovar(req.id).subscribe({
-          next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Aprovada', detail: 'Solicitação aprovada.' });
-            this.carregarSolicitacoes();
-          },
-          error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao aprovar.' })
-        });
-      }
+  aprovarSolicitacao(req: SolicitacaoAcesso) {
+    this.editando = false;
+    this.aprovandoSolicitacaoId = req.id;
+    this.form.reset({
+      login: req['login'] || req.usuario,
+      matricula: req.matricula,
+      nome: req.nome,
+      email: req['email'] || '',
+      postoGraduacao: req['postoGraduacao'] || null,
+      perfil: req['perfil'] || null,
     });
+    this.exibirModal = true;
   }
 
-  rejeitarSolicitacao(req: any) {
+  rejeitarSolicitacao(req: SolicitacaoAcesso) {
     this.solicitacaoRejeicao = req;
     this.motivoRejeicao = '';
     this.exibirDialogoRejeicao = true;
@@ -166,12 +190,29 @@ export class UsersListComponent implements OnInit {
 
   abrirNovo() {
     this.editando = false;
+    this.aprovandoSolicitacaoId = null;
     this.form.reset();
     this.exibirModal = true;
   }
 
-  editar(u: any) {
+  abrirFicha(u: UsuarioListagem) {
+    this.usuarioSelecionado = u;
+    this.logsUsuario = [];
+    this.carregandoLogs = true;
+    this.exibirFicha = true;
+
+    this.UsersService.listarLogsAuditoria(u.matricula || u.nome).subscribe({
+      next: (logs) => {
+        this.logsUsuario = logs;
+        this.carregandoLogs = false;
+      },
+      error: () => this.carregandoLogs = false
+    });
+  }
+
+  editar(u: UsuarioListagem) {
     this.editando = true;
+    this.aprovandoSolicitacaoId = null;
     this.form.patchValue(u);
     this.exibirModal = true;
   }
@@ -179,23 +220,35 @@ export class UsersListComponent implements OnInit {
   salvar() {
     if (this.form.invalid) return;
     const dados = { ...this.form.value };
-    if (!this.editando) delete dados.id;
+    if (!this.editando && !this.aprovandoSolicitacaoId) delete dados.id;
 
-    const acao = this.editando
-      ? this.UsersService.atualizar(dados.id, dados)
-      : this.UsersService.criar(dados);
+    let acao;
+    if (this.aprovandoSolicitacaoId) {
+      acao = this.accessReqService.aprovar(this.aprovandoSolicitacaoId, {
+        perfil: dados.perfil,
+        secaoId: dados.secaoId,
+        batalhaoId: dados.batalhaoId,
+      });
+    } else if (this.editando) {
+      acao = this.UsersService.atualizar(dados.id, dados);
+    } else {
+      acao = this.UsersService.criar(dados);
+    }
 
     acao.subscribe({
       next: () => {
-        this.messageService.add({
-          severity: 'success', summary: 'Sucesso',
-          detail: `Usuário ${this.editando ? 'atualizado' : 'cadastrado'}!`,
-        });
+        const msgSucesso = this.aprovandoSolicitacaoId 
+          ? 'Solicitação aprovada e perfil provisionado!'
+          : `Usuário ${this.editando ? 'atualizado' : 'cadastrado'}!`;
+        
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: msgSucesso });
+        
         this.exibirModal = false;
+        this.aprovandoSolicitacaoId = null;
         this.carregar();
       },
       error: (err) => {
-        const msg = err?.error?.message || 'Não foi possível salvar o usuário.';
+        const msg = err?.error?.message || 'Não foi possível salvar.';
         this.messageService.add({ severity: 'error', summary: 'Erro', detail: msg });
       },
     });

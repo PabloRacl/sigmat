@@ -70,8 +70,22 @@ export class AuditService {
   }
 
   async gerarDiffComLabels(antigo: any, novo: any) {
-    const antigoNormalizado = await this.normalizarValores(antigo);
-    const novoNormalizado = await this.normalizarValores(novo);
+    // Evita o dobro de chamadas DB agrupando o preenchimento do cache em lote
+    const cache = {
+      marca: new Map<number, string>(),
+      modelo: new Map<number, string>(),
+      tipoEquipamento: new Map<number, string>(),
+      status: new Map<number, string>(),
+      tipoAquisicao: new Map<number, string>(),
+      disponibilidade: new Map<number, string>(),
+      secao: new Map<number, string>(),
+      usuario: new Map<number, string>(),
+    };
+
+    await this.buscarLabelsEmLote([antigo, novo], cache);
+
+    const antigoNormalizado = this.aplicarLabels(antigo, cache);
+    const novoNormalizado = this.aplicarLabels(novo, cache);
     return this.gerarDiff(antigoNormalizado, novoNormalizado);
   }
 

@@ -7,6 +7,9 @@ import { PdfService } from '../../../nucleo/servicos/pdf.service';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
+import { AuthService } from '../../../nucleo/servicos/autenticacao.service';
+import { MaintenanceService } from '../../../nucleo/servicos/manutencao.service';
+import { ApprovalsService } from '../../../nucleo/servicos/aprovacoes.service';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
@@ -15,6 +18,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { TabsModule } from 'primeng/tabs';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
 import { IndicadorStatusComponent } from '../../../componentes/indicador-status/indicador-status.component';
+import { TabelaScrollComponent } from '../../../componentes/tabela-scroll/tabela-scroll.component';
 
 @Component({
   selector: 'app-reports',
@@ -23,7 +27,8 @@ import { IndicadorStatusComponent } from '../../../componentes/indicador-status/
     CommonModule, FormsModule, TableModule, ButtonModule,
     SelectModule, InputTextModule, TooltipModule, TabsModule,
     LayoutPaginaComponent,
-    IndicadorStatusComponent
+    IndicadorStatusComponent,
+    TabelaScrollComponent
   ],
   templateUrl: './relatorios.component.html',
   styleUrl: './relatorios.component.scss'
@@ -34,6 +39,9 @@ export class ReportsComponent implements OnInit, OnDestroy {
   private pdfService = inject(PdfService);
   private filtroInventarioSubject = new Subject<void>();
   private filtroTransferSubject = new Subject<void>();
+  private maintenanceService = inject(MaintenanceService);
+  private approvalsService = inject(ApprovalsService);
+  private authService = inject(AuthService);
   private subscriptions = new Subscription();
 
   // Dados
@@ -44,17 +52,48 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   // Filtros e busca local (sem ir ao servidor)
   termoBusca = '';
+  filtroDiretoriaId: number | null = null;
+  filtroBatalhaoId: number | null = null;
   filtroSecaoId: number | null = null;
   filtroTipoId: number | null = null;
   filtroStatusId: number | null = null;
   filtroDisponibilidadeId: number | null = null;
 
+  // Filtros Manutenção
+  termoBuscaManutencao = '';
+  filtroManutencaoStatus: any = null;
+  filtroManutencaoAberturaInicio: Date | null = null;
+  filtroManutencaoAberturaFim: Date | null = null;
+
+  // Filtros Aprovações
+  termoBuscaAprovacoes = '';
+  filtroAprovacoesStatus: any = null;
+  filtroAprovacoesDataInicio: Date | null = null;
+  filtroAprovacoesDataFim: Date | null = null;
+
+  // Filtros Auditoria
+  termoBuscaAuditoria = '';
+  filtroAuditoriaDataInicio: Date | null = null;
+  filtroAuditoriaDataFim: Date | null = null;
+
+  statusOpcoes: any[] = [];
+
   // Dados auxiliares
+  diretorias: any[] = [];
+  batalhoes: any[] = [];
   secoes: any[] = [];
   tipos: any[] = [];
   status: any[] = [];
   disponibilidades: any[] = [];
   transferencias: any[] = [];
+  manutencoes: any[] = [];
+  manutencoesOriginal: any[] = [];
+  
+  aprovacoes: any[] = [];
+  aprovacoesOriginal: any[] = [];
+  
+  auditoria: any[] = [];
+  auditoriaOriginal: any[] = [];
 
   filtroTransferStatus: string | null = null;
   filtroTransferOrigemId: number | null = null;
@@ -63,8 +102,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
   filtroTransferPatrimonio = '';
   filtroTransferSolicitante = '';
   filtroTransferRecebedor = '';
-  filtroTransferEnvioInicio = '';
-  filtroTransferEnvioFim = '';
+  filtroTransferEnvioInicio: any = null;
+  filtroTransferEnvioFim: any = null;
   filtroTransferRecebimentoInicio = '';
   filtroTransferRecebimentoFim = '';
 
@@ -78,6 +117,12 @@ export class ReportsComponent implements OnInit, OnDestroy {
   resumoUnidades: { sigla: string; total: number }[] = [];
 
   ngOnInit() {
+    this.statusOpcoes = [
+      { label: 'Aprovado', value: true },
+      { label: 'Rejeitado', value: false },
+      { label: 'Pendente', value: null }
+    ];
+
     this.subscriptions.add(
       this.filtroInventarioSubject.pipe(debounceTime(300)).subscribe(() => this.carregarDados())
     );
@@ -87,7 +132,12 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
     this.carregarDados();
     this.carregarTransferencias();
+    this.carregarManutencoes();
+    this.carregarAuditoria();
+    this.carregarAprovacoes();
     this.carregarResumoUnidades();
+    this.configService.listarDiretorias().subscribe(r => this.diretorias = r);
+    this.configService.listarBatalhoes().subscribe(r => this.batalhoes = r);
     this.configService.listarSecoes().subscribe(r => this.secoes = r);
     this.configService.listarTipos().subscribe(r => this.tipos = r);
     this.configService.listarStatus().subscribe(r => this.status = r);
@@ -98,6 +148,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
     this.carregando = true;
     const filtros = {
       busca: this.termoBusca,
+      diretoriaId: this.filtroDiretoriaId,
+      batalhaoId: this.filtroBatalhaoId,
       secaoId: this.filtroSecaoId,
       tipoId: this.filtroTipoId,
       statusId: this.filtroStatusId,
@@ -116,7 +168,7 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   carregarResumoUnidades() {
     this.reportsService.obterResumoUnidades().subscribe(res => {
-      this.resumoUnidades = res;
+      this.resumoUnidades = res as unknown as { sigla: string; total: number }[];
     });
   }
 
@@ -141,23 +193,218 @@ export class ReportsComponent implements OnInit, OnDestroy {
     });
   }
 
+  carregarManutencoes() {
+    this.maintenanceService.listarTodos().subscribe({
+      next: (res: any) => {
+        this.manutencoesOriginal = res;
+        this.manutencoes = [...this.manutencoesOriginal];
+      },
+      error: () => { this.manutencoesOriginal = []; this.manutencoes = []; }
+    });
+  }
+
+  carregarAprovacoes() {
+    this.approvalsService.listarTodas().subscribe({
+      next: (res: any) => {
+        this.aprovacoesOriginal = res;
+        this.aprovacoes = [...this.aprovacoesOriginal];
+      },
+      error: () => { this.aprovacoesOriginal = []; this.aprovacoes = []; }
+    });
+  }
+
+  carregarAuditoria() {
+    this.reportsService.obterAuditoria().subscribe({
+      next: (res: any) => {
+        this.auditoriaOriginal = res;
+        this.auditoria = [...this.auditoriaOriginal];
+      },
+      error: () => { this.auditoriaOriginal = []; this.auditoria = []; }
+    });
+  }
+
   aplicarFiltrosTransferencias() {
     this.filtroTransferSubject.next();
   }
 
   limparFiltrosTransferencias() {
+    this.filtroTransferPatrimonio = '';
     this.filtroTransferStatus = null;
     this.filtroTransferOrigemId = null;
     this.filtroTransferDestinoId = null;
     this.filtroTransferLote = '';
-    this.filtroTransferPatrimonio = '';
-    this.filtroTransferSolicitante = '';
-    this.filtroTransferRecebedor = '';
-    this.filtroTransferEnvioInicio = '';
-    this.filtroTransferEnvioFim = '';
-    this.filtroTransferRecebimentoInicio = '';
-    this.filtroTransferRecebimentoFim = '';
-    this.filtroTransferSubject.next();
+    this.filtroTransferEnvioInicio = null;
+    this.filtroTransferEnvioFim = null;
+    this.aplicarFiltrosTransferencias();
+  }
+
+  // ── FILTROS MANUTENÇÕES ────────────────────────────────────────────────────────
+  aplicarFiltrosManutencoes() {
+    let result = [...this.manutencoesOriginal];
+
+    if (this.termoBuscaManutencao) {
+      const termo = this.termoBuscaManutencao.toLowerCase();
+      result = result.filter(m => 
+        (m.equipamento?.patrimonio && m.equipamento.patrimonio.toLowerCase().includes(termo)) ||
+        (m.solicitante?.nome && m.solicitante.nome.toLowerCase().includes(termo)) ||
+        (m.descricaoProblema && m.descricaoProblema.toLowerCase().includes(termo)) ||
+        (m.tecnicoResponsavel && m.tecnicoResponsavel.toLowerCase().includes(termo)) ||
+        (m.id && String(m.id).includes(termo))
+      );
+    }
+
+    if (this.filtroManutencaoStatus) {
+      result = result.filter(m => m.status === this.filtroManutencaoStatus.nome);
+    }
+
+    if (this.filtroManutencaoAberturaInicio) {
+      const d1 = new Date(this.filtroManutencaoAberturaInicio);
+      d1.setHours(0,0,0,0);
+      result = result.filter(m => m.dataAbertura && new Date(m.dataAbertura) >= d1);
+    }
+
+    if (this.filtroManutencaoAberturaFim) {
+      const d2 = new Date(this.filtroManutencaoAberturaFim);
+      d2.setHours(23,59,59,999);
+      result = result.filter(m => m.dataAbertura && new Date(m.dataAbertura) <= d2);
+    }
+
+    this.manutencoes = result;
+  }
+
+  limparFiltrosManutencoes() {
+    this.termoBuscaManutencao = '';
+    this.filtroManutencaoStatus = null;
+    this.filtroManutencaoAberturaInicio = null;
+    this.filtroManutencaoAberturaFim = null;
+    this.aplicarFiltrosManutencoes();
+  }
+
+  // ── FILTROS APROVAÇÕES ────────────────────────────────────────────────────────
+  aplicarFiltrosAprovacoes() {
+    let result = [...this.aprovacoesOriginal];
+
+    if (this.termoBuscaAprovacoes) {
+      const termo = this.termoBuscaAprovacoes.toLowerCase();
+      result = result.filter(a => 
+        (a.equipamento?.patrimonio && a.equipamento.patrimonio.toLowerCase().includes(termo)) ||
+        (a.solicitante?.nome && a.solicitante.nome.toLowerCase().includes(termo)) ||
+        (a.avaliador?.nome && a.avaliador.nome.toLowerCase().includes(termo)) ||
+        (a.id && String(a.id).includes(termo)) ||
+        (a.motivoRejeicao && a.motivoRejeicao.toLowerCase().includes(termo))
+      );
+    }
+
+    if (this.filtroAprovacoesStatus !== null && this.filtroAprovacoesStatus !== undefined) {
+      result = result.filter(a => {
+        if (this.filtroAprovacoesStatus === true) return a.aprovado === true;
+        if (this.filtroAprovacoesStatus === false) return a.aprovado === false;
+        return a.aprovado === null || a.aprovado === undefined;
+      });
+    }
+
+    if (this.filtroAprovacoesDataInicio) {
+      const d1 = new Date(this.filtroAprovacoesDataInicio);
+      d1.setHours(0,0,0,0);
+      result = result.filter(a => a.dataSolicitacao && new Date(a.dataSolicitacao) >= d1);
+    }
+
+    if (this.filtroAprovacoesDataFim) {
+      const d2 = new Date(this.filtroAprovacoesDataFim);
+      d2.setHours(23,59,59,999);
+      result = result.filter(a => a.dataSolicitacao && new Date(a.dataSolicitacao) <= d2);
+    }
+
+    this.aprovacoes = result;
+  }
+
+  limparFiltrosAprovacoes() {
+    this.termoBuscaAprovacoes = '';
+    this.filtroAprovacoesStatus = null;
+    this.filtroAprovacoesDataInicio = null;
+    this.filtroAprovacoesDataFim = null;
+    this.aplicarFiltrosAprovacoes();
+  }
+
+  // ── FILTROS AUDITORIA ────────────────────────────────────────────────────────
+  aplicarFiltrosAuditoria() {
+    let result = [...this.auditoriaOriginal];
+
+    if (this.termoBuscaAuditoria) {
+      const termo = this.termoBuscaAuditoria.toLowerCase();
+      result = result.filter(l => 
+        (l.usuario?.nome && l.usuario.nome.toLowerCase().includes(termo)) ||
+        (l.acao && l.acao.toLowerCase().includes(termo)) ||
+        (l.ip && l.ip.toLowerCase().includes(termo)) ||
+        (l.userAgent && l.userAgent.toLowerCase().includes(termo)) ||
+        (l.descricao && l.descricao.toLowerCase().includes(termo)) ||
+        (l.equipamento?.patrimonio && l.equipamento.patrimonio.toLowerCase().includes(termo)) ||
+        (l.dadosAlterados && JSON.stringify(l.dadosAlterados).toLowerCase().includes(termo))
+      );
+    }
+
+    if (this.filtroAuditoriaDataInicio) {
+      const d1 = new Date(this.filtroAuditoriaDataInicio);
+      d1.setHours(0,0,0,0);
+      result = result.filter(l => l.createdAt && new Date(l.createdAt) >= d1);
+    }
+
+    if (this.filtroAuditoriaDataFim) {
+      const d2 = new Date(this.filtroAuditoriaDataFim);
+      d2.setHours(23,59,59,999);
+      result = result.filter(l => l.createdAt && new Date(l.createdAt) <= d2);
+    }
+
+    this.auditoria = result;
+  }
+
+  limparFiltrosAuditoria() {
+    this.termoBuscaAuditoria = '';
+    this.filtroAuditoriaDataInicio = null;
+    this.filtroAuditoriaDataFim = null;
+    this.aplicarFiltrosAuditoria();
+  }
+
+  // ── TRADUTOR DE JSON PARA HUMANOS (AUDITORIA) ────────────────────────────────
+  obterListaDetalhes(dados: any): { chave: string, valor: any }[] {
+    if (!dados || typeof dados !== 'object') return [];
+    
+    let lista: { chave: string, valor: any }[] = [];
+    
+    // Tratar formato de Diff (antes e depois)
+    if ('antes' in dados || 'depois' in dados) {
+       const chaves = new Set([...Object.keys(dados.antes || {}), ...Object.keys(dados.depois || {})]);
+       chaves.forEach(k => {
+         let antes = dados.antes?.[k];
+         let depois = dados.depois?.[k];
+         
+         if (typeof antes === 'object' && antes !== null) antes = JSON.stringify(antes);
+         if (typeof depois === 'object' && depois !== null) depois = JSON.stringify(depois);
+         
+         lista.push({
+           chave: k,
+           valor: `De: ${antes ?? 'Vazio'} ➔ Para: ${depois ?? 'Vazio'}`
+         });
+       });
+       return lista;
+    }
+
+    // Tratar formato chave-valor genérico
+    Object.keys(dados).forEach(k => {
+      let val = dados[k];
+      if (typeof val === 'object' && val !== null) {
+        val = JSON.stringify(val); // Arrays de fotos, etc
+      }
+      lista.push({ chave: k, valor: val });
+    });
+    
+    return lista;
+  }
+  
+  formatarChave(chave: string): string {
+    // Transforma "statusAtual" em "Status Atual"
+    const formatada = chave.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    return formatada;
   }
 
   aplicarFiltros() {
@@ -166,6 +413,8 @@ export class ReportsComponent implements OnInit, OnDestroy {
 
   limparFiltros() {
     this.termoBusca = '';
+    this.filtroDiretoriaId = null;
+    this.filtroBatalhaoId = null;
     this.filtroSecaoId = null;
     this.filtroTipoId = null;
     this.filtroStatusId = null;
@@ -465,25 +714,63 @@ export class ReportsComponent implements OnInit, OnDestroy {
   async exportarPDF() {
     if (this.inventario.length === 0) return;
 
-    const headers = ['Patrimônio', 'SEI', 'Série', 'Tipo', 'Marca/Modelo', 'Seção', 'Status', 'Disp.', 'Observação'];
-    const rows = this.inventario.map(e => [
-      e.patrimonio || '',
-      e.sei || '',
-      e.numeroSerie || '',
-      e.tipoEquipamento?.nome || '',
-      `${e.marca?.nome || ''} ${e.modelo?.nome || ''}`.trim(),
-      e.secao?.sigla || '',
-      e.status?.nome || '',
-      e.disponibilidade?.nome || '',
-      e.observacao || ''
-    ]);
+    const user = this.authService.getUsuario();
+    const fiscal = user?.nome || 'Não Identificado';
+    const matricula = user?.matricula || '—';
+    const ome = (user as any)?.batalhao?.sigla || (user as any)?.secao?.batalhao?.sigla || (user as any)?.secao?.diretoria?.sigla || 'DTEC';
 
-    await this.pdfService.gerarTabelaPDF(
-      'Relatório Oficial de Equipamentos',
-      `Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} | Total de registros: ${this.inventario.length}`,
-      headers,
-      rows
-    );
+    // AGRUPAMENTO HIERÁRQUICO
+    const grupos: Record<string, any[]> = {};
+    
+    this.inventario.forEach(e => {
+      const dirSigla = e.secao?.diretoria?.sigla || '';
+      const batSigla = e.secao?.batalhao?.sigla || '';
+      let chaveGrupo = [dirSigla, batSigla].filter(x => x).join(' > ');
+      if (!chaveGrupo) chaveGrupo = 'Outras Unidades';
+      
+      if (!grupos[chaveGrupo]) grupos[chaveGrupo] = [];
+      grupos[chaveGrupo].push(e);
+    });
+
+    const headers = ['Patrimônio', 'SEI', 'Série', 'Tipo', 'Marca/Modelo', 'Seção', 'Status', 'Disp.'];
+    const payloadGrupos: any[] = [];
+
+    Object.keys(grupos).sort().forEach(chaveGrupo => {
+      const linhas = grupos[chaveGrupo].map(e => [
+        e.patrimonio || '',
+        e.sei || '',
+        e.numeroSerie || '',
+        e.tipoEquipamento?.nome || '',
+        `${e.marca?.nome || ''} ${e.modelo?.nome || ''}`.trim(),
+        e.secao?.sigla || '',
+        e.status?.nome || '',
+        e.disponibilidade?.nome || ''
+      ]);
+
+      payloadGrupos.push({
+        tituloGeral: `INVENTÁRIO: ${chaveGrupo}`,
+        operacao: 'LEVANTAMENTO DE MATERIAL',
+        evento: 'GERAÇÃO DE INVENTÁRIO DO ATLAS',
+        local: chaveGrupo,
+        data: new Date().toLocaleDateString('pt-BR'),
+        omeBeneficiada: chaveGrupo,
+        periodo: '-',
+        omeCedente: '-',
+        modalidade: 'SISTÊMICA',
+        colunas: headers,
+        linhas: linhas
+      });
+    });
+
+    const payloadObj = {
+      titulo: 'Relatório Geral de Inventário',
+      fiscal,
+      matricula,
+      ome,
+      grupos: payloadGrupos
+    };
+
+    await this.pdfService.gerarRelatorioOficial(payloadObj);
   }
 
   formatarData(v: string | null): string {

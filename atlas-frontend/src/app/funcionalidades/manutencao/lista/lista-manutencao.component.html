@@ -255,8 +255,8 @@
           <div *ngIf="equipamentoNovaOs?.id" class="mn-equip-preview">
             <i class="pi pi-check-circle"></i>
             <div>
-              <strong>{{ equipamentoNovaOs.patrimonio }}</strong>
-              <span>{{ equipamentoNovaOs.tipoEquipamento?.nome }} · {{ equipamentoNovaOs.marca?.nome }} · {{ equipamentoNovaOs.secao?.sigla }}</span>
+              <strong>{{ equipamentoNovaOs?.patrimonio }}</strong>
+              <span>{{ equipamentoNovaOs?.tipoEquipamento?.nome }} · {{ equipamentoNovaOs?.marca?.nome }} · {{ equipamentoNovaOs?.secao?.sigla }}</span>
             </div>
           </div>
         </div>
@@ -319,15 +319,15 @@
                 </span>
               </div>
               <div class="triage-details">
-                <div class="detail-row"><span class="detail-label">Equipamento:</span><strong>{{ osSelecionada.equipamento?.tipoEquipamento?.nome }}</strong></div>
-                <div class="detail-row" *ngIf="osSelecionada.equipamento?.marca"><span class="detail-label">Marca/Modelo:</span><span>{{ osSelecionada.equipamento?.marca?.nome }}</span></div>
-                <div class="detail-row"><span class="detail-label">Origem:</span><span>{{ osSelecionada.equipamento?.secao?.sigla }}</span></div>
-                <div class="detail-row"><span class="detail-label">Aberto em:</span><span>{{ osSelecionada.dataAbertura | date:'dd/MM/yyyy' }}</span></div>
+                <div class="detail-row"><span class="detail-label">Equipamento:</span><span>{{ osSelecionada.equipamento?.tipoEquipamento?.nome || '—' }}</span></div>
+                <div class="detail-row" *ngIf="osSelecionada.equipamento?.marca"><span class="detail-label">Marca/Modelo:</span><span>{{ osSelecionada.equipamento?.marca?.nome || '—' }}</span></div>
+                <div class="detail-row"><span class="detail-label">Origem:</span><span>{{ osSelecionada.equipamento?.secao?.sigla || '—' }}</span></div>
+                <div class="detail-row"><span class="detail-label">Aberto em:</span><span>{{ osSelecionada.dataAbertura ? (osSelecionada.dataAbertura | date:'dd/MM/yyyy') : '—' }}</span></div>
               </div>
             </div>
             <div class="triage-problem">
-              <label style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Problema Relatado</label>
-              <div style="background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; font-size: 0.85rem; color: #cbd5e1; min-height: 80px; overflow-y: auto;">
+              <label class="section-subtitle">Problema Relatado</label>
+              <div class="problem-text-box">
                 {{ osSelecionada.descricaoProblema }}
               </div>
             </div>
@@ -349,7 +349,7 @@
                 <label>Previsão de Saída</label>
                 <p-datepicker formControlName="dataPrevisao" dateFormat="dd/mm/yy" appendTo="body" styleClass="w-full" [disabled]="!ehAdmin || !modoEdicao"></p-datepicker>
               </div>
-              <div *ngIf="statusForm.get('status')?.value === 'CONCLUIDA' || statusForm.get('status')?.value === 'CANCELADA'" style="background: rgba(15,23,42,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+              <div *ngIf="statusForm.get('status')?.value === 'CONCLUIDA' || statusForm.get('status')?.value === 'CANCELADA'" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
                 <div class="mn-form__field">
                   <label>{{ statusForm.get('status')?.value === 'CONCLUIDA' ? 'Solução Técnica' : 'Justificativa' }}</label>
                   <textarea pTextarea formControlName="solucaoAplicada" rows="2" class="w-full" [readonly]="!ehAdmin || !modoEdicao"></textarea>
@@ -368,10 +368,13 @@
             <div class="panel-section-title"><i class="pi pi-history"></i> Linha do Tempo</div>
             <div class="timeline-wrapper" style="flex: 1; overflow-y: auto; max-height: 380px;">
               <div *ngIf="carregandoHistorico" style="text-align: center; color: #94a3b8; padding: 1rem 0;"><i class="pi pi-spinner pi-spin"></i></div>
-              <div *ngIf="!carregandoHistorico && historicoOS.length > 0" style="display: flex; flex-direction: column; gap: 12px;">
-                <div *ngFor="let log of historicoOS" style="background: rgba(15,23,42,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 8px; font-size: 0.8rem; color: #94a3b8;">
-                  <span style="font-size: 0.75rem; color: #64748b;">{{ log.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
-                  <p style="margin: 4px 0; font-weight: 500; color: #cbd5e1;">{{ log.descricao }}</p>
+              <div *ngIf="!carregandoHistorico && historicoOS.length > 0" class="timeline-flow">
+                <div *ngFor="let log of historicoOS" class="timeline-step">
+                  <div class="timeline-bullet atualizacao_os"><i class="pi pi-history"></i></div>
+                  <div class="timeline-content-card">
+                    <span class="timeline-time">{{ log.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                    <p class="timeline-desc">{{ log.descricao }}</p>
+                  </div>
                 </div>
               </div>
             </div>

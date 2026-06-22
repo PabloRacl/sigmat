@@ -77,6 +77,10 @@ export class EquipmentFormComponent implements OnInit, OnDestroy {
   campoIMEI: string = '';
   campoTelefone: string = '';
   
+  // Upload da Foto do Equipamento
+  fotoUrl: string = '';
+  carregandoFoto = false;
+  
   // Dialogo para criar registros inline (status, tipo, marca, modelo)
   exibirDialogoPrompt = false;
   rotuloPrompt = '';
@@ -330,6 +334,8 @@ export class EquipmentFormComponent implements OnInit, OnDestroy {
     this.chipSelecionado = null;
     this.valoresDinamicos = {};
     this.camposDinamicos = [];
+    this.fotoUrl = '';
+    this.carregandoFoto = false;
     this.form.reset();
     this.secoesFiltradas = [...this.secoes];
   }
@@ -341,6 +347,8 @@ export class EquipmentFormComponent implements OnInit, OnDestroy {
     this.campoTelefone = specs.telefone || '';
     this.chipSelecionado = specs.chip_vinculado_pat ? { patrimonio: specs.chip_vinculado_pat } : null;
     this.valoresDinamicos = { ...specs };
+    this.fotoUrl = eq.fotos?.url || '';
+    this.carregandoFoto = false;
     this.atualizarCamposDinamicos(eq.tipoEquipamentoId);
     this.atualizarModelosPorMarca(eq.marcaId);
 
@@ -352,6 +360,33 @@ export class EquipmentFormComponent implements OnInit, OnDestroy {
     });
     if (batalhaoId) this.filtrarSecoesPorBatalhao(batalhaoId);
     this.aplicarFiltroStatus();
+  }
+
+  selecionarFoto(event: any) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.messageService.add({ severity: 'error', summary: 'Erro de validação', detail: 'O arquivo excede o limite máximo de 5MB.' });
+      return;
+    }
+
+    this.carregandoFoto = true;
+    this.uploadService.uploadFotoEquipamento(file).subscribe({
+      next: (res) => {
+        this.fotoUrl = res.url;
+        this.carregandoFoto = false;
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Foto carregada!' });
+      },
+      error: (err) => {
+        this.carregandoFoto = false;
+        this.messageService.add({ severity: 'error', summary: 'Erro de upload', detail: err.error?.message || 'Erro ao carregar a imagem.' });
+      }
+    });
+  }
+
+  removerFoto() {
+    this.fotoUrl = '';
   }
 
   atualizarCamposDinamicos(tipoId: number) {
@@ -407,6 +442,7 @@ export class EquipmentFormComponent implements OnInit, OnDestroy {
     }
 
     dados.especificacoes = especificacoesFinais;
+    dados.fotos = this.fotoUrl ? { url: this.fotoUrl } : null;
     const id = dados.id;
     delete dados.id;
 

@@ -434,3 +434,175 @@
   }
 }
 
+// ── 3D Cube Loader Animation Styles for Dashboard ──────────────────────────
+.dh-loading {
+  &.accelerating {
+    .loader-isometric-grid {
+      transform: rotateX(60deg) rotateZ(45deg) scale3d(1.1, 1.1, 1.1);
+      .cube-item {
+        animation-duration: 0.8s;
+        .cube-face {
+          box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+          filter: brightness(1.1);
+        }
+      }
+    }
+  }
+}
+
+.loader-3d-wrap {
+  perspective: 600px;
+  transform-style: preserve-3d;
+}
+
+// O grid tridimensional que contém os múltiplos cubos
+.loader-isometric-grid {
+  width: 140px;
+  height: 140px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(60deg) rotateZ(45deg);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Estrutura individual de cada cubo 3D Real
+.cube-item {
+  width: 48px;
+  height: 48px;
+  position: absolute;
+  transform-style: preserve-3d;
+  transition: all 0.3s ease;
+
+  .cube-face {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    transition: all 0.3s ease;
+    backface-visibility: visible;
+    
+    &.face-top {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      transform: rotateX(0deg) translateZ(24px);
+    }
+    &.face-bottom {
+      background: #1e3a8a;
+      transform: rotateX(180deg) translateZ(24px);
+    }
+    &.face-front {
+      background: linear-gradient(135deg, #1e40af 0%, #1c3d9a 100%);
+      transform: rotateX(-90deg) translateZ(24px);
+      filter: brightness(0.85); // Sombra nativa
+    }
+    &.face-back {
+      background: #172554;
+      transform: rotateX(90deg) translateZ(24px);
+    }
+    &.face-left {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      transform: rotateY(-90deg) translateZ(24px);
+      filter: brightness(0.95);
+    }
+    &.face-right {
+      background: #1d4ed8;
+      transform: rotateY(90deg) translateZ(24px);
+      filter: brightness(0.72);
+    }
+  }
+
+  // Cubo 1: Fica na esquerda e desliza/encaixa
+  &.cube-1 {
+    top: 0;
+    left: 0;
+    animation: cube1-fit 2s ease-in-out infinite;
+  }
+
+  // Cubo 2: Fica na direita superior e desliza/encaixa
+  &.cube-2 {
+    top: 0;
+    right: 0;
+    animation: cube2-fit 2s ease-in-out infinite;
+  }
+
+  // Cubo 3: Fica no centro inferior e se eleva/encaixa
+  &.cube-3 {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: cube3-fit 2s ease-in-out infinite;
+  }
+}
+
+// ── Animações de encaixe dos cubos (Isometric Fitting) ───────────────────
+
+// Cubo 1: Desliza no eixo X de fora para dentro do grid
+@keyframes cube1-fit {
+  0%, 100% {
+    transform: translate(-30px, 0px) translateZ(0px);
+  }
+  50% {
+    transform: translate(12px, 12px) translateZ(4px);
+  }
+}
+
+// Cubo 2: Desliza do lado oposto e se acopla ao centro
+@keyframes cube2-fit {
+  0%, 100% {
+    transform: translate(30px, -20px) translateZ(0px);
+  }
+  50% {
+    transform: translate(-12px, 12px) translateZ(4px);
+  }
+}
+
+// Cubo 3: Sobe e se alinha perfeitamente abaixo dos dois primeiros formando uma estrutura triangular
+@keyframes cube3-fit {
+  0%, 100% {
+    transform: translate(-24px, 30px) translateZ(-15px);
+  }
+  50% {
+    transform: translate(-24px, -12px) translateZ(4px);
+  }
+}
+
+/* Responsividade Mobile-First / Adaptativo */
+@media (max-width: 768px) {
+  :host {
+    padding: 8px;
+  }
+
+  .dh-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 1rem;
+
+    &__actions {
+      width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .dh-quick-search {
+      width: 100% !important;
+    }
+  }
+
+  .dh-stats {
+    grid-template-columns: 1fr !important; // Cards empilhados
+    gap: 8px;
+  }
+
+  .dh-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+
+    &.secondary {
+      grid-template-columns: 1fr !important;
+    }
+  }
+}
+
+
+

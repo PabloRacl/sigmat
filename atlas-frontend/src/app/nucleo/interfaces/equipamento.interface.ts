@@ -61,8 +61,8 @@ export interface Equipamento {
   solicitante?: string;
   dataSolicitacao?: string;
   dataRetornoEmprestimo?: string;
-  especificacoes?: any;
-  fotos?: any;
+  especificacoes?: Record<string, any>;
+  fotos?: Record<string, any>;
   usuarioResponsavelId?: number;
   valor?: number;
 }

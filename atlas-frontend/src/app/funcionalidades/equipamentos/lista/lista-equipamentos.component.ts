@@ -14,6 +14,7 @@
 
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { forkJoin, of, catchError, Subject, takeUntil } from 'rxjs';
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -46,9 +47,11 @@ import { EquipmentFormComponent } from '../formulario/formulario-equipamento.com
 import { EquipmentTimelineComponent } from '../linha-do-tempo/linha-do-tempo-equipamento.component';
 import { EquipmentDetailsComponent } from '../detalhes/detalhes-equipamento.component';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
+import { Equipamento, TipoEquipamento, StatusEquipamento, Disponibilidade, Secao, Marca } from '../../../nucleo/interfaces/equipamento.interface';
 import { IndicadorStatusComponent } from '../../../componentes/indicador-status/indicador-status.component';
 import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
 import { FiltroLateralComponent, FiltroConfig } from '../../../componentes/filtro-lateral/filtro-lateral.component';
+import { TabelaScrollComponent } from '../../../componentes/tabela-scroll/tabela-scroll.component';
 
 @Component({
   selector: 'app-lista-equipamentos',
@@ -73,7 +76,8 @@ import { FiltroLateralComponent, FiltroConfig } from '../../../componentes/filtr
     IndicadorStatusComponent,
     EstadoVazioComponent,
     ConfirmDialogModule,
-    FiltroLateralComponent
+    FiltroLateralComponent,
+    TabelaScrollComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './lista-equipamentos.component.html',
@@ -95,13 +99,17 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   private pdfService = inject(PdfService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private breakpointObserver = inject(BreakpointObserver);
+
+  /** Indica se a tela atual é mobile (≤ 767px) */
+  isMobile = false;
 
   get ehAdmin(): boolean {
     const perfil = this.authService.getUsuario()?.perfil;
     return perfil === 'ADMIN_DTEC' || perfil === 'DIRETORIA';
   }
 
-  equipamentos: any[] = [];
+  equipamentos: Equipamento[] = [];
   totalRecords = 0;
   rows = 20;
   rowsPerPage = [20, 50, 100];
@@ -110,7 +118,7 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   filtroGlobal = '';
 
   // New handler for pagination events (page or size change)
-  onPageChange(event: any) {
+  onPageChange(event: { first: number, rows: number }) {
     // PrimeNG passes first, rows, page, pageCount
     this.first = event.first ?? 0;
     this.rows = event.rows ?? this.rows;
@@ -118,22 +126,22 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
     this.loadEquipamentosLazy({ first: this.first, rows: this.rows, sortField: null, sortOrder: null, filters: {} });
   }
 
-  ready = true; // Restaurando para true por padrÃ£o para evitar o loading-init que nÃ£o existia
+  ready = true; // Restaurando para true por padrão para evitar o loading-init que não existia
 
   // Modelos do Filtro
   exibirFiltrosAvancados = false;
-  modeloFiltros: any = {};
+  modeloFiltros: Record<string, any> = {};
   configFiltros: FiltroConfig[] = [];
 
-  // EstatÃ­sticas para os cards
-  stats: any = { total: 0, ativos: 0, manutencao: 0, emprestados: 0 };
+  // Estatísticas para os cards
+  stats: Record<string, number> = { total: 0, ativos: 0, manutencao: 0, emprestados: 0 };
 
   // Contagem filtrada
   totalFiltrado: number | null = null;
   contandoFiltro = false;
 
-  // SeleÃ§Ã£o e AÃ§Ãµes em Massa
-  selecionados: any[] = [];
+  // Seleção e Ações em Massa
+  selecionados: Equipamento[] = [];
   cestaAberta = false;
 
   constructor() {
@@ -176,6 +184,13 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Detecta breakpoint mobile para desabilitar colunas congeladas
+    this.breakpointObserver.observe('(max-width: 767px)')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(result => {
+        this.isMobile = result.matches;
+      });
+
     this.carregarDadosAuxiliares();
     // Subscribe to status changes to set default forecast date
     this.manutencaoForm.get('statusId')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(status => {
@@ -202,6 +217,8 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   }
 
   carregarDadosAuxiliares() {
+    this.configService.listarDiretorias().subscribe(res => { this.diretorias = res; this.atualizarConfigFiltros(); });
+    this.configService.listarBatalhoes().subscribe(res => { this.batalhoes = res; this.atualizarConfigFiltros(); });
     this.configService.listarTipos().subscribe(res => { this.tipos = res; this.atualizarConfigFiltros(); });
     this.configService.listarStatus().subscribe(res => { this.status = res; this.atualizarConfigFiltros(); });
     this.configService.listarDisponibilidades().subscribe(res => { this.disponibilidades = res; this.atualizarConfigFiltros(); });
@@ -212,11 +229,13 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
 
   atualizarConfigFiltros() {
     this.configFiltros = [
-      { key: 'tipoId', label: 'Tipo de Equipamento', tipo: 'select', opcoes: this.tipos, optionLabel: 'nome', optionValue: 'id', placeholder: 'Todos os Tipos' },
-      { key: 'statusId', label: 'Status', tipo: 'select', opcoes: this.status, optionLabel: 'nome', optionValue: 'id', placeholder: 'Todos os Status' },
-      { key: 'disponibilidadeId', label: 'Disponibilidade', tipo: 'select', opcoes: this.disponibilidades, optionLabel: 'nome', optionValue: 'id', placeholder: 'Todas' },
-      { key: 'secaoId', label: 'Seção Atual', tipo: 'select', opcoes: this.secoes, optionLabel: 'sigla', optionValue: 'id', placeholder: 'Todas as Seções' },
-      { key: 'marcaId', label: 'Marca', tipo: 'select', opcoes: this.marcas, optionLabel: 'nome', optionValue: 'id', placeholder: 'Todas as Marcas' },
+      { key: 'diretoriaId', label: 'Diretoria (Cascata)', tipo: 'select', opcoes: this.diretorias as unknown as Record<string, unknown>[], optionLabel: 'sigla', optionValue: 'id', placeholder: 'Todas as Diretorias' },
+      { key: 'batalhaoId', label: 'Batalhão (Cascata)', tipo: 'select', opcoes: this.batalhoes as unknown as Record<string, unknown>[], optionLabel: 'sigla', optionValue: 'id', placeholder: 'Todos os Batalhões' },
+      { key: 'tipoId', label: 'Tipo de Equipamento', tipo: 'select', opcoes: this.tipos as unknown as Record<string, unknown>[], optionLabel: 'nome', optionValue: 'id', placeholder: 'Todos os Tipos' },
+      { key: 'statusId', label: 'Status', tipo: 'select', opcoes: this.status as unknown as Record<string, unknown>[], optionLabel: 'nome', optionValue: 'id', placeholder: 'Todos os Status' },
+      { key: 'disponibilidadeId', label: 'Disponibilidade', tipo: 'select', opcoes: this.disponibilidades as unknown as Record<string, unknown>[], optionLabel: 'nome', optionValue: 'id', placeholder: 'Todas' },
+      { key: 'secaoId', label: 'Seção Atual', tipo: 'select', opcoes: this.secoes as unknown as Record<string, unknown>[], optionLabel: 'sigla', optionValue: 'id', placeholder: 'Todas as Seções' },
+      { key: 'marcaId', label: 'Marca', tipo: 'select', opcoes: this.marcas as unknown as Record<string, unknown>[], optionLabel: 'nome', optionValue: 'id', placeholder: 'Todas as Marcas' },
       { key: 'patrimonio', label: 'Patrimônio', tipo: 'text', placeholder: 'Ex: S-PAT-123' },
       { key: 'sei', label: 'Nº SEI', tipo: 'text', placeholder: 'Ex: 00123.000...' },
       { key: 'numeroSerie', label: 'Nº de Série', tipo: 'text', placeholder: 'Ex: ABC12345' },
@@ -242,11 +261,15 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   carregarEquipamentos(page: number, limit: number, search: string = '') {
     this.carregando = true;
 
-    const filtrosAtivos: any = {};
+    const filtrosAtivos: Record<string, unknown> = {};
     for (const key in this.modeloFiltros) {
       if (this.modeloFiltros[key] !== null && this.modeloFiltros[key] !== '') {
         if (this.modeloFiltros[key] instanceof Date) {
-          filtrosAtivos[key] = this.modeloFiltros[key].toISOString();
+          const dt = this.modeloFiltros[key] as Date;
+          const yyyy = dt.getFullYear();
+          const mm = String(dt.getMonth() + 1).padStart(2, '0');
+          const dd = String(dt.getDate()).padStart(2, '0');
+          filtrosAtivos[key] = `${yyyy}-${mm}-${dd}`;
         } else {
           filtrosAtivos[key] = this.modeloFiltros[key];
         }
@@ -307,11 +330,11 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Caso precise forÃ§ar uma atualizaÃ§Ã£o manual sem ter o total em mÃ£os
+    // Caso precise forçar uma atualização manual sem ter o total em mãos
     this.contandoFiltro = true;
-    const filtrosAtivos: any = {};
+    const filtrosAtivos: Record<string, unknown> = {};
     // Para simplificar na contagem rápida
-    ['tipoId', 'statusId', 'disponibilidadeId', 'secaoId'].forEach(key => {
+    ['diretoriaId', 'batalhaoId', 'tipoId', 'statusId', 'disponibilidadeId', 'secaoId'].forEach(key => {
       if (this.modeloFiltros[key]) filtrosAtivos[key] = this.modeloFiltros[key];
     });
 
@@ -325,18 +348,20 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
   }
 
   // Modais e Auxiliares (mantidos como estavam originalmente)
-  status: any[] = [];
+  status: StatusEquipamento[] = [];
   // History of maintenance actions
   manutencaoHistory: { status: string; previsao: Date | null; timestamp: Date }[] = [];
-  disponibilidades: any[] = [];
-  secoes: any[] = [];
-  tiposAquisicao: any[] = [];
-  tipos: any[] = [];
-  marcas: any[] = [];
+  disponibilidades: Disponibilidade[] = [];
+  diretorias: any[] = [];
+  batalhoes: any[] = [];
+  secoes: Secao[] = [];
+  tiposAquisicao: Record<string, any>[] = [];
+  tipos: TipoEquipamento[] = [];
+  marcas: Marca[] = [];
   exibirModal = false;
   exibirModalTimeline = false;
   exibirModalDetalhes = false;
-  equipamentoSelecionado: any = null;
+  equipamentoSelecionado: Equipamento | null = null;
   exibirModalMassa = false;
   formMassa: FormGroup;
   exibirModalTransferenciaMassa = false;
@@ -346,13 +371,13 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
 
   estaSelecionado(id: number): boolean { return this.selecionados.some(eq => eq.id === id); }
   limparSelecao() { this.selecionados = []; this.cestaAberta = false; }
-  removerDaSelecao(eq: any) { this.selecionados = this.selecionados.filter(item => item.id !== eq.id); if (this.selecionados.length === 0) this.cestaAberta = false; }
+  removerDaSelecao(eq: Equipamento) { this.selecionados = this.selecionados.filter(item => item.id !== eq.id); if (this.selecionados.length === 0) this.cestaAberta = false; }
   
 
   abrirNovo() { this.equipamentoSelecionado = null; this.exibirModal = true; }
-  editar(eq: any) { this.equipamentoSelecionado = eq; this.exibirModal = true; }
+  editar(eq: Equipamento) { this.equipamentoSelecionado = eq; this.exibirModal = true; }
   onSaved() { this.carregarEquipamentos(1, this.rows, this.filtroGlobal); this.carregarStats(); }
-  removerEquipamento(eq: any) {
+  removerEquipamento(eq: Equipamento) {
     this.confirmationService.confirm({
       message: `Tem certeza que deseja excluir o equipamento ${eq.patrimonio}?`,
       header: 'Confirmar Exclusão',
@@ -373,22 +398,22 @@ export class EquipmentListComponent implements OnInit, OnDestroy {
       }
     });
   }
-  verDetalhes(eq: any) { this.equipamentoSelecionado = eq; this.exibirModalDetalhes = true; }
-  verTimeline(eq: any) { this.equipamentoSelecionado = eq; this.exibirModalTimeline = true; }
+  verDetalhes(eq: Equipamento) { this.equipamentoSelecionado = eq; this.exibirModalDetalhes = true; }
+  verTimeline(eq: Equipamento) { this.equipamentoSelecionado = eq; this.exibirModalTimeline = true; }
 
-  transferirEquipamento(eq: any) {
+  transferirEquipamento(eq: Equipamento) {
     this.selecionados = [eq];
     this.abrirTransferenciaMassa();
   }
 
-  enviarParaManutencao(eq: any) {
+  enviarParaManutencao(eq: Equipamento) {
     this.selecionados = [eq];
     this.abrirModalManutencao();
   }
 
   abrirTransferenciaMassa() { if (this.selecionados.length === 0) return; this.transferenciaMassaForm.reset(); this.exibirModalTransferenciaMassa = true; }
 
-// Abre modal de manutenÃ§Ã£o para os equipamentos selecionados
+// Abre modal de manutenção para os equipamentos selecionados
 abrirModalManutencao() {
   if (this.selecionados.length === 0) return;
   this.manutencaoForm.reset();
@@ -419,15 +444,15 @@ abrirModalManutencao() {
             usuario: this.authService.getUsuario()?.nome,
             equipamentosIds: ids,
             destinoId: destinoId,
-            mensagem: 'TransferÃªncia processada diretamente sem aprovaÃ§Ã£o (Admin)'
+            mensagem: 'Transferência processada diretamente sem aprovação (Admin)'
           }).subscribe({ error: () => {} });
         }
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'TransferÃªncia em massa solicitada.' });
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Transferência em massa solicitada.' });
         this.exibirModalTransferenciaMassa = false;
         this.limparSelecao();
         this.carregarEquipamentos(1, this.rows, this.filtroGlobal);
       },
-      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao solicitar transferÃªncia.' })
+      error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao solicitar transferência.' })
     });
   }
   recarregar() {
@@ -449,24 +474,24 @@ abrirModalManutencao() {
       error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao atualizar equipamentos.' })
     });
   }
-    // Confirma criaÃ§Ã£o de ordem de serviÃ§o em massa para os equipamentos selecionados
+    // Confirma criação de ordem de serviço em massa para os equipamentos selecionados
     confirmarManutencao() {
       if (this.manutencaoForm.invalid) return;
       const ids = this.selecionados.map(i => i.id);
       this.maintenanceService.criarMassa(ids, this.manutencaoForm.value).subscribe({
         next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Ordem de serviÃ§o criada para os equipamentos selecionados.' });
+          this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Ordem de serviço criada para os equipamentos selecionados.' });
           this.exibirModalManutencao = false;
           this.limparSelecao();
           this.carregarEquipamentos(1, this.rows, this.filtroGlobal);
         },
-        error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao enviar para manutenÃ§Ã£o.' })
+        error: () => this.messageService.add({ severity: 'error', summary: 'Erro', detail: 'Erro ao enviar para manutenção.' })
       });
     }
 
   exportarExcelMassa() {
     if (this.selecionados.length === 0) return;
-    // ExportaÃ§Ã£o simples em CSV para satisfazer a funÃ§Ã£o de Excel
+    // Exportação simples em CSV para satisfazer a função de Excel
     const header = 'Patrimonio,Tipo,Marca,Modelo,Serie,Status,Secao\n';
     const rows = this.selecionados.map(e => 
       `${e.patrimonio},${e.tipoEquipamento?.nome},${e.marca?.nome},${e.modelo?.nome || ''},${e.numeroSerie},${e.status?.nome},${e.secao?.sigla}`
@@ -492,7 +517,7 @@ abrirModalManutencao() {
     }
   }
 
-  async imprimirEtiquetaUnica(eq: any) {
+  async imprimirEtiquetaUnica(eq: Equipamento) {
     const success = await this.pdfService.gerarEtiquetas([eq]);
     const patrimonioDisplay = eq.patrimonio ?? eq.id ?? 'desconhecido';
     if (success) {

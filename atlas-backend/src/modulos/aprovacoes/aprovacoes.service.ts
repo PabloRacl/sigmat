@@ -67,6 +67,10 @@ export class ApprovalsService {
     return this.repository.listarPendentesPorUnidade(batalhaoId);
   }
 
+  async listarTodas() {
+    return this.repository.listarTodas();
+  }
+
   async contarPendentes(batalhaoId?: number) {
     return this.repository.contarPendentes(batalhaoId);
   }

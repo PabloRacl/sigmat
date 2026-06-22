@@ -5,10 +5,10 @@ import { AppModule } from './app.module';
 import type { Express } from 'express';
 
 export const ALLOWED_ORIGINS = [
-  'https://atlas.vercel.app',
+  process.env.FRONTEND_URL,
   'http://localhost:4200',
   'http://localhost:3000',
-];
+].filter(Boolean) as string[];
 
 export function createCorsMiddleware() {
   return (req: any, res: any, next: any) => {

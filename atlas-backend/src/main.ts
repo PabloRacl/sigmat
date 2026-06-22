@@ -1,13 +1,20 @@
-﻿import 'dotenv/config';
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { GlobalExceptionFilter } from './comum/filtros/global-exception.filter';
+import * as express from 'express';
+import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // ConfiguraÃ§Ãµes globais
+  // Servir arquivos estáticos do diretório de uploads
+  app.use('/uploads/equipamentos', express.static(join(process.cwd(), 'uploads', 'equipamentos')));
+  app.use('/uploads/materiais', express.static(join(process.cwd(), 'uploads', 'equipamentos')));
+  app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
+
+  // Configurações globais
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
@@ -16,15 +23,17 @@ async function bootstrap() {
     }),
   );
 
-  // Habilita CORS para o frontend local e produÃ§Ã£o
+  // Habilita CORS para o frontend local e produção
   app.enableCors();
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  console.log(`\nðŸš€ Servidor Backend atlas rodando localmente!`);
-  console.log(`ðŸ“¡ URL: http://localhost:${port}`);
-  console.log(`ðŸ“ DocumentaÃ§Ã£o Swagger: http://localhost:${port}/api\n`);
+  console.log(`\n🚀 Servidor Backend atlas rodando localmente!`);
+  console.log(`📡 URL: http://localhost:${port}`);
+  console.log(`📝 Documentação Swagger: http://localhost:${port}/api\n`);
 }
 
 bootstrap();
+
+// trigger restart

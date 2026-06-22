@@ -32,45 +32,45 @@
   <div header-actions>
     <ng-container [ngSwitch]="abaAtiva">
       <div *ngSwitchCase="'secoes'" class="sections-header__actions">
-        <button pButton type="button" icon="pi pi-exchange" label="Transferência Interna" class="eq-btn-secondary" (click)="abrirModalTransferencia()"></button>
-        <button pButton type="button" icon="pi pi-plus" label="Nova Seção" class="eq-btn-primary" (click)="abrirDialog()"></button>
+        <button pButton type="button" icon="pi pi-exchange" label="Transferência Interna" class="atlas-btn atlas-btn-ghost" (click)="abrirModalTransferencia()"></button>
+        <button pButton type="button" icon="pi pi-plus" label="Nova Seção" class="atlas-btn atlas-btn-primary" (click)="abrirDialog()"></button>
       </div>
       <div *ngSwitchCase="'status'">
-        <button pButton type="button" icon="pi pi-plus" label="Novo Status" class="eq-btn-primary" (click)="abrirDialogStatus()"></button>
+        <button pButton type="button" icon="pi pi-plus" label="Novo Status" class="atlas-btn atlas-btn-primary" (click)="abrirDialogStatus()"></button>
       </div>
       <div *ngSwitchCase="'tipos'">
-        <button pButton type="button" icon="pi pi-plus" label="Novo Tipo" class="eq-btn-primary" (click)="abrirDialogTipo()"></button>
+        <button pButton type="button" icon="pi pi-plus" label="Novo Tipo" class="atlas-btn atlas-btn-primary" (click)="abrirDialogTipo()"></button>
       </div>
       <div *ngSwitchCase="'marcas'">
-        <button pButton type="button" icon="pi pi-plus" label="Nova Marca" class="eq-btn-primary" (click)="abrirDialogMarca()"></button>
+        <button pButton type="button" icon="pi pi-plus" label="Nova Marca" class="atlas-btn atlas-btn-primary" (click)="abrirDialogMarca()"></button>
       </div>
       <div *ngSwitchCase="'modelos'">
-        <button pButton type="button" icon="pi pi-plus" label="Novo Modelo" class="eq-btn-primary" (click)="abrirDialogModelo()"></button>
+        <button pButton type="button" icon="pi pi-plus" label="Novo Modelo" class="atlas-btn atlas-btn-primary" (click)="abrirDialogModelo()"></button>
       </div>
     </ng-container>
   </div>
 
   <!-- Cards Estatísticas (Apenas na aba de Seções) -->
   <div class="eq-stats" *ngIf="abaAtiva === 'secoes'">
-    <div class="eq-stat-card">
+    <div class="atlas-stat-card">
       <div class="eq-stat-card__icon blue"><i class="pi pi-th-large"></i></div>
       <div class="eq-stat-card__info">
-        <span class="eq-stat-card__val">{{ secoes.length }}</span>
-        <span class="eq-stat-card__label">Seções</span>
+        <span class="atlas-stat-card__val">{{ secoes.length }}</span>
+        <span class="atlas-stat-card__label">Seções</span>
       </div>
     </div>
-    <div class="eq-stat-card">
+    <div class="atlas-stat-card">
       <div class="eq-stat-card__icon green"><i class="pi pi-box"></i></div>
       <div class="eq-stat-card__info">
-        <span class="eq-stat-card__val">{{ totalEquipamentos | number }}</span>
-        <span class="eq-stat-card__label">Equipamentos</span>
+        <span class="atlas-stat-card__val">{{ totalEquipamentos | number }}</span>
+        <span class="atlas-stat-card__label">Equipamentos</span>
       </div>
     </div>
-    <div class="eq-stat-card">
+    <div class="atlas-stat-card">
       <div class="eq-stat-card__icon indigo"><i class="pi pi-briefcase"></i></div>
       <div class="eq-stat-card__info">
-        <span class="eq-stat-card__val">{{ batalhoes.length }}</span>
-        <span class="eq-stat-card__label">Batalhões</span>
+        <span class="atlas-stat-card__val">{{ batalhoes.length }}</span>
+        <span class="atlas-stat-card__label">Batalhões</span>
       </div>
     </div>
   </div>
@@ -88,7 +88,7 @@
     </div>
 
     <!-- Tabela Dinâmica -->
-    <div class="table-container">
+    <div class="atlas-panel" style="padding: 0; overflow: hidden; border-top-left-radius: 0; border-top-right-radius: 0; border-top: none;">
       
       <!-- ABA 1: SEÇÕES -->
       <div *ngIf="abaAtiva === 'secoes'">
@@ -99,7 +99,7 @@
           [paginator]="true"
           [rows]="10"
           [rowsPerPageOptions]="[10,20,50]"
-          styleClass="p-datatable-sm p-datatable-gridlines"
+          styleClass=""
         >
           <ng-template pTemplate="header">
             <tr>
@@ -136,7 +136,7 @@
           [paginator]="true"
           [rows]="10"
           [rowsPerPageOptions]="[10,20,50]"
-          styleClass="p-datatable-sm p-datatable-gridlines">
+          styleClass="">
           <ng-template pTemplate="header">
             <tr>
               <th style="min-width: 80px">ID</th>
@@ -168,7 +168,7 @@
           [paginator]="true"
           [rows]="10"
           [rowsPerPageOptions]="[10,20,50]"
-          styleClass="p-datatable-sm p-datatable-gridlines"
+          styleClass=""
         >
           <ng-template pTemplate="header">
             <tr>
@@ -200,7 +200,7 @@
           [paginator]="true"
           [rows]="10"
           [rowsPerPageOptions]="[10,20,50]"
-          styleClass="p-datatable-sm p-datatable-gridlines"
+          styleClass=""
         >
           <ng-template pTemplate="header">
             <tr>
@@ -232,7 +232,7 @@
           [paginator]="true"
           [rows]="10"
           [rowsPerPageOptions]="[10,20,50]"
-          styleClass="p-datatable-sm p-datatable-gridlines"
+          styleClass=""
         >
           <ng-template pTemplate="header">
             <tr>
@@ -286,7 +286,6 @@
               optionLabel="sigla"
               optionValue="id"
               [showClear]="true"
-              [disabled]="userPerfil === 'USUARIO_BATALHAO'"
               placeholder="Selecione um batalhão"
             ></p-select>
           </div>

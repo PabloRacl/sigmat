@@ -16,26 +16,26 @@
   </div>
 
   <!-- Estatísticas -->
-  <div class="ap-stats" stats>
-    <div class="ap-stat-card">
-      <div class="ap-stat-card__icon blue"><i class="pi pi-exclamation-triangle"></i></div>
-      <div class="ap-stat-card__info">
-        <span class="ap-stat-card__val">{{ pendencias.length }}</span>
-        <span class="ap-stat-card__label">Alterações Pendentes</span>
+  <div class="atlas-stats" stats>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon blue"><i class="pi pi-exclamation-triangle"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ pendencias.length }}</span>
+        <span class="atlas-stat-card__label">Alterações Pendentes</span>
       </div>
     </div>
-    <div class="ap-stat-card">
-      <div class="ap-stat-card__icon green"><i class="pi pi-download"></i></div>
-      <div class="ap-stat-card__info">
-        <span class="ap-stat-card__val">{{ transRecebidas.length }}</span>
-        <span class="ap-stat-card__label">Transferências Recebidas</span>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon green"><i class="pi pi-download"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ transRecebidas.length }}</span>
+        <span class="atlas-stat-card__label">Transferências Recebidas</span>
       </div>
     </div>
-    <div class="ap-stat-card">
-      <div class="ap-stat-card__icon indigo"><i class="pi pi-upload"></i></div>
-      <div class="ap-stat-card__info">
-        <span class="ap-stat-card__val">{{ transEnviadas.length }}</span>
-        <span class="ap-stat-card__label">Transferências Enviadas</span>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon indigo"><i class="pi pi-upload"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ transEnviadas.length }}</span>
+        <span class="atlas-stat-card__label">Transferências Enviadas</span>
       </div>
     </div>
   </div>
@@ -273,7 +273,7 @@
           </p>
           <div class="ap-form__field">
             <label>Motivo da Rejeição <span class="req">*</span></label>
-            <textarea pTextarea [(ngModel)]="motivoNegacao" rows="4" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px;" placeholder="Descreva o motivo da rejeição..."></textarea>
+            <textarea pTextarea [(ngModel)]="motivoNegacao" rows="4" class="w-full" placeholder="Descreva o motivo da rejeição..."></textarea>
           </div>
         </div>
       </ng-template>

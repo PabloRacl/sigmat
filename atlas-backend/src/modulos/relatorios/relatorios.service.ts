@@ -27,6 +27,27 @@ export class ReportsService {
     const and: any[] = [...visibilidade];
 
     if (filtros.secaoId) and.push({ secaoId: Number(filtros.secaoId) });
+
+    // Filtro em Cascata (Hierarquia)
+    if (filtros.diretoriaId) {
+      and.push({
+        OR: [
+          { secao: { diretoriaId: Number(filtros.diretoriaId) } },
+          { secao: { batalhao: { diretoriaId: Number(filtros.diretoriaId) } } },
+          { batalhao: { diretoriaId: Number(filtros.diretoriaId) } }
+        ]
+      });
+    }
+
+    if (filtros.batalhaoId) {
+      and.push({
+        OR: [
+          { secao: { batalhaoId: Number(filtros.batalhaoId) } },
+          { batalhaoId: Number(filtros.batalhaoId) }
+        ]
+      });
+    }
+
     if (filtros.tipoId) and.push({ tipoEquipamentoId: Number(filtros.tipoId) });
     if (filtros.statusId) and.push({ statusId: Number(filtros.statusId) });
     if (filtros.disponibilidadeId)
@@ -308,6 +329,9 @@ export class ReportsService {
         acao: true,
         descricao: true,
         createdAt: true,
+        dadosAlterados: true,
+        ip: true,
+        userAgent: true,
         usuario: { select: { nome: true, matricula: true } },
         equipamento: { select: { patrimonio: true } },
       },

@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApprovalsService } from './aprovacoes.service';
 import { DecisionApprovalDto } from './dto/decision-approval.dto';
-import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
+import { JwtAuthGuard } from '../acesso/guardas/jwt-autenticacao.guard';
 import { LoggedUser } from '../../comum/decoradores/logged-user.decorator';
 
 @Controller('aprovacoes')
@@ -22,6 +22,11 @@ export class ApprovalsController {
     const batalhaoId =
       usuario.perfil === 'ADMIN_DTEC' ? undefined : usuario.batalhaoId;
     return this.ApprovalsService.listarPendentesPorUnidade(batalhaoId);
+  }
+
+  @Get()
+  async listarTodas() {
+    return this.ApprovalsService.listarTodas();
   }
 
   @Get('contagem')

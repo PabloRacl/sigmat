@@ -41,19 +41,27 @@ export class PdfController {
     @Body()
     data: {
       titulo: string;
-      subtitulo: string;
-      colunas: string[];
-      linhas: string[][];
+      fiscal?: string;
+      matricula?: string;
+      ome?: string;
+      grupos: {
+        tituloGeral?: string;
+        operacao?: string;
+        local?: string;
+        omeBeneficiada?: string;
+        omeCedente?: string;
+        evento?: string;
+        data?: string;
+        periodo?: string;
+        modalidade?: string;
+        colunas: string[];
+        linhas: string[][];
+      }[];
     },
     @Res() res: Response,
   ) {
     try {
-      const buffer = await this.pdfService.gerarTabelaPDF(
-        data.titulo,
-        data.subtitulo,
-        data.colunas,
-        data.linhas,
-      );
+      const buffer = await this.pdfService.gerarTabelaPDF(data);
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader(
         'Content-Disposition',

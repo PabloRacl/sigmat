@@ -14,6 +14,10 @@ export class ApprovalsService {
     return this.http.get<any[]>(`${this.apiUrl}/pendentes`);
   }
 
+  listarTodas(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}`);
+  }
+
   obterContagem(): Observable<{ total: number }> {
     return this.http.get<{ total: number }>(`${this.apiUrl}/pendentes/contagem`);
   }

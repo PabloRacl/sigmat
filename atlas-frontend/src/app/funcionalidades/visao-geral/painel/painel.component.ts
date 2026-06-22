@@ -1,22 +1,24 @@
 import { Component, inject, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../nucleo/servicos/autenticacao.service';
 import { NotificationsService, NotificacaoDetalhes } from '../../../nucleo/servicos/notificacoes.service';
 import { Observable, Subject } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 import { ROTAS, ROTAS_RELATIVAS } from '../../../nucleo/utilitarios/rotas.constantes';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
 import { RippleModule } from 'primeng/ripple';
+import { DialogModule } from 'primeng/dialog';
 import { environment } from '../../../environment';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterOutlet, RouterLink, RouterLinkActive, InputTextModule, ButtonModule, BadgeModule, TooltipModule, RippleModule],
+  imports: [CommonModule, FormsModule, RouterOutlet, RouterLink, RouterLinkActive, InputTextModule, ButtonModule, BadgeModule, TooltipModule, RippleModule, DialogModule],
   templateUrl: './painel.component.html',
   styleUrls: ['./painel.component.scss']
 })
@@ -31,19 +33,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
   usuario$!: Observable<any>;
   notificacoes: NotificacaoDetalhes = { total: 0, aprovacoes: 0, transferencias: 0, manutencao: 0, acesso: 0 };
   isSidebarCollapsed = false;
+  isMobileMenuOpen = false;
   menuExpandido: string | null = null;
   termoBusca: string = '';
   showProfileMenu = false;
   showNotifMenu = false;
   avatarError = false;
+  showModalExpiracao = false;
+  renovandoSessao = false;
 
   saudacao = 'Bem-vindo';
-  tempoSessao = 3600; // 60 minutos
+  tempoSessao = 0;
   private intervalId: any;
 
   ngOnInit(): void {
     this.usuario$ = this.authService.usuario$;
     this.definirSaudacao();
+    this.atualizarTempoSessao();
     this.iniciarTimer();
 
     this.notificationsService.pendentes$.subscribe(detalhes => {
@@ -51,7 +57,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
 
     this.notificationsService.atualizarContagem();
+
+    // Fecha o menu mobile ao navegar para qualquer rota
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.isMobileMenuOpen = false;
+    });
   }
+
+  // ... (keeping other methods intact up to iniciarTimer)
 
   get isUsuarioBatalhao(): boolean {
     return this.authService.getUsuario()?.perfil === 'USUARIO_BATALHAO';
@@ -92,7 +108,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   get isPolicial(): boolean {
-    return this.authService.getUsuario()?.perfil === 'POLICIAL';
+    return (this.authService.getUsuario()?.perfil as string) === 'POLICIAL';
   }
 
   get podeVerUsuarios(): boolean {
@@ -100,8 +116,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   get podeVerSecoes(): boolean {
-    const perfil = this.authService.getUsuario()?.perfil;
-    return ['ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE', 'USUARIO_BATALHAO'].includes(perfil);
+    const perfil = this.authService.getUsuario()?.perfil as string | undefined;
+    return ['ADMIN_DTEC', 'DIRETORIA', 'COMANDANTE', 'USUARIO_BATALHAO'].includes(perfil ?? '');
   }
 
   get podeVerAuditoria(): boolean {
@@ -132,12 +148,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   getTimerClass(): string {
-    if (this.tempoSessao > 1800) {
-      return 'safe'; // > 30 min
+    if (this.tempoSessao > 2700) {
+      return 'safe'; // > 45 min
+    } else if (this.tempoSessao > 1800) {
+      return 'medium-safe'; // 30 a 45 min
+    } else if (this.tempoSessao > 1200) {
+      return 'warning'; // 20 a 30 min
     } else if (this.tempoSessao > 600) {
-      return 'warning'; // entre 10 e 30 min
+      return 'orange'; // 10 a 20 min
+    } else if (this.tempoSessao > 300) {
+      return 'danger'; // 5 a 10 min
     } else {
-      return 'danger'; // < 10 min
+      return 'extreme'; // < 5 min
     }
   }
 
@@ -178,23 +200,62 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   definirSaudacao() {
     const hora = new Date().getHours();
-    if (hora >= 5 && hora < 12) {
-      this.saudacao = 'Bom dia';
+    if (hora >= 0 && hora < 5) {
+      this.saudacao = 'Boa Madrugada';
+    } else if (hora >= 5 && hora < 12) {
+      this.saudacao = 'Bom Dia';
     } else if (hora >= 12 && hora < 18) {
-      this.saudacao = 'Boa tarde';
+      this.saudacao = 'Boa Tarde';
     } else {
-      this.saudacao = 'Boa noite';
+      this.saudacao = 'Boa Noite';
+    }
+  }
+
+  atualizarTempoSessao() {
+    const expTime = this.authService.getTokenExpirationTime();
+    if (expTime <= 0) {
+      this.tempoSessao = 0;
+    } else {
+      const remainingMs = expTime - Date.now();
+      this.tempoSessao = Math.floor(remainingMs / 1000);
     }
   }
 
   iniciarTimer() {
     this.intervalId = setInterval(() => {
-      this.tempoSessao--;
+      this.atualizarTempoSessao();
+
+      if (this.tempoSessao <= 300 && this.tempoSessao > 0) {
+        // Faltam 5 minutos ou menos
+        if (!this.showModalExpiracao) {
+          this.showModalExpiracao = true;
+        }
+      } else if (this.tempoSessao > 300) {
+        // Se a sessão foi renovada, esconde o modal
+        this.showModalExpiracao = false;
+      }
+
       if (this.tempoSessao <= 0) {
         clearInterval(this.intervalId);
+        this.showModalExpiracao = false;
         this.sair();
       }
     }, 1000);
+  }
+
+  pedirMaisTempo() {
+    this.renovandoSessao = true;
+    this.authService.refresh().subscribe({
+      next: () => {
+        this.renovandoSessao = false;
+        this.showModalExpiracao = false;
+        // O timer automaticamente vai reajustar no próximo segundo
+      },
+      error: () => {
+        this.renovandoSessao = false;
+        this.sair();
+      }
+    });
   }
 
   formatarTempo(segundos: number): string {

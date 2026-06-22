@@ -7,6 +7,7 @@ export interface IAprovacaoRepositorio {
     camposAlterados: string[],
   ): Promise<any>;
   listarPendentesPorUnidade(batalhaoId?: number): Promise<any[]>;
+  listarTodas(): Promise<any[]>;
   contarPendentes(batalhaoId?: number): Promise<number>;
   obterPendencia(id: number): Promise<any>;
   processarDecisao(

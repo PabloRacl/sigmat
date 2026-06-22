@@ -9,7 +9,7 @@
  *   - Exibição de especificações e propriedades de equipamento de forma somente leitura.
  */
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 // PrimeNG
@@ -17,6 +17,7 @@ import { DialogModule } from 'primeng/dialog';
 
 import { IndicadorStatusComponent } from '../../../componentes/indicador-status/indicador-status.component';
 import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
+import { UploadService } from '../../../nucleo/servicos/carregamento.service';
 
 @Component({
   selector: 'app-detalhes-equipamento',
@@ -26,6 +27,7 @@ import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-v
   styleUrls: ['./detalhes-equipamento.component.scss']
 })
 export class EquipmentDetailsComponent {
+  public uploadService = inject(UploadService);
   @Input() visible = false;
   @Input() equipment: any = null;
   @Output() visibleChange = new EventEmitter<boolean>();

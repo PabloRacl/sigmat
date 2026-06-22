@@ -12,6 +12,9 @@ class MockAuthService {
     return { id: 1, perfil: 'ADMIN_DTEC', secaoId: 1, nome: 'Teste User' };
   }
   logout() {}
+  getTokenExpirationTime() {
+    return Date.now() + 3600000;
+  }
 }
 
 class MockNotificationsService {

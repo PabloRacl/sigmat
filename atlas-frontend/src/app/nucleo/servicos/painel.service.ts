@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { environment } from '../../environment';
 import { MockModeService } from './modo-mock.service';
 import { MOCK_ESTATISTICAS } from '../dados-teste/painel.teste';
+import { EstatisticasDashboard, AtividadeDashboard } from '../interfaces/painel.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -13,19 +14,19 @@ export class DashboardService {
   private mockMode = inject(MockModeService);
   private apiUrl = `${environment.apiUrl}/dashboard`;
 
-  obterEstatisticas(): Observable<any> {
+  obterEstatisticas(): Observable<EstatisticasDashboard> {
     if (this.mockMode.useMock) {
       return of(MOCK_ESTATISTICAS);
     }
 
-    return this.http.get(`${this.apiUrl}/estatisticas`);
+    return this.http.get<EstatisticasDashboard>(`${this.apiUrl}/estatisticas`);
   }
 
-  obterAtividades(): Observable<any> {
+  obterAtividades(): Observable<AtividadeDashboard[]> {
     if (this.mockMode.useMock) {
       return of([]);
     }
-    return this.http.get(`${this.apiUrl}/atividades`);
+    return this.http.get<AtividadeDashboard[]>(`${this.apiUrl}/atividades`);
   }
 }
 

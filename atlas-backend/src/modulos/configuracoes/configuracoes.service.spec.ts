@@ -76,6 +76,7 @@ describe('SettingsService', () => {
 
       expect(resultado).toEqual(tipos);
       expect(prisma.tipoEquipamento.findMany).toHaveBeenCalledWith({
+        include: { _count: { select: { equipamentos: true } } },
         orderBy: { nome: 'asc' },
       });
     });
@@ -110,6 +111,7 @@ describe('SettingsService', () => {
       expect(resultado).toEqual(modelos);
       expect(prisma.modelo.findMany).toHaveBeenCalledWith({
         where: {},
+        include: { marca: true, _count: { select: { equipamentos: true } } },
         orderBy: { nome: 'asc' },
       });
     });
@@ -121,6 +123,7 @@ describe('SettingsService', () => {
 
       expect(prisma.modelo.findMany).toHaveBeenCalledWith({
         where: { marcaId: 5 },
+        include: { marca: true, _count: { select: { equipamentos: true } } },
         orderBy: { nome: 'asc' },
       });
     });

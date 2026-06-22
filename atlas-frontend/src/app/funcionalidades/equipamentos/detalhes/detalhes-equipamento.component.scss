@@ -297,3 +297,12 @@
   border: 1px solid #e2e8f0;
 }
 
+.photo-card {
+  .eq-det-photo-wrap {
+    cursor: zoom-in;
+    &:hover .eq-det-img-element {
+      transform: scale(1.08);
+    }
+  }
+}
+

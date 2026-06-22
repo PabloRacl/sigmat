@@ -378,6 +378,12 @@ export class SettingsService {
     });
   }
 
+  async listarDiretorias() {
+    return this.prisma.diretoria.findMany({
+      orderBy: { sigla: 'asc' },
+    });
+  }
+
   async excluirTipo(id: number) {
     const equipamentosCount = await this.prisma.equipamento.count({
       where: { tipoEquipamentoId: id },

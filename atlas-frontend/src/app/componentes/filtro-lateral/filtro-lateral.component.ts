@@ -15,7 +15,7 @@ export interface FiltroConfig {
   label: string;
   tipo: FiltroTipo;
   placeholder?: string;
-  opcoes?: any[];
+  opcoes?: Record<string, unknown>[] | { label: string, value: unknown }[];
   optionLabel?: string;
   optionValue?: string;
   showClear?: boolean;
@@ -42,8 +42,8 @@ export class FiltroLateralComponent {
   @Input() config: FiltroConfig[] = [];
   @Input() visible: boolean = false;
   
-  // O modelo dinâmico contendo as seleções do usuário: { [key: string]: any }
-  @Input() modelo: any = {};
+  // O modelo dinâmico contendo as seleções do usuário: { [key: string]: unknown }
+  @Input() modelo: Record<string, unknown> = {};
   
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() aplicar = new EventEmitter<any>();

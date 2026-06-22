@@ -44,11 +44,16 @@ export const MOCK_SECOES = [
   { id: 301, sigla: 'OUT', nome: 'Seção OUTRO', batalhaoId: 30 }
 ];
 
+export const MOCK_DIRETORIAS = [
+  { id: 1, sigla: 'DTEC', nome: 'Diretoria de Tecnologia' },
+  { id: 2, sigla: 'DAL', nome: 'Diretoria de Apoio Logístico' }
+];
+
 export const MOCK_BATALHOES = [
-  { id: 20, sigla: 'BPTUR', nome: 'Batalhão BPTUR' },
-  { id: 21, sigla: 'HQT', nome: 'Batalhão HQT' },
-  { id: 22, sigla: 'CBT1', nome: 'Batalhão CBT1' },
-  { id: 30, sigla: 'OUT', nome: 'Batalhão Outros' }
+  { id: 20, sigla: 'BPTUR', nome: 'Batalhão BPTUR', diretoriaId: 1 },
+  { id: 21, sigla: 'HQT', nome: 'Batalhão HQT', diretoriaId: 2 },
+  { id: 22, sigla: 'CBT1', nome: 'Batalhão CBT1', diretoriaId: 1 },
+  { id: 30, sigla: 'OUT', nome: 'Batalhão Outros', diretoriaId: 2 }
 ];
 
 export const MOCK_MARCAS = [

@@ -18,33 +18,33 @@
   </div>
 
   <!-- Estatísticas -->
-  <div class="cd-stats" stats>
-    <div class="cd-stat-card">
-      <div class="cd-stat-card__icon blue"><i class="pi pi-box"></i></div>
-      <div class="cd-stat-card__info">
-        <span class="cd-stat-card__val">{{ emprestados.length }}</span>
-        <span class="cd-stat-card__label">Emprestados</span>
+  <div class="atlas-stats" stats>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon blue"><i class="pi pi-box"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ emprestados.length }}</span>
+        <span class="atlas-stat-card__label">Emprestados</span>
       </div>
     </div>
-    <div class="cd-stat-card">
-      <div class="cd-stat-card__icon red"><i class="pi pi-exclamation-triangle"></i></div>
-      <div class="cd-stat-card__info">
-        <span class="cd-stat-card__val">{{ vencidos.length }}</span>
-        <span class="cd-stat-card__label">Vencidos</span>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon red"><i class="pi pi-exclamation-triangle"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ vencidos.length }}</span>
+        <span class="atlas-stat-card__label">Vencidos</span>
       </div>
     </div>
-    <div class="cd-stat-card">
-      <div class="cd-stat-card__icon gray"><i class="pi pi-history"></i></div>
-      <div class="cd-stat-card__info">
-        <span class="cd-stat-card__val">{{ historico.length }}</span>
-        <span class="cd-stat-card__label">Histórico</span>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon gray"><i class="pi pi-history"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ historico.length }}</span>
+        <span class="atlas-stat-card__label">Histórico</span>
       </div>
     </div>
-    <div class="cd-stat-card">
-      <div class="cd-stat-card__icon green"><i class="pi pi-check-circle"></i></div>
-      <div class="cd-stat-card__info">
-        <span class="cd-stat-card__val">{{ equipamentos.length }}</span>
-        <span class="cd-stat-card__label">Disponíveis</span>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon green"><i class="pi pi-check-circle"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ equipamentos.length }}</span>
+        <span class="atlas-stat-card__label">Disponíveis</span>
       </div>
     </div>
   </div>
@@ -106,7 +106,7 @@
         [rows]="10" 
         [paginator]="true"
         styleClass="cd-table"
-        [globalFilterFields]="['patrimonio', 'solicitante', 'tipoEquipamento.nome']"
+        [globalFilterFields]="['id', 'patrimonio', 'solicitante', 'tipoEquipamento.nome']"
         #dtAtivos
       >
         <ng-template pTemplate="caption">
@@ -133,16 +133,16 @@
             <td><p-tableCheckbox [value]="e"></p-tableCheckbox></td>
             <td>
               <div class="cd-pat-cell" style="display: flex; flex-direction: column; gap: 2px;">
-                <span class="cd-patrimonio" style="font-weight: 700;">{{ e.patrimonio }}</span>
+                <span class="cd-patrimonio" style="font-weight: 700;">{{ e['patrimonio'] }}</span>
                 <span class="cd-vencido-tag" *ngIf="isVencido(e)" style="color: #ef4444; font-size: 0.65rem; font-weight: 800;">VENCIDO</span>
               </div>
             </td>
-            <td>{{ e.tipoEquipamento?.nome }}</td>
-            <td><strong>{{ e.solicitante }}</strong></td>
-            <td>{{ e.dataSolicitacao | date:'dd/MM/yyyy' }}</td>
+            <td>{{ e['tipoEquipamento']?.['nome'] }}</td>
+            <td><strong>{{ e['solicitante'] }}</strong></td>
+            <td>{{ e['dataSolicitacao'] | date:'dd/MM/yyyy' }}</td>
             <td>
               <span [class.text-red]="isVencido(e)">
-                {{ e.dataRetornoEmprestimo ? (e.dataRetornoEmprestimo | date:'dd/MM/yyyy') : '—' }}
+                {{ e['dataRetornoEmprestimo'] ? (e['dataRetornoEmprestimo'] | date:'dd/MM/yyyy') : '—' }}
               </span>
             </td>
             <td style="text-align: center">
@@ -167,16 +167,16 @@
         <div class="cd-item-card vencido" *ngFor="let e of vencidos" style="background: #fff; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
           <div class="cd-item-card__head" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
             <div style="display: flex; flex-direction: column;">
-              <span class="cd-patrimonio" style="font-weight: 700; font-size: 1.1rem; color: #0f172a;">{{ e.patrimonio }}</span>
-              <span class="cd-tipo" style="font-size: 0.8rem; color: #64748b;">{{ e.tipoEquipamento?.nome }}</span>
+              <span class="cd-patrimonio" style="font-weight: 700; font-size: 1.1rem; color: #0f172a;">{{ e['patrimonio'] }}</span>
+              <span class="cd-tipo" style="font-size: 0.8rem; color: #64748b;">{{ e['tipoEquipamento']?.['nome'] }}</span>
             </div>
             <span class="cd-vencido-tag" style="background: #fef2f2; color: #ef4444; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
               <i class="pi pi-exclamation-circle"></i> {{ diasAtraso(e) }}d atraso
             </span>
           </div>
           <div class="cd-item-card__body" style="font-size: 0.85rem; color: #475569; display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem;">
-            <div class="cd-info-row" style="display: flex; justify-content: space-between;"><span class="label">Solicitante</span><span class="val" style="font-weight: 600; color: #0f172a;">{{ e.solicitante }}</span></div>
-            <div class="cd-info-row" style="display: flex; justify-content: space-between;"><span class="label">Vencido em</span><span class="val text-red" style="color: #ef4444; font-weight: 600;">{{ e.dataRetornoEmprestimo | date:'dd/MM/yyyy' }}</span></div>
+            <div class="cd-info-row" style="display: flex; justify-content: space-between;"><span class="label">Solicitante</span><span class="val" style="font-weight: 600; color: #0f172a;">{{ e['solicitante'] }}</span></div>
+            <div class="cd-info-row" style="display: flex; justify-content: space-between;"><span class="label">Vencido em</span><span class="val text-red" style="color: #ef4444; font-weight: 600;">{{ e['dataRetornoEmprestimo'] | date:'dd/MM/yyyy' }}</span></div>
           </div>
           <div class="cd-item-card__footer" style="display: flex; gap: 8px;">
             <button class="cd-btn-ghost flex-1" (click)="imprimirCautela(e)" style="flex: 1; padding: 8px; border: 1px solid #e2e8f0; background: white; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; color: #475569;"><i class="pi pi-print"></i> Cautela</button>
@@ -193,7 +193,7 @@
         styleClass="cd-table" 
         [rows]="10" 
         [paginator]="true"
-        [globalFilterFields]="['patrimonio', 'solicitante', 'tipoEquipamento.nome']"
+        [globalFilterFields]="['id', 'patrimonio', 'solicitante', 'tipoEquipamento.nome']"
         #dtHist
       >
         <ng-template pTemplate="caption">
@@ -329,9 +329,9 @@
       <div class="cd-retorno" *ngIf="itemRetorno" style="text-align: center; padding: 1rem 0;">
         <div class="cd-retorno__icon" style="font-size: 3rem; color: #2563eb; margin-bottom: 1rem;"><i class="pi pi-box"></i></div>
         <h3 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">Confirmar retorno ao inventário?</h3>
-        <p style="font-size: 0.9rem; color: #64748b;">O equipamento <strong>{{ itemRetorno.patrimonio }}</strong> voltará para o status <strong>Disponível</strong>.</p>
+        <p style="font-size: 0.9rem; color: #64748b;">O equipamento <strong>{{ itemRetorno['patrimonio'] }}</strong> voltará para o status <strong>Disponível</strong>.</p>
         <div class="cd-retorno__details" style="background: #f8fafc; padding: 10px; border-radius: 8px; margin-top: 1rem; border: 1px solid #e2e8f0; font-size: 0.85rem; color: #475569;">
-          <span>Solicitante: <strong>{{ itemRetorno.solicitante }}</strong></span>
+          <span>Solicitante: <strong>{{ itemRetorno['solicitante'] }}</strong></span>
         </div>
       </div>
       <div class="cd-dialog-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 15px; border-top: 1px solid #f1f5f9;">
@@ -375,7 +375,7 @@
             
             <p style="text-align: justify; margin-bottom: 15px;">
               Pelo presente termo, a <strong>Diretoria de Tecnologia (DTEC/PMPE)</strong> realiza a entrega do(s) material(is) abaixo relacionado(s) ao(à) 
-              <strong>{{ selecionados[0]?.solicitante || 'SOLICITANTE' }}</strong>, 
+              <strong>{{ selecionados[0] ? selecionados[0]['solicitante'] || 'SOLICITANTE' : 'SOLICITANTE' }}</strong>, 
               que assume plena responsabilidade pela guarda, conservação e uso estritamente profissional dos mesmos, comprometendo-se a zelar por sua integridade.
             </p>
 
@@ -391,9 +391,9 @@
               <tbody>
                 <tr *ngFor="let it of selecionados; let i = index">
                   <td style="border: 1px solid black; padding: 8px; text-align: center;">{{ i + 1 }}</td>
-                  <td style="border: 1px solid black; padding: 8px; font-weight: bold;">{{ it.patrimonio }}</td>
-                  <td style="border: 1px solid black; padding: 8px;">{{ it.tipoEquipamento?.nome }} - {{ it.marca?.nome }}</td>
-                  <td style="border: 1px solid black; padding: 8px;">{{ it.numeroSerie || 'N/A' }}</td>
+                  <td style="border: 1px solid black; padding: 8px; font-weight: bold;">{{ it['patrimonio'] }}</td>
+                  <td style="border: 1px solid black; padding: 8px;">{{ it['tipoEquipamento']?.['nome'] }} - {{ it['marca']?.['nome'] }}</td>
+                  <td style="border: 1px solid black; padding: 8px;">{{ it['numeroSerie'] || 'N/A' }}</td>
                 </tr>
               </tbody>
             </table>

@@ -5,7 +5,7 @@ import { environment } from '../../environment';
 import { MockModeService } from './modo-mock.service';
 import {
   MOCK_TIPOS, MOCK_STATUS, MOCK_DISPONIBILIDADES, MOCK_TIPOS_AQUISICAO,
-  MOCK_SECOES, MOCK_BATALHOES, MOCK_MARCAS, MOCK_MODELOS
+  MOCK_SECOES, MOCK_BATALHOES, MOCK_DIRETORIAS, MOCK_MARCAS, MOCK_MODELOS
 } from '../dados-teste/configuracoes.teste';
 
 @Injectable({
@@ -172,7 +172,27 @@ export class SettingsService {
     return this.http.put<any>(`${this.API_URL}/secoes/${id}`, dados);
   }
 
-  private batalhoesCache: any[] | null = null;
+  private batalhoesCache: Record<string, unknown>[] | null = null;
+  private diretoriasCache: Record<string, unknown>[] | null = null;
+
+  listarDiretorias(): Observable<any[]> {
+    if (this.mockMode.useMock) {
+      return of(MOCK_DIRETORIAS);
+    }
+    if (this.diretoriasCache) {
+      return of(this.diretoriasCache);
+    }
+    return new Observable(observer => {
+      this.http.get<any[]>(`${this.API_URL}/diretorias`).subscribe({
+        next: (res) => {
+          this.diretoriasCache = res;
+          observer.next(res);
+          observer.complete();
+        },
+        error: (err) => observer.error(err)
+      });
+    });
+  }
 
   listarBatalhoes(): Observable<any[]> {
     if (this.mockMode.useMock) {

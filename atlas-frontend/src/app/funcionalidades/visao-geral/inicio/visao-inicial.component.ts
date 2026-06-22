@@ -8,6 +8,7 @@ import { SelectModule } from 'primeng/select';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
 import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
 import { ROTAS } from '../../../nucleo/utilitarios/rotas.constantes';
+import { EstatisticasDashboard, AtividadeDashboard, GraficoData, ResumoDashboard, GraficosDashboard } from '../../../nucleo/interfaces/painel.interface';
 
 type GraficoKey = 'porStatus' | 'porTipo' | 'porDisponibilidade' | 'porBatalhao' | 'porMarca';
 
@@ -22,12 +23,12 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
 
-  summary: any = null;
-  charts: any = null;
-  activities: any[] = [];
+  summary: ResumoDashboard | null = null;
+  charts: GraficosDashboard | null = null;
+  activities: AtividadeDashboard[] = [];
   loading = true;
   isFirstLoad = true;
-  private refreshInterval: any;
+  private refreshInterval: ReturnType<typeof setInterval> | null = null;
 
   // Seletor de gráfico principal
   opcoesGrafico = [
@@ -39,9 +40,9 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   ];
   graficoSelecionado = this.opcoesGrafico[0];
 
-  get dadosGraficoAtual(): any {
+  get dadosGraficoAtual(): GraficoData | null {
     if (!this.charts) return null;
-    return this.charts[this.graficoSelecionado.value as GraficoKey];
+    return this.charts[this.graficoSelecionado.value as GraficoKey] || null;
   }
 
   opcoesPie = {
@@ -142,10 +143,10 @@ export class DashboardHomeComponent implements OnInit, OnDestroy {
   }
 
   get tipoGraficoAtual(): 'pie' | 'bar' | 'doughnut' | 'line' | 'polarArea' {
-    return this.graficoSelecionado.tipo as any;
+    return this.graficoSelecionado.tipo as 'pie' | 'bar' | 'doughnut' | 'line' | 'polarArea';
   }
 
-  get opcoesGraficoAtual(): any {
+  get opcoesGraficoAtual(): Record<string, unknown> {
     if (this.tipoGraficoAtual === 'bar') return this.opcoesBar;
     if (this.tipoGraficoAtual === 'polarArea') return this.opcoesPolar;
     return this.opcoesPie;

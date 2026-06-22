@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { MaintenanceService } from '../../../nucleo/servicos/manutencao.service';
 import { EquipmentService } from '../../../nucleo/servicos/equipamentos.service';
 import { AuthService } from '../../../nucleo/servicos/autenticacao.service';
+import { HistoricoOs } from '../../../nucleo/servicos/manutencao.service';
 import { Subject, takeUntil } from 'rxjs';
 
 import { TableModule } from 'primeng/table';
@@ -21,6 +22,29 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
 import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
 import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
 import { FiltroLateralComponent, FiltroConfig } from '../../../componentes/filtro-lateral/filtro-lateral.component';
+
+export interface EquipamentoManutencao {
+  id: number;
+  patrimonio: string;
+  tipoEquipamento?: { nome: string };
+  marca?: { nome: string };
+  modelo?: { nome: string };
+  secao?: { id: number; sigla: string; nome?: string };
+}
+
+export interface OrdemServico {
+  id: number;
+  status: string;
+  equipamento?: EquipamentoManutencao;
+  tecnicoResponsavel?: string;
+  descricaoProblema?: string;
+  solicitante?: { nome: string };
+  dataAbertura: string;
+  dataPrevisao?: string;
+  solucaoAplicada?: string;
+  valorGasto?: number;
+  [key: string]: unknown;
+}
 
 @Component({
   selector: 'app-lista-manutencao',
@@ -62,8 +86,8 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
   }
 
   // ── Dados ────────────────────────────────────────────────────────
-  todasOrdens: any[] = [];
-  ordensFiltradas: any[] = [];
+  todasOrdens: OrdemServico[] = [];
+  ordensFiltradas: OrdemServico[] = [];
   carregando = true;
   buscaTexto = '';
 
@@ -122,15 +146,15 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
   novaOsForm: FormGroup;
 
   // AutoComplete de equipamentos
-  equipSugestoes: any[] = [];
-  equipamentoNovaOs: any = null;
+  equipSugestoes: EquipamentoManutencao[] = [];
+  equipamentoNovaOs: EquipamentoManutencao | null = null;
 
   // ── Modal: Assistência Premium (3 Colunas) ───────────────────────
   exibirModalAssistencia = false;
   modoEdicao = false;
   statusForm: FormGroup;
-  osSelecionada: any = null;
-  historicoOS: any[] = [];
+  osSelecionada: OrdemServico | null = null;
+  historicoOS: HistoricoOs[] = [];
   carregandoHistorico = false;
 
   constructor() {
@@ -184,7 +208,7 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
 
         // Se o modal estiver aberto, atualiza a OS selecionada para manter os dados frescos
         if (this.exibirModalAssistencia && this.osSelecionada) {
-          const osAtualizada = this.todasOrdens.find(o => o.id === this.osSelecionada.id);
+          const osAtualizada = this.todasOrdens.find(o => o.id === this.osSelecionada?.id);
           if (osAtualizada) {
             this.osSelecionada = osAtualizada;
           }
@@ -210,8 +234,10 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
       
       // 2. Busca de texto (barra premium)
       const matchTexto = !texto || [
+        os.id?.toString(),
         os.equipamento?.patrimonio,
         os.equipamento?.tipoEquipamento?.nome,
+        os.equipamento?.marca?.nome,
         os.tecnicoResponsavel,
         os.descricaoProblema,
         os.solicitante?.nome,
@@ -232,7 +258,9 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
         
         if (this.modeloFiltros['dataAberturaInicio'] && os.dataAbertura) {
           const dataAbertura = new Date(os.dataAbertura);
-          if (dataAbertura < new Date(this.modeloFiltros['dataAberturaInicio'])) matchAvancado = false;
+          const inicio = new Date(this.modeloFiltros['dataAberturaInicio']);
+          inicio.setHours(0, 0, 0, 0); // Zera o comeco do dia
+          if (dataAbertura < inicio) matchAvancado = false;
         }
         if (this.modeloFiltros['dataAberturaFim'] && os.dataAbertura) {
           const dataAbertura = new Date(os.dataAbertura);
@@ -271,10 +299,10 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
   }
 
   // ── AutoComplete Equipamentos ─────────────────────────────────────
-  buscarEquipamentos(event: any) {
-    const q = event.query;
+  buscarEquipamentos(event: Record<string, any>) {
+    const q = event['query'] as string;
     this.equipmentService.listarTodos(1, 30, q).subscribe({
-      next: (res) => { this.equipSugestoes = res.itens || []; },
+      next: (res) => { this.equipSugestoes = (res.itens || []) as unknown as EquipamentoManutencao[]; },
       error: () => { this.equipSugestoes = []; }
     });
   }
@@ -314,7 +342,7 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
   }
 
   // ── Central de Assistência Premium (Modal Único) ──────────────────
-  abrirAssistencia(os: any, modoEdicao: boolean = false) {
+  abrirAssistencia(os: OrdemServico, modoEdicao: boolean = false) {
     this.osSelecionada = os;
     this.modoEdicao = modoEdicao;
     this.statusForm.reset({
@@ -352,7 +380,7 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: () => {
         this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Status atualizado com sucesso na assistência.' });
-        this.carregarHistoricoOS(this.osSelecionada.id);
+        this.carregarHistoricoOS(this.osSelecionada!.id);
         this.carregarDados();
       },
       error: () => {
@@ -383,7 +411,7 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
     return status === 'CONCLUIDA' || status === 'CANCELADA';
   }
 
-  getEquipamentoLabel(eq: any): string {
+  getEquipamentoLabel(eq: EquipamentoManutencao | undefined): string {
     if (!eq) return '';
     return `${eq.patrimonio} — ${eq.tipoEquipamento?.nome || ''} ${eq.marca?.nome ? '(' + eq.marca.nome + ')' : ''}`.trim();
   }
@@ -394,7 +422,7 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
     return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 
-  isAtrasada(os: any): boolean {
+  isAtrasada(os: OrdemServico): boolean {
     if (!os.dataPrevisao || this.isStatusFinal(os.status)) return false;
     return new Date(os.dataPrevisao) < new Date();
   }

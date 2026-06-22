@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ExecutionContext } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { JwtAuthGuard } from '../src/modulos/autenticacao/guardas/jwt-autenticacao.guard';
+import { JwtAuthGuard } from '../src/modulos/acesso/guardas/jwt-autenticacao.guard';
 import { ApprovalsService } from '../src/modulos/aprovacoes/aprovacoes.service';
-import { EquipmentService } from '../src/modulos/equipamentos/equipamentos.service';
+import { EquipmentService } from '../src/modulos/materiais/materiais.service';
 
 describe('Approval Flow (e2e)', () => {
   let app: INestApplication;

@@ -9,11 +9,21 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
+import { LayoutPaginaComponent } from '../../../componentes/layout-pagina/layout-pagina.component';
+import { EstadoVazioComponent } from '../../../componentes/estado-vazio/estado-vazio.component';
+
+export interface ItemTabelaBasica {
+  id?: number;
+  nome: string;
+  marcaId?: number;
+  marca?: { id: number; nome: string };
+  [key: string]: unknown;
+}
 
 @Component({
   selector: 'app-tabelas-basicas',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, DropdownModule],
+  imports: [CommonModule, FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, DropdownModule, LayoutPaginaComponent, EstadoVazioComponent],
   providers: [MessageService],
   templateUrl: './tabelas-basicas.component.html',
   styleUrls: ['./tabelas-basicas.component.scss']
@@ -25,16 +35,16 @@ export class TabelasBasicasComponent implements OnInit {
 
   entidade: string = '';
   titulo: string = '';
-  itens: any[] = [];
+  itens: ItemTabelaBasica[] = [];
   carregando = false;
 
   modalVisivel = false;
   salvando = false;
   modoEdicao = false;
-  novoRegistro: any = { nome: '' };
+  novoRegistro: ItemTabelaBasica = { nome: '' };
 
   // Usado apenas para 'modelos'
-  marcas: any[] = [];
+  marcas: ItemTabelaBasica[] = [];
 
   ngOnInit() {
     // Escuta mudanças de parâmetros de rota para recarregar a tabela correta
@@ -98,12 +108,12 @@ export class TabelasBasicasComponent implements OnInit {
     this.modoEdicao = false;
     this.novoRegistro = { nome: '' };
     if (this.entidade === 'modelos') {
-      this.novoRegistro.marcaId = null;
+      this.novoRegistro.marcaId = undefined;
     }
     this.modalVisivel = true;
   }
 
-  editar(item: any) {
+  editar(item: ItemTabelaBasica) {
     this.modoEdicao = true;
     this.novoRegistro = { ...item };
     this.modalVisivel = true;
@@ -128,12 +138,13 @@ export class TabelasBasicasComponent implements OnInit {
     let observable;
 
     if (this.modoEdicao) {
+      const id = this.novoRegistro.id as number;
       switch (this.entidade) {
-        case 'tipos': observable = this.settingsService.atualizarTipo(this.novoRegistro.id, { nome: this.novoRegistro.nome }); break;
-        case 'marcas': observable = this.settingsService.atualizarMarca(this.novoRegistro.id, { nome: this.novoRegistro.nome }); break;
-        case 'modelos': observable = this.settingsService.atualizarModelo(this.novoRegistro.id, { nome: this.novoRegistro.nome, marcaId: this.novoRegistro.marcaId }); break;
-        case 'status': observable = this.settingsService.atualizarStatus(this.novoRegistro.id, { nome: this.novoRegistro.nome }); break;
-        case 'disponibilidades': observable = this.settingsService.atualizarDisponibilidade(this.novoRegistro.id, { nome: this.novoRegistro.nome }); break;
+        case 'tipos': observable = this.settingsService.atualizarTipo(id, { nome: this.novoRegistro.nome }); break;
+        case 'marcas': observable = this.settingsService.atualizarMarca(id, { nome: this.novoRegistro.nome }); break;
+        case 'modelos': observable = this.settingsService.atualizarModelo(id, { nome: this.novoRegistro.nome, marcaId: this.novoRegistro.marcaId }); break;
+        case 'status': observable = this.settingsService.atualizarStatus(id, { nome: this.novoRegistro.nome }); break;
+        case 'disponibilidades': observable = this.settingsService.atualizarDisponibilidade(id, { nome: this.novoRegistro.nome }); break;
       }
     } else {
       switch (this.entidade) {

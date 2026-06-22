@@ -9,7 +9,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { LoansService } from './cautelas.service';
-import { JwtAuthGuard } from '../autenticacao/guardas/jwt-autenticacao.guard';
+import { JwtAuthGuard } from '../acesso/guardas/jwt-autenticacao.guard';
 
 @Controller('emprestimos')
 @UseGuards(JwtAuthGuard)

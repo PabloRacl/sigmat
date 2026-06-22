@@ -18,61 +18,67 @@
   </div>
 
   <!-- Estatísticas -->
-  <div class="us-stats" stats>
-    <div class="us-stat-card">
-      <div class="us-stat-card__icon gray"><i class="pi pi-users"></i></div>
-      <div class="us-stat-card__info">
-        <span class="us-stat-card__val">{{ usuarios.length }}</span>
-        <span class="us-stat-card__label">Total Usuários</span>
+  <div class="atlas-stats" stats>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon gray"><i class="pi pi-users"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ usuarios.length }}</span>
+        <span class="atlas-stat-card__label">Total Usuários</span>
       </div>
     </div>
-    <div class="us-stat-card">
-      <div class="us-stat-card__icon blue"><i class="pi pi-shield"></i></div>
-      <div class="us-stat-card__info">
-        <span class="us-stat-card__val">{{ totalAdmins }}</span>
-        <span class="us-stat-card__label">Admins DTEC</span>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon blue"><i class="pi pi-shield"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ totalAdmins }}</span>
+        <span class="atlas-stat-card__label">Admins DTEC</span>
       </div>
     </div>
-    <div class="us-stat-card">
-      <div class="us-stat-card__icon purple"><i class="pi pi-map"></i></div>
-      <div class="us-stat-card__info">
-        <span class="us-stat-card__val">{{ totalDiretoria }}</span>
-        <span class="us-stat-card__label">Diretorias</span>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon purple"><i class="pi pi-map"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ totalDiretoria }}</span>
+        <span class="atlas-stat-card__label">Diretorias</span>
       </div>
     </div>
-    <div class="us-stat-card">
-      <div class="us-stat-card__icon gold"><i class="pi pi-star-fill"></i></div>
-      <div class="us-stat-card__info">
-        <span class="us-stat-card__val">{{ totalComand }}</span>
-        <span class="us-stat-card__label">Comandantes de Batalhão</span>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon orange"><i class="pi pi-star-fill"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ totalComand }}</span>
+        <span class="atlas-stat-card__label">Comandantes de Batalhão</span>
       </div>
     </div>
-    <div class="us-stat-card">
-      <div class="us-stat-card__icon indigo"><i class="pi pi-building"></i></div>
-      <div class="us-stat-card__info">
-        <span class="us-stat-card__val">{{ totalBatalh }}</span>
-        <span class="us-stat-card__label">Usuários de Batalhão</span>
+    <div class="atlas-stat-card">
+      <div class="atlas-stat-card__icon indigo"><i class="pi pi-building"></i></div>
+      <div class="atlas-stat-card__info">
+        <span class="atlas-stat-card__val">{{ totalBatalh }}</span>
+        <span class="atlas-stat-card__label">Usuários de Batalhão</span>
       </div>
     </div>
   </div>
 
   <!-- Busca e Filtros -->
-  <div class="us-search-wrap" search-filters>
-    <div class="us-search">
-      <i class="pi pi-search us-search__icon"></i>
-      <input type="text"
-        [(ngModel)]="filtroNome"
-        class="us-search__input"
-        placeholder="Buscar por nome, login ou matrícula..."
-      />
+  <div class="atlas-search-wrap" search-filters>
+    <div class="atlas-search-premium" (click)="searchInput.focus()">
+      <div class="search-input-wrapper">
+        <i class="pi pi-search search-icon"></i>
+        <input type="text"
+          #searchInput
+          [(ngModel)]="filtroNome"
+          class="search-input"
+          placeholder="Buscar por nome do usuário, login do sistema, nº de matrícula ou e-mail..."
+        />
+        <button *ngIf="filtroNome" class="clear-btn" (click)="filtroNome=''; $event.stopPropagation()" pTooltip="Limpar busca" tooltipPosition="top">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Tabela Grid Principal -->
   <div class="us-card__content no-padding" content>
     <!-- LOADING -->
-    <div class="us-loading" *ngIf="carregando" style="display: flex; flex-direction: column; align-items: center; padding: 3rem 0; color: #64748b;">
-      <i class="pi pi-spinner pi-spin" style="font-size: 2rem; color: #2563eb; margin-bottom: 0.5rem;"></i>
+    <div class="atlas-loading-state" *ngIf="carregando">
+      <i class="pi pi-spinner pi-spin atlas-loading-spinner"></i>
       <p>Carregando usuários...</p>
     </div>
 
@@ -145,6 +151,9 @@
           </td>
           <td>
             <div class="us-actions">
+              <button class="us-btn-icon view" (click)="abrirFicha(u)" pTooltip="Ver Dossiê do Usuário">
+                <i class="pi pi-id-card"></i>
+              </button>
               <button class="us-btn-icon edit" (click)="editar(u)" pTooltip="Editar Usuário">
                 <i class="pi pi-pencil"></i>
               </button>
@@ -257,6 +266,58 @@
       <div class="us-dialog-footer" style="margin-top: 1rem;">
         <button type="button" class="us-btn-ghost" (click)="exibirDialogoRejeicao = false; solicitacaoRejeicao = null; motivoRejeicao = ''">Cancelar</button>
         <button type="button" class="us-btn-primary" (click)="confirmarRejeicao()" [disabled]="!motivoRejeicao.trim()">Rejeitar</button>
+      </div>
+    </p-dialog>
+
+    <p-dialog
+      [(visible)]="exibirFicha"
+      header="Dossiê de Atividades do Usuário"
+      [modal]="true"
+      [style]="{ width: '700px' }"
+      styleClass="us-dialog dossier-dialog"
+      [draggable]="false"
+      [resizable]="false"
+    >
+      <div *ngIf="usuarioSelecionado" class="dossier-content">
+        <div class="dossier-header">
+          <div class="us-avatar" [ngClass]="classePerfil(usuarioSelecionado.perfil)" style="width: 60px; height: 60px; font-size: 1.5rem;">
+            {{ iniciais(usuarioSelecionado.nome) }}
+          </div>
+          <div class="dossier-user-info">
+            <h2>{{ usuarioSelecionado.nome }}</h2>
+            <p><strong>Login:</strong> {{ usuarioSelecionado.login }} <span style="margin: 0 0.5rem; color: #ccc">|</span> <strong>Matrícula:</strong> {{ usuarioSelecionado.matricula }}</p>
+            <div style="margin-top: 0.5rem;">
+              <span class="us-perfil-badge" [ngClass]="classePerfil(usuarioSelecionado.perfil)">
+                {{ labelPerfil(usuarioSelecionado.perfil) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="dossier-timeline-title"><i class="pi pi-history"></i> Histórico de Atividades</h3>
+        
+        <div class="atlas-loading-state" *ngIf="carregandoLogs">
+          <i class="pi pi-spinner pi-spin atlas-loading-spinner"></i>
+          <p>Carregando registros de auditoria...</p>
+        </div>
+
+        <div *ngIf="!carregandoLogs && logsUsuario.length === 0" class="empty-logs">
+          <i class="pi pi-inbox" style="font-size: 2rem; color: #ccc; margin-bottom: 1rem; display: block;"></i>
+          <p>Nenhuma atividade registrada para este usuário.</p>
+        </div>
+
+        <p-timeline *ngIf="!carregandoLogs && logsUsuario.length > 0" [value]="logsUsuario" class="dossier-timeline">
+          <ng-template pTemplate="content" let-log>
+            <div class="timeline-event">
+              <small class="event-date">{{ log.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
+              <div class="event-desc">
+                <span class="event-action" [ngClass]="'action-' + log.acao.toLowerCase()">{{ log.acao }}</span>
+                <p>{{ log.descricao }}</p>
+                <small *ngIf="log.ip" class="event-meta"><i class="pi pi-desktop"></i> IP: {{ log.ip }}</small>
+              </div>
+            </div>
+          </ng-template>
+        </p-timeline>
       </div>
     </p-dialog>
 

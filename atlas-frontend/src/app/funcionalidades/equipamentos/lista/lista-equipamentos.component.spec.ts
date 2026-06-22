@@ -21,6 +21,7 @@ class MockSettingsService {
   listarSecoes = jasmine.createSpy('listarSecoes').and.returnValue(of([]));
   listarMarcas = jasmine.createSpy('listarMarcas').and.returnValue(of([]));
   listarModelos = jasmine.createSpy('listarModelos').and.returnValue(of([]));
+  listarBatalhoes = jasmine.createSpy('listarBatalhoes').and.returnValue(of([]));
   criarTipo = jasmine.createSpy('criarTipo').and.returnValue(of({ id: 1 }));
   criarMarca = jasmine.createSpy('criarMarca').and.returnValue(of({ id: 1 }));
   criarModelo = jasmine.createSpy('criarModelo').and.returnValue(of({ id: 1 }));

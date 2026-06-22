@@ -2,6 +2,25 @@
    EQUIPAMENTOS — Premium Layout (padrão BEM eq-*)
    ═══════════════════════════════════════════════════════════════ */
 
+.truncate-text {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block; /* Força o corte em textos normais */
+}
+
+/* Protege o layout dos crachás para não quebrarem a página */
+.eq-sec-badge.truncate-text,
+.eq-bat-badge.truncate-text {
+  display: inline-flex !important;
+  align-items: center;
+}
+
+.eq-sec-badge span.truncate-text {
+  display: inline-block;
+}
+
 .eq-loading-init {
   display: flex;
   flex-direction: column;
@@ -1185,4 +1204,118 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVIDADE MOBILE (≤ 768px)
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ── Wrapper da Tabela: scroll horizontal total ── */
+  .eq-table-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    /* Garante que a tabela PrimeNG não fique presa */
+    ::ng-deep .p-datatable {
+      min-width: 100% !important;
+    }
+
+    /* Remove scroll vertical interno para evitar duplo scroll */
+    ::ng-deep .p-datatable-wrapper {
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Remove congelamento residual que pode ficar nos estilos inline */
+    ::ng-deep .p-datatable-frozen-column {
+      position: relative !important;
+      left: auto !important;
+      z-index: auto !important;
+    }
+  }
+
+  /* ── Cabeçalhos da Tabela: compactar no mobile ── */
+  ::ng-deep .p-datatable-gridlines .p-datatable-thead > tr > th {
+    font-size: 0.6rem !important;
+    padding: 0.5rem 0.5rem !important;
+    min-width: unset !important;
+    white-space: nowrap !important;
+  }
+
+  /* ── Células do Body: compactar no mobile ── */
+  ::ng-deep .p-datatable-gridlines .p-datatable-tbody > tr > td {
+    padding: 0.4rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* ── Botões de Ação Inline: touch-friendly ── */
+  .eq-btn-icon {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 1rem !important;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .eq-actions-inline {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+  }
+
+  /* ── Barra de Seleção em Massa: empilhar no mobile ── */
+  .eq-basket-bar {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem !important;
+    
+    &__left {
+      justify-content: center !important;
+      flex-wrap: wrap;
+    }
+    
+    &__actions {
+      flex-wrap: wrap !important;
+      justify-content: center !important;
+      gap: 0.5rem !important;
+    }
+  }
+
+  .eq-basket-action-btn {
+    font-size: 0.75rem !important;
+    padding: 6px 10px !important;
+  }
+
+  /* ── Paginador: compactar no mobile ── */
+  ::ng-deep .p-paginator {
+    padding: 0.5rem !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 4px !important;
+
+    .p-paginator-pages {
+      .p-paginator-page {
+        min-width: 2rem !important;
+        height: 2rem !important;
+        font-size: 0.8rem !important;
+      }
+    }
+
+    .p-dropdown {
+      height: 2rem !important;
+      font-size: 0.8rem !important;
+    }
+
+    .p-paginator-current {
+      font-size: 0.75rem !important;
+    }
+  }
+
+  /* ── Observação: limitar largura ── */
+  .eq-obs-cell {
+    max-width: 120px !important;
+    font-size: 0.75rem !important;
+  }
+}
 

@@ -14,7 +14,7 @@ export class ReportsService {
   private mockMode = inject(MockModeService);
   private apiUrl = `${environment.apiUrl}/relatorios`;
 
-  private buildParams(params: any): HttpParams {
+  private buildParams(params: Record<string, unknown>): HttpParams {
     let httpParams = new HttpParams();
     if (!params) return httpParams;
 
@@ -27,33 +27,33 @@ export class ReportsService {
     return httpParams;
   }
 
-  obterInventario(filtros: any): Observable<any[]> {
+  obterInventario(filtros: Record<string, unknown>): Observable<Record<string, unknown>[]> {
     if (this.mockMode.useMock) {
-      return of([...MOCK_EQUIPAMENTOS]);
+      return of([...MOCK_EQUIPAMENTOS] as unknown as Record<string, unknown>[]);
     }
 
-    return this.http.get<any[]>(`${this.apiUrl}/inventario`, {
+    return this.http.get<Record<string, unknown>[]>(`${this.apiUrl}/inventario`, {
       params: this.buildParams(filtros)
     });
   }
 
-  obterResumoUnidades(): Observable<any[]> {
+  obterResumoUnidades(): Observable<Record<string, unknown>[]> {
     if (this.mockMode.useMock) {
-      return of(MOCK_RESUMO_UNIDADES);
+      return of(MOCK_RESUMO_UNIDADES as unknown as Record<string, unknown>[]);
     }
-    return this.http.get<any[]>(`${this.apiUrl}/resumo-unidades`);
+    return this.http.get<Record<string, unknown>[]>(`${this.apiUrl}/resumo-unidades`);
   }
 
-  obterTransferencias(filtros: any): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/transferencias`, { params: this.buildParams(filtros) });
+  obterTransferencias(filtros: Record<string, unknown>): Observable<Record<string, unknown>[]> {
+    return this.http.get<Record<string, unknown>[]>(`${this.apiUrl}/transferencias`, { params: this.buildParams(filtros) });
   }
 
-  obterAuditoria(filtros?: any): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/auditoria`, { params: this.buildParams(filtros) });
+  obterAuditoria(filtros?: Record<string, unknown>): Observable<Record<string, unknown>[]> {
+    return this.http.get<Record<string, unknown>[]>(`${this.apiUrl}/auditoria`, { params: filtros ? this.buildParams(filtros) : undefined });
   }
 
-  registrarLog(acao: string, detalhes: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/log`, { acao, detalhes, dataHora: new Date().toISOString() });
+  registrarLog(acao: string, detalhes: Record<string, unknown>): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/log`, { acao, detalhes, dataHora: new Date().toISOString() });
   }
 }
 

@@ -1,6 +1,9 @@
 <div class="dashboard-layout">
+  <!-- Backdrop do Menu Mobile -->
+  <div class="sidebar-backdrop" [class.visible]="isMobileMenuOpen" (click)="isMobileMenuOpen = false"></div>
+
   <!-- Sidebar -->
-  <aside class="sidebar" [class.collapsed]="isSidebarCollapsed">
+  <aside class="sidebar" [class.collapsed]="isSidebarCollapsed" [class.mobile-open]="isMobileMenuOpen">
     <div class="logo-area">
       <img src="logo-pmpe-192.png" alt="Brasão PMPE" class="logo-img">
       <span class="logo-text" *ngIf="!isSidebarCollapsed">ATLAS</span>
@@ -130,6 +133,10 @@
         </div>
         <div class="nav-submenu" [class.expanded]="menuExpandido === 'configuracoes'">
 
+          <a [routerLink]="'/visao-geral/configuracoes/importacao'" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-cloud-upload icon"></i>
+            <span class="text">Importação e Atualizações</span>
+          </a>
 
           <a [routerLink]="ROTAS_RELATIVAS.USUARIOS" routerLinkActive="active" class="nav-item">
             <i class="pi pi-users icon"></i>
@@ -150,6 +157,11 @@
   <!-- Main Content -->
   <div class="main-container">
     <header class="topbar">
+      <!-- Botão Hambúrguer para Mobile -->
+      <button class="hamburguer-btn" (click)="isMobileMenuOpen = !isMobileMenuOpen" title="Abrir Menu">
+        <i class="pi pi-bars"></i>
+      </button>
+
       <!-- O Topbar agora não tem barra de pesquisa global. A pesquisa fica por tela. -->
       <div class="search-section"></div>
 
@@ -265,9 +277,6 @@
                   <span class="info-value">{{ user.diretoriaNome }}</span>
                 </div>
               </div>
-              <div class="dropdown-footer">
-                <button pButton pRipple icon="pi pi-sign-out" label="Sair" class="p-button-text p-button-danger logout-dropdown-btn" (click)="sair()"></button>
-              </div>
             </div>
           </div>
         </div>
@@ -294,4 +303,52 @@
     </main>
   </div>
 </div>
+
+<!-- Modal de Alerta de Expiração Premium -->
+<p-dialog 
+  header="Aviso de Segurança" 
+  [(visible)]="showModalExpiracao" 
+  [modal]="true" 
+  [closable]="false"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="premium-expiration-modal"
+  [style]="{ width: '420px', borderRadius: '16px' }">
+  
+  <div class="expiration-content">
+    <div class="expiration-icon-wrapper pulse-animation">
+      <i class="pi pi-lock expiration-icon"></i>
+    </div>
+    
+    <h3 class="expiration-title">Sessão Expirando</h3>
+    
+    <p class="expiration-message">
+      Por inatividade ou segurança, sua sessão será encerrada em
+      <span class="expiration-timer">{{ formatarTempo(tempoSessao) }}</span>
+    </p>
+    
+    <p class="expiration-subtext">
+      Para não perder seu trabalho em andamento, você pode solicitar a renovação do seu acesso agora mesmo.
+    </p>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="expiration-actions">
+      <button 
+        class="premium-btn btn-danger-outline" 
+        (click)="sair()" 
+        [disabled]="renovandoSessao">
+        <i class="pi pi-sign-out"></i> Sair Agora
+      </button>
+      <button 
+        class="premium-btn btn-primary-glow" 
+        (click)="pedirMaisTempo()" 
+        [disabled]="renovandoSessao">
+        <i class="pi" [ngClass]="renovandoSessao ? 'pi-spin pi-spinner' : 'pi-clock'"></i>
+        Renovar Sessão
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>
+
 
