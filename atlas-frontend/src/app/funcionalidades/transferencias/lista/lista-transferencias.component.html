@@ -1,0 +1,313 @@
+<app-layout-pagina 
+  [hasStats]="false" 
+  [hasSearch]="true" 
+  [hasBulkActions]="selecionados.length > 0"
+  [noContentPadding]="true"
+>
+  <!-- Cabeçalho -->
+  <div header-title>
+    <h1>Movimentação de Carga</h1>
+    <p>Gestão de transferência definitiva de material entre Unidades</p>
+  </div>
+
+  <div header-actions>
+    <button class="tf-btn-primary" (click)="abrirSolicitar()"
+      pTooltip="Enviar material para outra unidade (saída definitiva da sua carga)" tooltipPosition="left" class="atlas-btn atlas-btn-primary" style="padding: 12px 22px; border-radius: 12px;">
+      <i class="pi pi-send"></i>
+      Enviar para Outra Unidade
+    </button>
+  </div>
+
+  <!-- Busca e Filtros -->
+  <div class="atlas-search-wrap" search-filters>
+    <div class="atlas-search-premium">
+      <div class="search-input-wrapper">
+        <i class="pi pi-search search-icon"></i>
+        <input #searchInput type="text"
+          class="search-input"
+          placeholder="Buscar por patrimônio, tipo, origem ou solicitante..."
+          (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+        />
+        <button *ngIf="searchInput.value" class="clear-btn" (click)="searchInput.value=''; dt.filterGlobal('', 'contains')" pTooltip="Limpar busca" tooltipPosition="top">
+          <i class="pi pi-times"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra Unificada de Seleção e Ações em Lote -->
+  <div class="eq-basket-bar" *ngIf="selecionados.length > 0" bulk-actions>
+    <div class="eq-basket-bar__left">
+      <i class="pi pi-check-square"></i>
+      <span class="eq-basket-bubble">{{ selecionados.length }}</span>
+      <span>movimentações selecionadas para ação em lote</span>
+    </div>
+    <div class="eq-basket-bar__actions">
+      <button class="btn-premium-secondary" (click)="abrirModalSEI()" pTooltip="Gerar texto formatado para copiar e colar no SEI">
+        <i class="pi pi-file-word"></i> Termo SEI
+      </button>
+      <button class="btn-premium-secondary" (click)="gerarCautelaColetiva()" pTooltip="Baixar PDF de Cautela contendo os itens selecionados">
+        <i class="pi pi-file-pdf" style="color: #ef4444"></i> Cautela Coletiva
+      </button>
+      <div class="divider"></div>
+      <button class="btn-premium-secondary" (click)="abrirModalSEI(true)" pTooltip="Termo SEI com colunas de IMEI e Linha Telefônica" tooltipPosition="top">
+        <i class="pi pi-mobile" style="color: #6366f1"></i> SEI (Celulares)
+      </button>
+      <button class="btn-premium-secondary" (click)="gerarCautelaColetiva(true)" pTooltip="Cautela em PDF com colunas de IMEI e Linha Telefônica" tooltipPosition="top">
+        <i class="pi pi-mobile" style="color: #ec4899"></i> Cautela (Celulares)
+      </button>
+    </div>
+  </div>
+
+  <div content>
+    <p-table
+      #dt
+      [value]="pendentes"
+      [loading]="carregando"
+      [rowHover]="true"
+      [paginator]="true"
+      [rows]="10"
+      [globalFilterFields]="['id', 'equipamento.patrimonio','equipamento.tipoEquipamento.nome','origem.sigla','solicitante.nome']"
+      responsiveLayout="scroll"
+      styleClass="tf-table"
+      dataKey="id"
+      [(selection)]="selecionados"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 3rem" pTooltip="Selecione itens para realizar ações em lote (Termo SEI, Cautela, Aprovação)" tooltipPosition="top">
+            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+          </th>
+          <th style="min-width: 120px">Patrimônio</th>
+          <th style="min-width: 120px">Equipamento</th>
+          <th style="min-width: 150px">De (Origem)</th>
+          <th style="min-width: 150px">Para (Destino)</th>
+          <th>Solicitante</th>
+          <th style="min-width: 140px">Data do Envio</th>
+          <th style="text-align:center; min-width: 150px">Status</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-t>
+        <tr>
+          <td><p-tableCheckbox [value]="t"></p-tableCheckbox></td>
+          <td>
+            <div style="display: flex; flex-direction: column;">
+              <span class="tf-patrimonio" style="font-weight: 700; color: #1e293b;">{{ t.equipamento?.patrimonio }}</span>
+              <small style="color: #64748b; font-size: 0.75rem;">{{ t.equipamento?.numeroSerie || 'Sem N/S' }}</small>
+            </div>
+          </td>
+          <td>
+            <div style="display: flex; flex-direction: column;">
+              <span style="font-weight: 500; color: #334155;">{{ t.equipamento?.tipoEquipamento?.nome }}</span>
+              <small style="color: #64748b; font-size: 0.75rem;">{{ t.equipamento?.marca?.nome || 'Marca N/D' }}</small>
+            </div>
+          </td>
+          <td>
+            <span class="atlas-badge-gray" style="padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">
+              <i class="pi pi-sign-out" style="margin-right: 4px; font-size: 0.75rem;"></i> {{ t.origem?.sigla }}
+            </span>
+          </td>
+          <td>
+            <span class="atlas-badge-success" style="padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;">
+              <i class="pi pi-sign-in" style="margin-right: 4px; font-size: 0.75rem;"></i> {{ t.destino?.sigla || 'N/A' }}
+            </span>
+          </td>
+          <td>
+            <div class="tf-user" style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #475569;">
+              <div style="width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center;">
+                <i class="pi pi-user" style="font-size: 0.7rem;"></i>
+              </div>
+              <span style="font-weight: 500;">{{ t.solicitante?.nome }}</span>
+            </div>
+          </td>
+          <td style="color: #64748b; font-size: 0.9rem;">
+            {{ t.dataEnvio | date:'dd/MM/yyyy' }} <br/>
+            <small>{{ t.dataEnvio | date:'HH:mm' }}</small>
+          </td>
+          <td style="text-align: center;">
+            <span *ngIf="t.status === 'PENDENTE'" class="atlas-badge-warning" style="padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; background: #fef3c7; color: #d97706; border: 1px solid #fde68a;">
+              <i class="pi pi-clock" style="margin-right: 4px; font-size: 0.75rem;"></i> Em Trânsito
+            </span>
+            <span *ngIf="t.status === 'CONCLUIDA'" class="atlas-badge-success" style="padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;">
+              <i class="pi pi-check-circle" style="margin-right: 4px; font-size: 0.75rem;"></i> Concluída
+            </span>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+              <span *ngIf="t.status === 'CANCELADA'" class="atlas-badge-danger" style="padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;">
+                <i class="pi pi-times-circle" style="margin-right: 4px; font-size: 0.75rem;"></i> Cancelada
+              </span>
+              <div *ngIf="t.status === 'CANCELADA' && t.motivoRejeicao" style="font-size: 0.7rem; color: #991b1b; font-weight: 600; background: #fef2f2; border: 1px dashed #fca5a5; padding: 4px 6px; border-radius: 4px; text-align: center; max-width: 140px; word-break: break-word;" pTooltip="{{ t.motivoRejeicao }}" tooltipPosition="top">
+                Motivo: {{ t.motivoRejeicao | slice:0:30 }}{{ t.motivoRejeicao.length > 30 ? '...' : '' }}
+              </div>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7">
+            <app-estado-vazio mensagem="Nenhuma transferência pendente para sua unidade." icone="pi-inbox"></app-estado-vazio>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Modais -->
+  <div dialogs>
+    <!-- Modal: Solicitar Nova Transferência -->
+    <p-dialog
+      [(visible)]="exibirModalSolicitar"
+      header="Nova Solicitação de Transferência"
+      [modal]="true"
+      [style]="{width: '560px'}"
+      styleClass="custom-dialog"
+      [draggable]="false"
+      [resizable]="false"
+    >
+      <ng-template pTemplate="content">
+        <div class="tf-form" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="tf-form__field" style="display: flex; flex-direction: column; gap: 4px;">
+            <label class="atlas-label-primary">Material para Transferir (Seu Inventário) <span class="req" class="atlas-text-danger">*</span></label>
+            <p-select
+              [options]="equipamentosDisponiveis"
+              [(ngModel)]="novaTransferencia.equipamentoId"
+              optionLabel="patrimonio"
+              optionValue="id"
+              [filter]="true"
+              filterBy="patrimonio"
+              placeholder="Selecione o patrimônio..."
+              appendTo="body"
+              styleClass="w-full">
+            </p-select>
+          </div>
+          <div class="tf-form__field" style="display: flex; flex-direction: column; gap: 4px;">
+            <label class="atlas-label-primary">Unidade de Destino <span class="req" class="atlas-text-danger">*</span></label>
+            <p-select
+              [options]="secoes"
+              [(ngModel)]="novaTransferencia.destinoId"
+              optionLabel="sigla"
+              optionValue="id"
+              [filter]="true"
+              filterBy="sigla"
+              placeholder="Selecione a unidade destino..."
+              appendTo="body"
+              styleClass="w-full">
+            </p-select>
+          </div>
+          <div class="tf-form__field" style="display: flex; flex-direction: column; gap: 4px;">
+            <label class="atlas-label-primary">Observações / Justificativa</label>
+            <textarea pTextarea
+              [(ngModel)]="novaTransferencia.observacao"
+              rows="4"
+              class="atlas-input-field"
+              placeholder="Detalhes adicionais sobre a transferência...">
+            </textarea>
+          </div>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="footer">
+        <button class="tf-btn-ghost" (click)="exibirModalSolicitar = false" class="atlas-btn atlas-btn-ghost"><i class="pi pi-times"></i> Cancelar</button>
+        <button class="tf-btn-primary"
+          [disabled]="!novaTransferencia.equipamentoId || !novaTransferencia.destinoId"
+          (click)="confirmarSolicitacao()" class="atlas-btn atlas-btn-primary">
+          <i class="pi pi-send"></i> Solicitar Envio
+        </button>
+      </ng-template>
+    </p-dialog>
+
+    <!-- MODAL GERAR TEXTO SEI -->
+    <p-dialog [(visible)]="exibirModalSEI" header="Termo para o SEI" [modal]="true" [style]="{ width: '750px' }" styleClass="custom-dialog">
+      <div class="cd-sei-container">
+        <p class="cd-sei-info" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;"><i class="pi pi-info-circle"></i> O texto abaixo está formatado para o editor do SEI. Clique no botão copiar para levar a formatação (tabelas e negritos).</p>
+        
+        <div class="cd-sei-paper" style="border: 1px solid #e2e8f0; max-height: 400px; overflow-y: auto; border-radius: 8px;">
+          <div id="termo-sei-content-transfer" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.4; color: #000; padding: 40px; background: white;">
+            <!-- CABEÇALHO OFICIAL SEI -->
+            <div style="text-align: center; margin-bottom: 30px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="width: 100%; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Bras%C3%A3o_de_Pernambuco.svg/1200px-Bras%C3%A3o_de_Pernambuco.svg.png" 
+                         alt="Brasão PE" style="width: 80px; margin-bottom: 5px;">
+                    <br>
+                    <img src="https://www.gov.br/consea/pt-br/assuntos/historico/planejamento-estrategico-2024-2027/LOGO_PE_2024-2027_-_SEM_FUNDO.png" 
+                         alt="Governo PE" style="width: 180px; margin-bottom: 10px;">
+                  </td>
+                </tr>
+              </table>
+              <div style="font-weight: bold; font-size: 14px; margin-top: 5px; text-transform: uppercase;">
+                SECRETARIA DE DEFESA SOCIAL<br>
+                POLÍCIA MILITAR DE PERNAMBUCO<br>
+                DTEC - atlas
+              </div>
+            </div>
+            
+            <p style="text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 25px; text-decoration: underline;">
+              TERMO DE RECEBIMENTO E RESPONSABILIDADE DE MATERIAL - DTEC
+            </p>
+            
+            <p style="text-align: justify; margin-bottom: 15px;">
+              Pelo presente termo, a <strong>Diretoria de Tecnologia (DTEC/PMPE)</strong> realiza a entrega do(s) material(is) abaixo relacionado(s) ao(à) 
+              <strong>{{ selecionados[0] ? selecionados[0]['solicitante']?.['nome'] || 'SOLICITANTE' : 'SOLICITANTE' }}</strong>, 
+              que assume plena responsabilidade pela guarda, conservação e uso estritamente profissional dos mesmos, comprometendo-se a zelar por sua integridade.
+            </p>
+
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid black;">
+              <thead>
+                <tr style="background-color: #f2f2f2;">
+                  <th style="border: 1px solid black; padding: 8px; text-align: center;">Item</th>
+                  <th style="border: 1px solid black; padding: 8px; text-align: left;">Patrimônio</th>
+                  <th style="border: 1px solid black; padding: 8px; text-align: left;">Descrição / Marca / Modelo</th>
+                  <th style="border: 1px solid black; padding: 8px; text-align: left;">Número de Série</th>
+                  <th *ngIf="isCelularSEI" style="border: 1px solid black; padding: 8px; text-align: left;">IMEI</th>
+                  <th *ngIf="isCelularSEI" style="border: 1px solid black; padding: 8px; text-align: left;">Linha (Tel)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let it of selecionados; let i = index">
+                  <td style="border: 1px solid black; padding: 8px; text-align: center;">{{ i + 1 }}</td>
+                  <td style="border: 1px solid black; padding: 8px; font-weight: bold;">{{ it['equipamento']?.['patrimonio'] }}</td>
+                  <td style="border: 1px solid black; padding: 8px;">{{ it['equipamento']?.['tipoEquipamento']?.['nome'] }} - {{ it['equipamento']?.['marca']?.['nome'] }}</td>
+                  <td style="border: 1px solid black; padding: 8px;">{{ it['equipamento']?.['numeroSerie'] || 'N/A' }}</td>
+                  <td *ngIf="isCelularSEI" style="border: 1px solid black; padding: 8px;">{{ getImei(it) }}</td>
+                  <td *ngIf="isCelularSEI" style="border: 1px solid black; padding: 8px;">{{ getTelefone(it) }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p style="text-align: justify; font-size: 11px; margin-top: 20px; color: #333;">
+              <strong>Nota:</strong> O recebedor declara-se ciente das obrigações constantes no Regulamento de Administração Geral da PMPE, assumindo o compromisso de ressarcimento ao erário em caso de dano, extravio ou furto por negligência ou mau uso do equipamento.
+            </p>
+
+            <p style="margin-top: 30px; text-align: center;">
+              Recife/PE, {{ dataHoje | date:'dd/MM/yyyy' }}
+            </p>
+
+            <!-- RODAPÉ OFICIAL SEI -->
+            <div style="margin-top: 40px; text-align: center;">
+              <p style="margin-bottom: 25px;">Respeitosamente,</p>
+              
+              <p style="font-weight: bold; margin-bottom: 0;">&#64;nome_interessado&#64;</p>
+              <p style="margin-top: 0; font-size: 13px;">&#64;cargo_interessado&#64; do(a) PMPE - DTEC-SISTEMAS</p>
+              
+              <p style="margin-top: 50px; font-style: italic; font-size: 13px; color: #555;">
+                "Nossa Presença, Sua Segurança."
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cd-dialog-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 15px; border-top: 1px solid #f1f5f9; margin-top: 10px;">
+        <button class="btn-premium-secondary" (click)="exibirModalSEI = false">Fechar</button>
+        <button class="btn-premium-primary" (click)="copiarTextoSEI()">
+          <i class="pi pi-copy"></i> Copiar para o SEI
+        </button>
+      </div>
+    </p-dialog>
+
+    <p-toast position="bottom-right"></p-toast>
+    <p-confirmDialog></p-confirmDialog>
+  </div>
+</app-layout-pagina>

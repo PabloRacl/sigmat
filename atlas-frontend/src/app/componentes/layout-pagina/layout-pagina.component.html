@@ -1,0 +1,37 @@
+<div class="atlas-layout">
+  <!-- 1. Cabeçalho da Página -->
+  <div class="atlas-header">
+    <div class="atlas-header__title">
+      <ng-content select="[header-title]"></ng-content>
+    </div>
+    <div class="atlas-header__actions">
+      <ng-content select="[header-actions]"></ng-content>
+    </div>
+  </div>
+
+  <!-- 2. Cards de Estatísticas -->
+  <div class="atlas-stats" *ngIf="hasStats">
+    <ng-content select="[stats]"></ng-content>
+  </div>
+
+  <!-- 3. Card de Conteúdo Principal -->
+  <div class="atlas-card">
+    <!-- Busca e Filtros Avançados -->
+    <div class="atlas-search-wrap" *ngIf="hasSearch">
+      <ng-content select="[search-filters]"></ng-content>
+    </div>
+
+    <!-- Barra Unificada de Seleção e Ações em Lote -->
+    <div class="atlas-basket-bar" *ngIf="hasBulkActions">
+      <ng-content select="[bulk-actions]"></ng-content>
+    </div>
+
+    <!-- Conteúdo Principal (ex: Tabela) -->
+    <div class="atlas-card__content" [class.no-padding]="noContentPadding">
+      <ng-content select="[content]"></ng-content>
+    </div>
+  </div>
+
+  <!-- 4. Gavetas, Modais e Outros Elementos Fora do Grid -->
+  <ng-content select="[dialogs]"></ng-content>
+</div>

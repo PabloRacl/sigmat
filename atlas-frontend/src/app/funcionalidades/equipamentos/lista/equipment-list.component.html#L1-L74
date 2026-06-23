@@ -1,0 +1,82 @@
+<div class="page-header">
+  <div class="title-section">
+    <h1>Controle de Equipamentos</h1>
+    <p>Gestão de materiais e patrimônio da unidade</p>
+  </div>
+  <button class="add-btn" (click)="abrirNovo()" title="Cadastrar novo material no inventário">
+    <span class="icon">+</span>
+    Novo Equipamento
+  </button>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <span class="stat-label">Total de Equipamentos</span>
+    <span class="stat-value">{{ equipamentos.length }}</span>
+  </div>
+  <div class="stat-card ativo">
+    <span class="stat-label">Ativos</span>
+    <span class="stat-value">{{ contarPorStatus('Ativo') }}</span>
+  </div>
+  <div class="stat-card emprestado">
+    <span class="stat-label">Emprestados</span>
+    <span class="stat-value">{{ contarPorDisponibilidade('Emprestado') }}</span>
+  </div>
+  <div class="stat-card manutencao">
+    <span class="stat-label">Em Manutenção</span>
+    <span class="stat-value">{{ contarPorStatus('Em Manutenção') }}</span>
+  </div>
+</div>
+
+<div class="table-container">
+  <div *ngIf="carregando" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Carregando inventário...</p>
+  </div>
+
+  <table *ngIf="!carregando">
+    <thead>
+      <tr>
+        <th>Patrimônio</th>
+        <th>Tipo</th>
+        <th>Marca</th>
+        <th>Seção / Unidade</th>
+        <th>Status</th>
+        <th>Disponibilidade</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let eq of equipamentos">
+        <td>
+          <span class="bold">{{ eq.patrimonio }}</span>
+          <small class="solicitante-info" *ngIf="eq.solicitante">📋 {{ eq.solicitante }}</small>
+        </td>
+        <td>{{ eq.tipoEquipamento?.nome }}</td>
+        <td>{{ eq.marca?.nome || '-' }}</td>
+        <td>{{ eq.secao?.sigla }}</td>
+        <td>
+          <span class="status-badge" [ngClass]="obterCorStatus(eq.status?.nome)">
+            {{ eq.status?.nome }}
+          </span>
+        </td>
+        <td>
+          <span class="status-badge" [ngClass]="obterCorDisponibilidade(eq.disponibilidade?.nome)">
+            {{ eq.disponibilidade?.nome }}
+          </span>
+        </td>
+        <td>
+          <div class="actions">
+            <button class="action-btn" (click)="editar(eq)" title="Editar informações deste equipamento">✏️</button>
+            <button class="action-btn delete" (click)="remover(eq.id)" title="Excluir este equipamento definitivamente">🗑️</button>
+          </div>
+        </td>
+      </tr>
+      <tr *ngIf="equipamentos.length === 0">
+        <td colspan="7" class="empty-state">Nenhum equipamento cadastrado.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ... (resto do modal) ... -->

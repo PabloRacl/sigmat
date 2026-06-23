@@ -1,0 +1,319 @@
+/* ═══════════════════════════════════════════════════════════
+   RELATÓRIOS — Design igual ao Equipamentos (padrão re-*)
+   ═══════════════════════════════════════════════════════════ */
+
+.re-header {
+  margin-bottom: 0.75rem;
+  h1 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+  p {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin: 0;
+  }
+}
+
+// ── Cabeçalho verde ─────────────────────────────────────────
+.re-green-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #10b981;
+  color: #fff;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  border-radius: 10px 10px 0 0;
+
+  .re-filter-note {
+    font-weight: 400;
+    font-size: 0.75rem;
+    opacity: 0.85;
+    margin-left: 0.5rem;
+  }
+}
+
+// ── Barra de Ferramentas ─────────────────────────────────────
+.re-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+}
+
+.re-search-box {
+  position: relative;
+  i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+  }
+  input {
+    width: 100%;
+    padding-left: 2.5rem;
+    height: 34px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    font-size: 0.85rem;
+    &:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08); }
+  }
+}
+
+.re-filter-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.re-filter-row > :not(button) {
+  flex: 1 1 200px;
+  min-width: 200px;
+}
+
+.re-filter-row p-select,
+.re-filter-row input {
+  width: 100%;
+}
+
+.re-filter-row button {
+  flex: 0 0 auto;
+}
+
+// ── Tabela ──────────────────────────────────────────────────
+.re-table-wrap {
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  overflow: hidden;
+}
+
+::ng-deep .p-datatable-gridlines .p-datatable-thead > tr > th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  white-space: nowrap !important;
+  padding: 0.75rem 1rem !important;
+}
+::ng-deep .p-datatable-gridlines .p-datatable-tbody > tr > td {
+  padding: 0.65rem 1rem !important;
+  font-size: 0.85rem !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  color: #334155;
+}
+
+.re-patrimonio {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.re-obs {
+  display: block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  color: #64748b;
+}
+
+// ── Botões ──────────────────────────────────────────────────
+.re-export-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.re-btn-export {
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  &:hover { background: #f8fafc; border-color: #94a3b8; color: #0f172a; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+}
+
+.re-btn-ghost {
+  background: #fff;
+  color: #64748b;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  &:hover { background: #f1f5f9; }
+}
+
+// ── Empty State ─────────────────────────────────────────────
+.re-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #94a3b8;
+  i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+  p { margin: 0; font-size: 0.95rem; }
+}
+
+// ── Resumo por Unidade ──────────────────────────────────────
+.re-resumo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+}
+
+.re-resumo-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  transition: transform 0.15s, box-shadow 0.15s;
+  &:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+
+  &__sigla {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 2px;
+  }
+  &__total {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #2563eb;
+    line-height: 1.1;
+  }
+  &__label {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+  }
+  &__bar {
+    height: 5px;
+    background: #e2e8f0;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  &__fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    border-radius: 99px;
+    min-width: 4px;
+    transition: width 0.5s ease;
+  }
+}
+
+// ── Tabs override ─────────────────────────────────────────
+::ng-deep .re-tabview {
+  .p-tablist { border-bottom: 2px solid #e2e8f0 !important; background: transparent !important; }
+  .p-tab { border: none !important; background: transparent !important; font-weight: 600; color: #64748b; }
+  .p-tab-active { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; }
+  .p-tabpanels { padding: 0 !important; background: transparent !important; }
+}
+
+.top-scroll-container { width: 100%; overflow-x: auto; overflow-y: hidden; height: 14px; margin-bottom: 4px; }
+.top-scroll-container::-webkit-scrollbar { height: 10px; }
+.top-scroll-container::-webkit-scrollbar-track { background: var(--p-content-background); border-radius: 4px; }
+.top-scroll-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.top-scroll-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.top-scroll-content { height: 1px; }
+
+// ── OTIMIZAÇÃO DE IMPRESSÃO A4 (PREMIUM) ────────────────────────
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  /* Ocultar Tooltips do PrimeNG que ficam flutuando no body */
+  .p-tooltip, .p-tooltip-text {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+
+  app-layout-pagina, .re-table-wrap, .re-table-wrap * {
+    visibility: visible !important;
+  }
+
+  .re-table-wrap {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .atlas-sidebar, .atlas-header, .re-export-actions, .p-paginator, .atlas-search-premium, .re-filter-row, .p-tablist, .top-scroll-container, app-tabela-scroll {
+    display: none !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  th, td {
+    border: 1px solid #000 !important;
+    color: #000 !important;
+    background-color: #fff !important;
+    padding: 4px !important;
+    font-size: 8pt !important;
+  }
+
+  th {
+    background-color: #f1f5f9 !important;
+    font-weight: bold !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  // Remove cor e sombras dos badges
+  .atlas-badge-gray, .atlas-text-success-sm {
+    border: 1px solid #000 !important;
+    color: #000 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}

@@ -1,0 +1,864 @@
+.login-container {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-primary);
+  overflow: hidden;
+  position: relative;
+  font-family: var(--font-family);
+}
+
+.background-decor {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  
+  .circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+  }
+
+  .circle-1 {
+    width: 400px;
+    height: 400px;
+    background: rgba(30, 64, 175, 0.4);
+    top: -100px;
+    left: -100px;
+  }
+
+  .circle-2 {
+    width: 500px;
+    height: 500px;
+    background: rgba(30, 58, 138, 0.2);
+    bottom: -150px;
+    right: -150px;
+  }
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  animation: fadeIn 0.8s ease-out;
+
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+
+    .logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+
+      .logo-img {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 30px rgba(30, 64, 175, 0.4), 0 0 60px rgba(30, 64, 175, 0.15);
+        margin-bottom: 8px;
+      }
+    }
+
+    h2 {
+      font-size: 20px;
+      color: #f8fafc;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 14px;
+      color: #94a3b8;
+    }
+  }
+
+  form {
+    margin-bottom: 0;
+  }
+
+  .input-group {
+    margin-bottom: 20px;
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      i:first-child {
+        position: absolute;
+        left: 14px;
+        color: #64748b;
+        font-size: 18px;
+      }
+
+      .toggle-password {
+        position: absolute;
+        right: 14px;
+        color: #64748b;
+        cursor: pointer;
+        transition: color 0.3s ease;
+        font-size: 18px;
+
+        &:hover {
+          color: #60a5fa;
+        }
+      }
+
+      input {
+        width: 100%;
+        padding: 12px 16px 12px 42px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #fff;
+        font-size: 16px;
+        transition: all 0.3s ease;
+
+        &:focus {
+          outline: none;
+          border-color: #60a5fa;
+          background: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
+        }
+
+        &::placeholder {
+          color: #64748b;
+        }
+      }
+
+      &:has(.toggle-password) input {
+        padding-right: 42px;
+      }
+    }
+  }
+
+  .error-message {
+    background: rgba(239, 68, 68, 0.22);
+    border: 1px solid rgba(239, 68, 68, 0.55);
+    color: #f8fafc;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .mock-banner {
+    margin-bottom: 20px;
+    padding: 18px 18px;
+    border-radius: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #e2e8f0;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  }
+
+  .mock-banner.warning {
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(245, 158, 11, 0.32);
+  }
+
+  .mock-banner.real-mode {
+    background: rgba(34, 197, 94, 0.14);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+  }
+
+  .mock-banner-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #f8fafc;
+  }
+
+  .mock-banner-text {
+    color: #d1d5db;
+    margin-bottom: 6px;
+  }
+
+  .mock-key {
+    color: #cbd5e1;
+    font-size: 12px;
+  }
+
+  .mock-mode-toggle label {
+    color: #e2e8f0;
+  }
+
+  .mock-login-hint {
+    color: #cbd5e1;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  .link-btn {
+    background: transparent;
+    border: none;
+    color: #bfdbfe;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    font-size: 13px;
+  }
+
+  .link-btn:hover {
+    color: #fff;
+  }
+
+  .success-message {
+    background: rgba(34, 197, 94, 0.18);
+    border: 1px solid rgba(34, 197, 94, 0.45);
+    color: #f8fafc;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #2563eb, #1e3a8a);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .loader {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+  }
+
+  .secondary-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #e2e8f0;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+  }
+
+  .footer {
+    margin-top: 32px;
+    text-align: center;
+    color: #64748b;
+    font-size: 12px;
+  }
+}
+
+:host ::ng-deep .login-access-dialog {
+    width: 520px !important;
+    max-width: calc(100vw - 32px) !important;
+    max-height: calc(100vh - 40px) !important;
+    border-radius: 24px !important;
+    overflow: hidden !important;
+    background: rgba(43, 54, 85, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 25px 60px -18px rgba(0, 0, 0, 0.55) !important;
+  }
+
+  :host ::ng-deep .login-access-dialog .p-dialog-content {
+    padding: 1rem 1.5rem 1.25rem;
+    background: transparent !important;
+    color: #e2e8f0;
+    overflow-y: auto !important;
+  }
+
+  :host ::ng-deep .login-access-dialog .p-dialog-header {
+    background: transparent;
+    border-bottom: none;
+    padding: 1rem 1.5rem 0.8rem;
+  }
+
+  :host ::ng-deep .login-access-dialog .p-dialog-title {
+    font-weight: 700;
+    color: #f8fafc;
+    font-size: 1.05rem;
+  }
+
+  :host ::ng-deep .login-access-dialog .p-dialog-header-close-icon,
+  :host ::ng-deep .login-access-dialog .p-dialog-close-icon {
+    color: #94a3b8;
+  }
+
+  :host ::ng-deep .p-dialog-mask {
+    background: rgba(15, 23, 42, 0.68) !important;
+  }
+
+  .request-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .dialog-intro {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 18px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+  }
+
+  .dialog-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    background: rgba(37, 99, 235, 0.16);
+    color: #60a5fa;
+    font-size: 1.3rem;
+  }
+
+  .dialog-text h3 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+    color: #f8fafc;
+  }
+
+  .dialog-text p {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .request-note {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: rgba(96, 165, 250, 0.08);
+    border: 1px solid rgba(96, 165, 250, 0.18);
+    color: #bfdbfe;
+    font-size: 0.95rem;
+  }
+
+  .request-note i {
+    font-size: 1.2rem;
+    margin-top: 2px;
+  }
+
+  .success-message,
+  .error-message {
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .success-message {
+    background: rgba(34, 197, 94, 0.18);
+    border: 1px solid rgba(34, 197, 94, 0.45);
+    color: #f8fafc;
+  }
+
+  .error-message {
+    background: rgba(239, 68, 68, 0.22);
+    border: 1px solid rgba(239, 68, 68, 0.55);
+    color: #f8fafc;
+  }
+
+  .success-message i,
+  .error-message i {
+    font-size: 18px;
+    color: inherit;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.admin-trigger {
+  cursor: pointer;
+  margin-left: 8px;
+  font-size: 14px;
+  color: #475569;
+  transition: color 0.3s ease, transform 0.3s ease;
+  vertical-align: middle;
+
+  &:hover {
+    color: #94a3b8;
+    transform: rotate(90deg);
+  }
+}
+
+.advanced-menu-container {
+  background: rgba(43, 54, 85, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  animation: fadeIn 0.4s ease-out;
+
+  .advanced-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    h4 {
+      margin: 0;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .close-adv-btn {
+      background: transparent;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      padding: 4px;
+      font-size: 14px;
+      transition: color 0.2s;
+
+      &:hover {
+        color: #ef4444;
+      }
+    }
+  }
+
+  .advanced-menu-content {
+    padding: 16px;
+
+    .mock-mode-toggle {
+      margin-bottom: 16px;
+    }
+    
+    .mock-banner {
+      margin-bottom: 8px;
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+.input-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.input-group.half {
+  flex: 1;
+}
+
+:host ::ng-deep .login-access-dialog .input-group {
+  margin-bottom: 10px;
+
+  label {
+    margin-bottom: 5px;
+    font-size: 13px;
+  }
+
+  .input-wrapper input {
+    padding: 10px 16px 10px 42px;
+    font-size: 14px;
+  }
+}
+
+// Select nativo estilizado para unidade
+.unidade-native-select {
+  width: 100%;
+  padding: 10px 16px 10px 42px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: #60a5fa;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
+  }
+
+  option {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 8px;
+  }
+}
+
+.unidade-input-with-datalist {
+  width: 100%;
+  color: #fff;
+  transition: all 0.3s ease;
+
+  &::-webkit-calendar-picker-indicator {
+    display: none !important;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #60a5fa;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
+  }
+
+  &::placeholder {
+    color: #64748b;
+  }
+}
+
+// ── 3D Cube Loader Animation Styles ──────────────────────────────────────────
+.loader-3d-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 10px 20px;
+  animation: fadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  perspective: 1000px;
+  transform-style: preserve-3d;
+
+  // Efeito de aceleração dinâmica acionado por progress
+  &.accelerating {
+    .loader-isometric-grid {
+      transform: rotateX(60deg) rotateZ(45deg) scale3d(1.15, 1.15, 1.15);
+    }
+    .loader-text h3 {
+      color: #60a5fa;
+      text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
+    }
+  }
+
+  // Quando bem próximos (>= 85%), ativa o estado de soldagem e fusão
+  &.welded {
+    .cube-item .cube-face {
+      animation: weld-glow-burn 0.8s ease-in-out infinite alternate;
+    }
+    .welding-flash {
+      opacity: 1;
+      transform: translateZ(20px) scale(2.2);
+      animation: weld-flash-crackle 0.15s ease-in-out infinite alternate;
+    }
+    .welding-sparks {
+      opacity: 1;
+      transform: translateZ(25px) scale(1.6) rotate(45deg);
+      animation: weld-sparks-crackle 0.2s ease-in-out infinite alternate;
+    }
+    .tesseract-outer {
+      opacity: 1;
+      animation: tesseract-rotate 4s linear infinite;
+    }
+  }
+
+  .loader-text {
+    text-align: center;
+    margin-top: 40px;
+    h3 {
+      font-size: 16px;
+      color: #f8fafc;
+      margin-bottom: 6px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    p {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+  }
+}
+
+// O grid tridimensional que contém os múltiplos cubos e o ponto de solda
+.loader-isometric-grid {
+  width: 140px;
+  height: 140px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(60deg) rotateZ(45deg);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Efeito de solda e fusão central
+.welding-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 110px;
+  height: 110px;
+  margin-top: -55px;
+  margin-left: -55px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(56, 189, 248, 0.95) 35%, rgba(37, 99, 235, 0.6) 55%, rgba(0, 0, 0, 0) 75%);
+  border-radius: 50%;
+  transform: translateZ(20px) scale(0.2);
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+  z-index: 100;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.welding-sparks {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140px;
+  height: 140px;
+  margin-top: -70px;
+  margin-left: -70px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(251, 191, 36, 0.85) 30%, rgba(239, 68, 68, 0) 60%);
+  border-radius: 50%;
+  transform: translateZ(20px) scale(0.1);
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+  z-index: 101;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+// Projeção do Hipercubo 4D (Tesseract) envolvente
+.tesseract-outer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 68px;
+  height: 68px;
+  margin-top: -34px;
+  margin-left: -34px;
+  border: 1.5px dashed rgba(56, 189, 248, 0.85);
+  border-radius: 8px;
+  transform-style: preserve-3d;
+  transform: translateZ(20px) rotateX(0deg) rotateY(0deg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.25), inset 0 0 10px rgba(56, 189, 248, 0.1);
+}
+
+// Estrutura individual de cada cubo 3D Real de tamanho 40px
+.cube-item {
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -20px;
+  margin-left: -20px;
+  transform-style: preserve-3d;
+  transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  .cube-face {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: all 0.3s ease;
+    backface-visibility: visible;
+    
+    &.face-top {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      transform: rotateX(0deg) translateZ(20px);
+    }
+    &.face-bottom {
+      background: #1e3a8a;
+      transform: rotateX(180deg) translateZ(20px);
+    }
+    &.face-front {
+      background: linear-gradient(135deg, #1e40af 0%, #1c3d9a 100%);
+      transform: rotateX(-90deg) translateZ(20px);
+      filter: brightness(0.85);
+    }
+    &.face-back {
+      background: #172554;
+      transform: rotateX(90deg) translateZ(20px);
+    }
+    &.face-left {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      transform: rotateY(-90deg) translateZ(20px);
+      filter: brightness(0.95);
+    }
+    &.face-right {
+      background: #1d4ed8;
+      transform: rotateY(90deg) translateZ(20px);
+      filter: brightness(0.72);
+    }
+  }
+
+  // Cubo 1: Superior Esquerdo - se move, rotaciona e une de 0 a 100%
+  &.cube-1 {
+    transform: translate3d(
+      calc(-80px * (1 - var(--progress) / 100)),
+      calc(-80px * (1 - var(--progress) / 100)),
+      calc(40px * (1 - var(--progress) / 100))
+    )
+    rotateX(calc(180deg * (1 - var(--progress) / 100)))
+    rotateY(calc(-90deg * (1 - var(--progress) / 100)));
+  }
+
+  // Cubo 2: Superior Direito
+  &.cube-2 {
+    transform: translate3d(
+      calc(80px * (1 - var(--progress) / 100)),
+      calc(-80px * (1 - var(--progress) / 100)),
+      calc(40px * (1 - var(--progress) / 100))
+    )
+    rotateX(calc(180deg * (1 - var(--progress) / 100)))
+    rotateY(calc(90deg * (1 - var(--progress) / 100)));
+  }
+
+  // Cubo 3: Inferior Esquerdo
+  &.cube-3 {
+    transform: translate3d(
+      calc(-80px * (1 - var(--progress) / 100)),
+      calc(80px * (1 - var(--progress) / 100)),
+      calc(-40px * (1 - var(--progress) / 100))
+    )
+    rotateX(calc(-180deg * (1 - var(--progress) / 100)))
+    rotateY(calc(-90deg * (1 - var(--progress) / 100)));
+  }
+
+  // Cubo 4: Inferior Direito
+  &.cube-4 {
+    transform: translate3d(
+      calc(80px * (1 - var(--progress) / 100)),
+      calc(80px * (1 - var(--progress) / 100)),
+      calc(-40px * (1 - var(--progress) / 100))
+    )
+    rotateX(calc(-180deg * (1 - var(--progress) / 100)))
+    rotateY(calc(90deg * (1 - var(--progress) / 100)));
+  }
+}
+
+// ── Animações de Solda e Tesseract ────────────────────────────────────────
+
+@keyframes weld-flash-crackle {
+  0% {
+    transform: translateZ(20px) scale(1.9);
+    filter: brightness(1.8) contrast(1.2);
+  }
+  100% {
+    transform: translateZ(20px) scale(2.3);
+    filter: brightness(2.8) contrast(1.5);
+  }
+}
+
+@keyframes weld-sparks-crackle {
+  0% {
+    transform: translateZ(25px) scale(1.4) rotate(0deg);
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: translateZ(25px) scale(1.8) rotate(180deg);
+    filter: brightness(2.5);
+  }
+}
+
+@keyframes weld-glow-burn {
+  0% {
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.7), inset 0 0 8px rgba(255, 255, 255, 0.6);
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 35px rgba(56, 189, 248, 1), inset 0 0 18px rgba(255, 255, 255, 0.95);
+    border-color: rgba(255, 255, 255, 1);
+  }
+}
+
+@keyframes tesseract-rotate {
+  0% {
+    transform: translateZ(20px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(0.95);
+  }
+  50% {
+    transform: translateZ(20px) rotateX(180deg) rotateY(90deg) rotateZ(180deg) scale(1.05);
+  }
+  100% {
+    transform: translateZ(20px) rotateX(360deg) rotateY(180deg) rotateZ(360deg) scale(0.95);
+  }
+}
+
+

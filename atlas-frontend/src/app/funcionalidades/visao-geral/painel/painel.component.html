@@ -1,0 +1,354 @@
+<div class="dashboard-layout">
+  <!-- Backdrop do Menu Mobile -->
+  <div class="sidebar-backdrop" [class.visible]="isMobileMenuOpen" (click)="isMobileMenuOpen = false"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="isSidebarCollapsed" [class.mobile-open]="isMobileMenuOpen">
+    <div class="logo-area">
+      <img src="logo-pmpe-192.png" alt="Brasão PMPE" class="logo-img">
+      <span class="logo-text" *ngIf="!isSidebarCollapsed">ATLAS</span>
+      <button class="toggle-btn" (click)="toggleSidebar()" pTooltip="Minimizar Menu" tooltipPosition="right" *ngIf="!isSidebarCollapsed">
+        <i class="pi pi-angle-left"></i>
+      </button>
+      <button class="toggle-btn-small" (click)="toggleSidebar()" pTooltip="Expandir Menu" tooltipPosition="right" *ngIf="isSidebarCollapsed">
+        <i class="pi pi-angle-right"></i>
+      </button>
+    </div>
+
+    <nav class="nav-menu">
+      <!-- VISÃO GERAL -->
+      <a *ngIf="!isPolicial" [routerLink]="ROTAS_RELATIVAS.INICIO" routerLinkActive="active" class="nav-item" title="Visualizar gráficos e estatísticas">
+        <i class="pi pi-chart-bar icon"></i>
+        <span class="text" *ngIf="!isSidebarCollapsed">Visão Geral</span>
+      </a>
+
+      <!-- GESTÃO DE ATIVOS -->
+      <div class="nav-group" *ngIf="!isPolicial" [class.active]="menuExpandido === 'ativos'">
+        <div class="nav-group-header" (click)="toggleMenu('ativos')" pTooltip="Gestão de Ativos (Focado em hardware e logística)" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
+          <i class="pi pi-folder group-icon"></i>
+          <span class="nav-group-title" *ngIf="!isSidebarCollapsed">GESTÃO DE ATIVOS</span>
+          <i class="pi pi-angle-down chevron" *ngIf="!isSidebarCollapsed" [class.rotated]="menuExpandido === 'ativos'"></i>
+        </div>
+        <div class="nav-submenu" [class.expanded]="menuExpandido === 'ativos'">
+          <a [routerLink]="ROTAS_RELATIVAS.EQUIPAMENTOS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-box icon"></i>
+            <span class="text">Equipamentos</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.MANUTENCAO" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-wrench icon"></i>
+            <span class="text">Manutenção & O.S.</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- MINHA CARGA (Exclusivo Policial) -->
+      <a *ngIf="isPolicial" [routerLink]="ROTAS_RELATIVAS.CAUTELAS" routerLinkActive="active" class="nav-item" title="Visualizar minha carga pessoal">
+        <i class="pi pi-id-card icon"></i>
+        <span class="text" *ngIf="!isSidebarCollapsed">Minha Carga</span>
+      </a>
+
+      <!-- OPERAÇÕES -->
+      <div class="nav-group" *ngIf="!isPolicial" [class.active]="menuExpandido === 'operacoes'">
+        <div class="nav-group-header" (click)="toggleMenu('operacoes')" pTooltip="Operações (Focado no dia a dia da unidade)" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
+          <i class="pi pi-shield group-icon"></i>
+          <span class="nav-group-title" *ngIf="!isSidebarCollapsed">OPERAÇÕES</span>
+          <i class="pi pi-angle-down chevron" *ngIf="!isSidebarCollapsed" [class.rotated]="menuExpandido === 'operacoes'"></i>
+        </div>
+        <div class="nav-submenu" [class.expanded]="menuExpandido === 'operacoes'">
+          <a [routerLink]="ROTAS_RELATIVAS.CAUTELAS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-id-card icon"></i>
+            <span class="text">Cautelas Diárias</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.TRANSFERENCIAS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-sync icon"></i>
+            <span class="text">Movimentações</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.APROVACOES" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-verified icon"></i>
+            <span class="text">Aprovações</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- CONTROLE & RELATÓRIOS -->
+      <div class="nav-group" *ngIf="!isPolicial" [class.active]="menuExpandido === 'relatorios'">
+        <div class="nav-group-header" (click)="toggleMenu('relatorios')" pTooltip="Controle & Relatórios (Focado em dados e validação)" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
+          <i class="pi pi-chart-pie group-icon"></i>
+          <span class="nav-group-title" *ngIf="!isSidebarCollapsed">CONTROLE & RELATÓRIOS</span>
+          <i class="pi pi-angle-down chevron" *ngIf="!isSidebarCollapsed" [class.rotated]="menuExpandido === 'relatorios'"></i>
+        </div>
+        <div class="nav-submenu" [class.expanded]="menuExpandido === 'relatorios'">
+          <a [routerLink]="ROTAS_RELATIVAS.RELATORIOS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-file-export icon"></i>
+            <span class="text">Relatórios Gerais</span>
+          </a>
+          <a *ngIf="podeVerAuditoria" [routerLink]="ROTAS_RELATIVAS.AUDITORIA" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-history icon"></i>
+            <span class="text">Auditoria de Logs</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- TABELAS BÁSICAS -->
+      <div class="nav-group" *ngIf="podeVerSecoes" [class.active]="menuExpandido === 'tabelas'">
+        <div class="nav-group-header" (click)="toggleMenu('tabelas')" pTooltip="Tabelas Básicas (Cadastros estruturais)" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
+          <i class="pi pi-sliders-h group-icon"></i>
+          <span class="nav-group-title" *ngIf="!isSidebarCollapsed">TABELAS BÁSICAS</span>
+          <i class="pi pi-angle-down chevron" *ngIf="!isSidebarCollapsed" [class.rotated]="menuExpandido === 'tabelas'"></i>
+        </div>
+        <div class="nav-submenu" [class.expanded]="menuExpandido === 'tabelas'">
+          <a [routerLink]="ROTAS_RELATIVAS.TABELAS_TIPOS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-tags icon"></i>
+            <span class="text">Tipos</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.TABELAS_MARCAS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-briefcase icon"></i>
+            <span class="text">Marcas</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.TABELAS_MODELOS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-tablet icon"></i>
+            <span class="text">Modelos</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.TABELAS_STATUS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-flag icon"></i>
+            <span class="text">Status</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.TABELAS_DISPONIBILIDADES" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-calendar-clock icon"></i>
+            <span class="text">Disponibilidade</span>
+          </a>
+          <a [routerLink]="ROTAS_RELATIVAS.SECOES" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-sitemap icon"></i>
+            <span class="text">Seções Internas</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- CONFIGURAÇÕES -->
+      <div class="nav-group" *ngIf="podeVerSecoes" [class.active]="menuExpandido === 'configuracoes'">
+        <div class="nav-group-header" (click)="toggleMenu('configuracoes')" pTooltip="Configurações (Acessos e seções)" tooltipPosition="right" [tooltipDisabled]="!isSidebarCollapsed">
+          <i class="pi pi-cog group-icon"></i>
+          <span class="nav-group-title" *ngIf="!isSidebarCollapsed">CONFIGURAÇÕES</span>
+          <i class="pi pi-angle-down chevron" *ngIf="!isSidebarCollapsed" [class.rotated]="menuExpandido === 'configuracoes'"></i>
+        </div>
+        <div class="nav-submenu" [class.expanded]="menuExpandido === 'configuracoes'">
+
+          <a [routerLink]="'/visao-geral/configuracoes/importacao'" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-cloud-upload icon"></i>
+            <span class="text">Importação e Atualizações</span>
+          </a>
+
+          <a [routerLink]="ROTAS_RELATIVAS.USUARIOS" routerLinkActive="active" class="nav-item">
+            <i class="pi pi-users icon"></i>
+            <span class="text">Usuários & Notificações</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn-sidebar" (click)="sair()" title="Sair do Sistema">
+        <i class="pi pi-sign-out icon"></i>
+        <span class="text" *ngIf="!isSidebarCollapsed">Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-container">
+    <header class="topbar">
+      <!-- Botão Hambúrguer para Mobile -->
+      <button class="hamburguer-btn" (click)="isMobileMenuOpen = !isMobileMenuOpen" title="Abrir Menu">
+        <i class="pi pi-bars"></i>
+      </button>
+
+      <!-- O Topbar agora não tem barra de pesquisa global. A pesquisa fica por tela. -->
+      <div class="search-section"></div>
+
+        <div class="topbar-right">
+        <!-- Sino de notificações -->
+        <div class="notification-btn" (click)="toggleNotifMenu($event)" title="Notificações e Pendências">
+          <i class="pi pi-bell bell-icon"></i>
+          <span class="custom-badge" *ngIf="notificacoes.total > 0">{{ notificacoes.total }}</span>
+
+          <div class="notif-dropdown" *ngIf="showNotifMenu" (click)="$event.stopPropagation()">
+            <div class="notif-header">
+              <span class="notif-title">Notificações</span>
+              <span class="notif-new" *ngIf="notificacoes.total > 0">{{ notificacoes.total }} nova{{ notificacoes.total > 1 ? 's' : '' }}</span>
+            </div>
+            <div class="notif-body">
+              <div class="notif-item" [class.notif-item-empty]="notificacoes.aprovacoes === 0" (click)="navegarPara('aprovacoes')">
+                <div class="notif-icon notif-icon-azul">
+                  <i class="pi pi-verified"></i>
+                </div>
+                <div class="notif-content">
+                  <span class="notif-label">Aprovações</span>
+                  <span class="notif-count">{{ notificacoes.aprovacoes }} pendente{{ notificacoes.aprovacoes > 1 ? 's' : '' }}</span>
+                </div>
+              </div>
+              <div class="notif-item" [class.notif-item-empty]="notificacoes.transferencias === 0" (click)="navegarPara('aprovacoes')">
+                <div class="notif-icon notif-icon-laranja">
+                  <i class="pi pi-sync"></i>
+                </div>
+                <div class="notif-content">
+                  <span class="notif-label">Transferências</span>
+                  <span class="notif-count">{{ notificacoes.transferencias }} recebida{{ notificacoes.transferencias > 1 ? 's' : '' }}</span>
+                </div>
+              </div>
+              <div class="notif-item" [class.notif-item-empty]="notificacoes.manutencao === 0" (click)="navegarPara('manutencao')">
+                <div class="notif-icon notif-icon-amarelo">
+                  <i class="pi pi-wrench"></i>
+                </div>
+                <div class="notif-content">
+                  <span class="notif-label">Manutenção</span>
+                  <span class="notif-count">{{ notificacoes.manutencao }} OS em aberto</span>
+                </div>
+              </div>
+              <div class="notif-item" [class.notif-item-empty]="notificacoes.acesso === 0" (click)="navegarPara('usuarios')">
+                <div class="notif-icon notif-icon-vermelho">
+                  <i class="pi pi-user-plus"></i>
+                </div>
+                <div class="notif-content">
+                  <span class="notif-label">Solicitações de Acesso</span>
+                  <span class="notif-count">{{ notificacoes.acesso }} pendente{{ notificacoes.acesso > 1 ? 's' : '' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="notif-footer" (click)="navegarPara('aprovacoes')">
+              <i class="pi pi-list"></i>
+              <span>Ver todas as pendências</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Saudação -->
+        <span class="user-greeting">{{ saudacao }}!</span>
+
+        <!-- Info do usuário em linha -->
+        <div class="user-profile" *ngIf="usuario$ | async as user">
+          <div class="user-info">
+            <span class="user-name">{{ user.nome }}</span>
+            <div class="user-role-wrapper">
+              <span class="user-role">{{ labelPerfil(user.perfil) }}</span>
+              <span class="user-affiliation" *ngIf="usuarioAfiliacao">{{ usuarioAfiliacao }}</span>
+            </div>
+          </div>
+          <div class="user-avatar-wrapper" (click)="toggleProfileMenu($event)" pTooltip="Ver Perfil" tooltipPosition="bottom">
+            <img class="user-avatar-img" *ngIf="!avatarError" [src]="obterUrlAvatar(user.matricula)" (error)="avatarError = true" alt="Avatar">
+            <div class="user-avatar" *ngIf="avatarError">
+              {{ user.nome.charAt(0) }}
+            </div>
+            <div class="profile-dropdown" *ngIf="showProfileMenu" (click)="$event.stopPropagation()">
+              <div class="dropdown-header">
+                <div class="dropdown-avatar">
+                  <img class="dropdown-avatar-img" *ngIf="!avatarError" [src]="obterUrlAvatar(user.matricula)" (error)="avatarError = true" alt="">
+                  <span *ngIf="avatarError">{{ user.nome.charAt(0) }}</span>
+                </div>
+                <div class="dropdown-title">
+                  <strong>{{ user.nome }}</strong>
+                  <span>{{ user.matricula }}</span>
+                </div>
+              </div>
+              <div class="dropdown-body">
+                <div class="info-row">
+                  <span class="info-label">Matrícula</span>
+                  <span class="info-value">{{ user.matricula }}</span>
+                </div>
+                <div class="info-row" *ngIf="user.email">
+                  <span class="info-label">E-mail</span>
+                  <span class="info-value">{{ user.email }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Perfil</span>
+                  <span class="info-value">{{ labelPerfil(user.perfil) }}</span>
+                </div>
+                <div class="info-row" *ngIf="user.secaoNome">
+                  <span class="info-label">Seção</span>
+                  <span class="info-value">{{ user.secaoNome }}</span>
+                </div>
+                <div class="info-row" *ngIf="user.batalhaoNome">
+                  <span class="info-label">Batalhão</span>
+                  <span class="info-value">{{ user.batalhaoNome }}</span>
+                </div>
+                <div class="info-row" *ngIf="user.diretoriaNome">
+                  <span class="info-label">Diretoria</span>
+                  <span class="info-value">{{ user.diretoriaNome }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Timer -->
+        <div class="session-timer" [ngClass]="getTimerClass()" pTooltip="Tempo restante da sessão antes do logout automático" tooltipPosition="bottom">
+          <div class="radar-blip"></div>
+          <span class="timer-label">Expira em:</span>
+          <span class="timer-value">{{ formatarTempo(tempoSessao) }}</span>
+        </div>
+
+        <!-- Botão SAIR Topbar -->
+        <button class="logout-btn-top" (click)="sair()" pTooltip="Sair do Sistema" tooltipPosition="bottom">
+          SAIR
+        </button>
+
+      </div>
+    </header>
+
+    <main class="content-area">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
+
+<!-- Modal de Alerta de Expiração Premium -->
+<p-dialog 
+  header="Aviso de Segurança" 
+  [(visible)]="showModalExpiracao" 
+  [modal]="true" 
+  [closable]="false"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="premium-expiration-modal"
+  [style]="{ width: '420px', borderRadius: '16px' }">
+  
+  <div class="expiration-content">
+    <div class="expiration-icon-wrapper pulse-animation">
+      <i class="pi pi-lock expiration-icon"></i>
+    </div>
+    
+    <h3 class="expiration-title">Sessão Expirando</h3>
+    
+    <p class="expiration-message">
+      Por inatividade ou segurança, sua sessão será encerrada em
+      <span class="expiration-timer">{{ formatarTempo(tempoSessao) }}</span>
+    </p>
+    
+    <p class="expiration-subtext">
+      Para não perder seu trabalho em andamento, você pode solicitar a renovação do seu acesso agora mesmo.
+    </p>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="expiration-actions">
+      <button 
+        class="premium-btn btn-danger-outline" 
+        (click)="sair()" 
+        [disabled]="renovandoSessao">
+        <i class="pi pi-sign-out"></i> Sair Agora
+      </button>
+      <button 
+        class="premium-btn btn-primary-glow" 
+        (click)="pedirMaisTempo()" 
+        [disabled]="renovandoSessao">
+        <i class="pi" [ngClass]="renovandoSessao ? 'pi-spin pi-spinner' : 'pi-clock'"></i>
+        Renovar Sessão
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+

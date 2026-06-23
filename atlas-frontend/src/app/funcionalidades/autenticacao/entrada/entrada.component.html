@@ -1,0 +1,247 @@
+<div class="login-container">
+  <div class="background-decor">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+  </div>
+
+  <div class="login-card">
+    <div class="header">
+      <div class="logo">
+        <img src="logo-pmpe-192.png" alt="Brasão da PMPE" class="logo-img">
+      </div>
+      <h2>ATLAS</h2>
+      <p>Sistema de Gestão de Materiais Tecnológicos </p>
+      <p>PMPE</p>
+    </div>
+
+    <div class="loader-3d-container" [class.accelerating]="loadingProgress > 60" [class.welded]="loadingProgress >= 85" [style.--progress]="loadingProgress" *ngIf="loading">
+      <div class="loader-isometric-grid">
+        <!-- Ponto de solda / Efeito de fusão -->
+        <div class="welding-flash"></div>
+        <div class="welding-sparks"></div>
+        <div class="tesseract-outer"></div>
+
+        <!-- Cubo 1 -->
+        <div class="cube-item cube-1">
+          <div class="cube-face face-top"></div>
+          <div class="cube-face face-bottom"></div>
+          <div class="cube-face face-front"></div>
+          <div class="cube-face face-back"></div>
+          <div class="cube-face face-left"></div>
+          <div class="cube-face face-right"></div>
+        </div>
+        <!-- Cubo 2 -->
+        <div class="cube-item cube-2">
+          <div class="cube-face face-top"></div>
+          <div class="cube-face face-bottom"></div>
+          <div class="cube-face face-front"></div>
+          <div class="cube-face face-back"></div>
+          <div class="cube-face face-left"></div>
+          <div class="cube-face face-right"></div>
+        </div>
+        <!-- Cubo 3 -->
+        <div class="cube-item cube-3">
+          <div class="cube-face face-top"></div>
+          <div class="cube-face face-bottom"></div>
+          <div class="cube-face face-front"></div>
+          <div class="cube-face face-back"></div>
+          <div class="cube-face face-left"></div>
+          <div class="cube-face face-right"></div>
+        </div>
+        <!-- Cubo 4 -->
+        <div class="cube-item cube-4">
+          <div class="cube-face face-top"></div>
+          <div class="cube-face face-bottom"></div>
+          <div class="cube-face face-front"></div>
+          <div class="cube-face face-back"></div>
+          <div class="cube-face face-left"></div>
+          <div class="cube-face face-right"></div>
+        </div>
+      </div>
+      <div class="loader-text">
+        <h3>Montando seu inventário ({{ loadingProgress }}%)</h3>
+        <p>Organizando equipamentos e conexões...</p>
+      </div>
+    </div>
+
+    <form class="login-form" (ngSubmit)="login()" *ngIf="!loading">
+      <div class="input-group">
+        <label for="username">Login</label>
+        <div class="input-wrapper">
+          <i class="pi pi-user"></i>
+          <input type="text" id="username" name="username" [(ngModel)]="username" placeholder="Digite seu login"
+            required>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="password">Senha Corporativa</label>
+        <div class="input-wrapper">
+          <i class="pi pi-lock"></i>
+          <input [type]="showPassword ? 'text' : 'password'" id="password" name="password" [(ngModel)]="password"
+            placeholder="••••••••" required>
+          <i [class]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" class="toggle-password"
+            (click)="togglePasswordVisibility()"></i>
+        </div>
+      </div>
+
+      <div class="error-message" *ngIf="error">
+        <i class="pi pi-times-circle"></i>
+        {{ error }}
+      </div>
+
+      <div class="advanced-menu-container" *ngIf="showAdvancedMenu">
+        <div class="advanced-menu-header">
+          <h4><i class="pi pi-sliders-h"></i> Ferramentas de Desenvolvedor</h4>
+          <button type="button" class="close-adv-btn" (click)="toggleAdvancedMenu()"><i
+              class="pi pi-times"></i></button>
+        </div>
+        <div class="advanced-menu-content">
+          <div class="mock-mode-toggle" *ngIf="mockLoginHint">
+            <label class="p-checkbox-label">
+              <input type="checkbox" name="mockMode" [(ngModel)]="mockMode" (change)="toggleMockMode()" />
+              Usar login mock local
+            </label>
+            <div class="mock-login-hint">
+              {{ mockLoginHint }}
+            </div>
+          </div>
+
+          <div class="mock-banner warning" *ngIf="mockModeService.useMock">
+            <div>
+              <div class="mock-banner-title">Modo mock local ativo</div>
+              <div class="mock-banner-text">As requisições irão usar dados de teste locais.</div>
+              <div class="mock-key" *ngIf="mockModeService.hasOverride">Override atual: {{ mockModeService.overrideValue
+                }}</div>
+            </div>
+            <button type="button" class="link-btn" (click)="forceRealMode()">Forçar modo real</button>
+          </div>
+
+          <div class="mock-banner real-mode" *ngIf="!mockModeService.useMock && mockModeService.hasOverride">
+            <div>
+              <div class="mock-banner-title">Modo real forçado</div>
+              <div class="mock-banner-text">O backend real.</div>
+              <div class="mock-key">Override atual: {{ mockModeService.overrideValue }}</div>
+            </div>
+            <button type="button" class="link-btn" (click)="resetMockOverride()">Remover override</button>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="login-btn" [disabled]="loading">
+        <span *ngIf="!loading">Acessar Sistema</span>
+        <i class="pi pi-spin pi-spinner" *ngIf="loading"></i>
+      </button>
+
+      <button type="button" class="secondary-btn" (click)="abrirDialogSolicitarAcesso()" [disabled]="loading">
+        Solicitar acesso
+      </button>
+    </form>
+
+    <p-dialog header="Solicitar acesso ao ATLAS" [(visible)]="showRequestModal" [modal]="true" appendTo="body"
+      [style]="{ width: '500px' }"
+      [contentStyle]="{ 'overflow-y': 'auto', 'max-height': 'calc(90vh - 160px)', 'padding': '1rem 1.5rem 0.5rem' }"
+      styleClass="login-access-dialog" (onHide)="fecharDialogSolicitarAcesso()">
+      <!-- Conteúdo rolável -->
+      <div class="request-dialog-content">
+
+        <div class="request-note" style="margin-bottom: 4px;">
+          <i class="pi pi-info-circle"></i>
+          Use suas credenciais corporativas. A DTEC analisará e liberará seu acesso.
+        </div>
+
+        <div class="input-group">
+          <label for="requestNome">Nome Completo</label>
+          <div class="input-wrapper">
+            <i class="pi pi-user"></i>
+            <input type="text" id="requestNome" name="requestNome" [(ngModel)]="reqNome"
+              placeholder="Seu nome completo" />
+          </div>
+        </div>
+
+        <div class="input-row">
+          <div class="input-group half">
+            <label for="requestUsuario">Login (mesmo do portal)</label>
+            <div class="input-wrapper">
+              <i class="pi pi-sign-in"></i>
+              <input type="text" id="requestUsuario" name="requestUsuario" [(ngModel)]="reqUsuario"
+                placeholder="Ex: 1234567" />
+            </div>
+          </div>
+          <div class="input-group half">
+            <label for="requestMatricula">Matrícula</label>
+            <div class="input-wrapper">
+              <i class="pi pi-id-card"></i>
+              <input type="text" id="requestMatricula" name="requestMatricula" [(ngModel)]="reqMatricula"
+                placeholder="Ex: 123456-7" />
+            </div>
+          </div>
+        </div>
+
+        <div class="input-row">
+          <div class="input-group half">
+            <label for="requestCpf">CPF</label>
+            <div class="input-wrapper">
+              <i class="pi pi-id-card"></i>
+              <input type="text" id="requestCpf" name="requestCpf" [(ngModel)]="reqCpf"
+                placeholder="Ex: 123.456.789-00" />
+            </div>
+          </div>
+          <div class="input-group half">
+            <label for="requestUnidade">Unidade / Lotação</label>
+            <div class="input-wrapper">
+              <i class="pi pi-building"></i>
+              <input type="text" id="requestUnidade" name="requestUnidade" [(ngModel)]="reqUnidade" list="unidades-list"
+                placeholder="Sua unidade..." class="unidade-input-with-datalist" autocomplete="off" />
+              <datalist id="unidades-list">
+                <option *ngFor="let u of unidades" [value]="u"></option>
+              </datalist>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="requestMotivo">Motivo da solicitação</label>
+          <div class="input-wrapper">
+            <i class="pi pi-pencil" style="align-self: flex-start; margin-top: 14px;"></i>
+            <textarea id="requestMotivo" name="requestMotivo" [(ngModel)]="reqMotivo"
+              placeholder="Explique resumidamente o motivo da solicitação" rows="3"
+              style="width: 100%; padding: 12px 16px 12px 42px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #fff; font-size: 14px; transition: all 0.3s ease; resize: vertical;"></textarea>
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="requestError">
+          <i class="pi pi-times-circle"></i>
+          {{ requestError }}
+        </div>
+
+        <div class="success-message" *ngIf="requestSuccess">
+          <i class="pi pi-check-circle"></i>
+          {{ requestSuccess }}
+        </div>
+
+      </div>
+
+      <!-- Footer FIXO — nunca some -->
+      <ng-template pTemplate="footer">
+        <div class="modal-actions" style="display:flex;gap:10px;justify-content:flex-end;padding:0.75rem 0 0;">
+          <button type="button" class="secondary-btn" style="width:auto;margin-top:0;padding:10px 20px;"
+            (click)="fecharDialogSolicitarAcesso()">
+            Cancelar
+          </button>
+          <button type="button" class="login-btn" style="width:auto;padding:10px 24px;" (click)="solicitarAcesso()"
+            [disabled]="requestLoading">
+            <span *ngIf="!requestLoading">Enviar solicitação</span>
+            <i class="pi pi-spin pi-spinner" *ngIf="requestLoading"></i>
+          </button>
+        </div>
+      </ng-template>
+
+    </p-dialog>
+
+    <div class="footer">
+      <p>&copy; 2026 DTEC - PMPE <i class="pi pi-cog admin-trigger" (click)="toggleAdvancedMenu()"
+          title="Opções avançadas"></i></p>
+    </div>
+  </div>
+</div>

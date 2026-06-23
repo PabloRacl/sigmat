@@ -1,0 +1,47 @@
+// Estilos compartilhados de botões (português)
+
+/* Botão Cancelar */
+.eq-btn-cancel {
+  background: linear-gradient(135deg, #6b7280, #9ca3af); /* cinza escuro para claro */
+  border: none;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: background 0.2s, transform 0.2s;
+}
+.eq-btn-cancel:hover {
+  background: linear-gradient(135deg, #9ca3af, #d1d5db);
+  transform: translateY(-1px);
+}
+.eq-btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f3f4f6;
+}
+
+/* Botão Principal (Cadastrar) */
+.eq-btn-primary {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  border: none;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(79,70,229,0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.eq-btn-primary:hover {
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(79,70,229,0.3);
+}
+.eq-btn-primary:disabled {
+  opacity: 0.6;
+  box-shadow: 0 6px 16px rgba(79,70,229,0.4);
+  background: linear-gradient(135deg, #4338ca, #2563eb);
+  cursor: not-allowed;
+}

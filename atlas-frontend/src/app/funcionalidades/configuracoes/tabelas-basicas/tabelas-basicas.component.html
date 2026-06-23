@@ -1,0 +1,102 @@
+<app-layout-pagina [hasStats]="false" [hasSearch]="false" [noContentPadding]="true">
+  <!-- Cabeçalho -->
+  <div header-title>
+    <h1>{{ titulo }}</h1>
+    <p>Gerenciamento estrutural e parametrização do sistema</p>
+  </div>
+
+  <div content>
+    <!-- Busca e Ações -->
+    <div class="atlas-search-wrap" style="border-radius: 16px 16px 0 0; border: 1px solid #e2e8f0; border-bottom: none; background: white; margin-bottom: 0;">
+      <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: center; width: 100%;">
+        <div class="atlas-search-premium" style="flex: 1; max-width: 500px; margin: 0; box-shadow: none;">
+          <div class="search-input-wrapper">
+            <i class="pi pi-search search-icon"></i>
+            <input type="text" class="search-input" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Pesquisar..." />
+          </div>
+        </div>
+        <button pButton pRipple type="button" icon="pi pi-plus" label="Novo Registro" class="atlas-btn atlas-btn-primary" (click)="abrirModalNovo()" *ngIf="entidade !== 'disponibilidades'"></button>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="atlas-panel" style="padding: 0; overflow: hidden; border-top-left-radius: 0; border-top-right-radius: 0; border-top: none;">
+      <p-table #dt [value]="itens" [loading]="carregando" [rowHover]="true" responsiveLayout="scroll" [paginator]="true" [rows]="10" [globalFilterFields]="['id', 'nome', 'marca.nome']">
+        
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 80px;" pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
+            <th pSortableColumn="nome">Descrição do Registro <p-sortIcon field="nome"></p-sortIcon></th>
+            <th *ngIf="entidade === 'modelos'" pSortableColumn="marca.nome">Marca Associada <p-sortIcon field="marca.nome"></p-sortIcon></th>
+            <th style="width: 150px; text-align: center;" pSortableColumn="_count.equipamentos">Qtd. Equipamentos <p-sortIcon field="_count.equipamentos"></p-sortIcon></th>
+            <th style="width: 120px; text-align: center;">Ações</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-item>
+          <tr>
+            <td>
+              <span class="atlas-badge-gray">#{{ item.id }}</span>
+            </td>
+            <td>
+              <span style="font-weight: 600; color: #1e293b;">{{ item.nome }}</span>
+            </td>
+            <td *ngIf="entidade === 'modelos'">
+              <div class="atlas-badge-gray" *ngIf="item.marca" style="display: inline-flex; align-items: center; gap: 4px;">
+                <i class="pi pi-briefcase atlas-icon-gray"></i> {{ item.marca.nome }}
+              </div>
+              <span class="atlas-icon-gray" *ngIf="!item.marca">-</span>
+            </td>
+            <td style="text-align: center;">
+              <div class="atlas-badge-gray" [style.opacity]="!item._count?.equipamentos ? '0.5' : '1'">
+                {{ item._count?.equipamentos || 0 }}
+              </div>
+            </td>
+            <td style="text-align: center;">
+              <div style="display: flex; gap: 4px; justify-content: center;">
+                <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-info p-button-text" (click)="editar(item)" pTooltip="Editar" tooltipPosition="left"></button>
+                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text" (click)="excluir(item.id)" pTooltip="Excluir Permanentemente" tooltipPosition="left" [disabled]="item._count?.equipamentos > 0"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="entidade === 'modelos' ? 5 : 4">
+              <app-estado-vazio mensagem="Nenhum registro encontrado."></app-estado-vazio>
+            </td>
+          </tr>
+        </ng-template>
+        
+      </p-table>
+    </div>
+  </div>
+</app-layout-pagina>
+
+<!-- Modal -->
+<p-dialog [(visible)]="modalVisivel" [header]="(modoEdicao ? 'Editar ' : 'Novo(a) ') + titulo" [modal]="true" [style]="{width: '450px'}" [draggable]="false" [resizable]="false">
+  <div class="atlas-form-group" style="margin-top: 1rem;">
+    <div class="atlas-form-group">
+      <label for="nome" class="atlas-label-primary">Nome / Descrição</label>
+      <input id="nome" type="text" pInputText [(ngModel)]="novoRegistro.nome" placeholder="Digite o nome..." autofocus class="atlas-input-field" />
+    </div>
+    
+    <div class="atlas-form-group" *ngIf="entidade === 'modelos'" style="margin-top: 1rem;">
+      <label for="marca" class="atlas-label-primary">Vincular a uma Marca</label>
+      <p-dropdown id="marca" [options]="marcas" [(ngModel)]="novoRegistro.marcaId" optionLabel="nome" optionValue="id" placeholder="Selecione uma marca existente..." [filter]="true" styleClass="atlas-input-field" appendTo="body">
+        <ng-template let-marca pTemplate="item">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="pi pi-briefcase atlas-icon-gray"></i>
+            <span>{{ marca.nome }}</span>
+          </div>
+        </ng-template>
+      </p-dropdown>
+    </div>
+  </div>
+  
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancelar" icon="pi pi-times" class="atlas-btn atlas-btn-ghost" (click)="fecharModal()"></button>
+    <button pButton pRipple label="Salvar Registro" icon="pi pi-check" class="atlas-btn atlas-btn-primary" (click)="salvar()" [loading]="salvando"></button>
+  </ng-template>
+</p-dialog>

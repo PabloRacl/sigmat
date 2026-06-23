@@ -1,0 +1,104 @@
+<app-layout-pagina 
+  [hasStats]="false" 
+  [hasSearch]="false" 
+  [noContentPadding]="false"
+>
+  <!-- Sem cabeçalho conforme solicitado pelo usuário -->
+
+
+  <!-- Grid de Gráficos e Logs Principais -->
+  <div content>
+    <!-- Estado de Carregamento -->
+    <div class="atlas-loading-state" *ngIf="loading">
+      <i class="pi pi-spinner pi-spin atlas-loading-spinner"></i>
+      <p>Consolidando indicadores em tempo real...</p>
+    </div>
+
+    <div class="dh-grid" *ngIf="!loading && charts" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; @media (max-width: 1024px) { grid-template-columns: 1fr; }">
+      <!-- Painel Principal -->
+      <div class="atlas-panel main-chart">
+        <div class="dh-card__head" style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+          <div class="atlas-stat-card__icon indigo"><i class="pi pi-chart-line"></i></div>
+          <div class="dh-card__titles" style="flex: 1;">
+            <h3 class="atlas-stat-card__val">Distribuição Detalhada</h3>
+            <span class="atlas-stat-card__label">Análise multidimensional do inventário atual</span>
+          </div>
+          <div class="dh-card__actions">
+            <p-select
+              [options]="opcoesGrafico"
+              [(ngModel)]="graficoSelecionado"
+              optionLabel="label"
+              [style]="{ minWidth: '220px' }"
+              appendTo="body"
+              styleClass="dh-dropdown"
+            ></p-select>
+          </div>
+        </div>
+
+        <div class="dh-card__content">
+          <div class="dh-chart-wrapper" *ngIf="dadosGraficoAtual" style="position: relative; height: 350px; width: 100%;">
+            <p-chart
+              [type]="tipoGraficoAtual"
+              [data]="dadosGraficoAtual"
+              [options]="opcoesGraficoAtual"
+              width="100%"
+              height="350px"
+            ></p-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- Atividades Recentes -->
+      <div class="atlas-panel activities">
+        <div class="dh-card__head" style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+          <div class="atlas-stat-card__icon gray"><i class="pi pi-history"></i></div>
+          <div class="dh-card__titles">
+            <h3 class="atlas-stat-card__val">Log de Operações</h3>
+            <span class="atlas-stat-card__label">Últimas movimentações no sistema</span>
+          </div>
+        </div>
+
+        <div class="dh-card__content no-padding scrollable" style="flex: 1; overflow-y: auto; max-height: 350px; padding: 0;">
+          <div class="dh-activity-list" *ngIf="activities.length > 0">
+            <div class="atlas-activity-item" *ngFor="let act of activities">
+              <div class="atlas-activity-icon"><i class="pi pi-pencil"></i></div>
+              <div class="dh-activity-item__info" style="flex: 1;">
+                <p class="atlas-activity-title">{{ act.descricao || act.acao }}</p>
+                <div class="atlas-activity-meta">
+                  <span class="user">{{ act.usuario?.nome }}</span>
+                  <span class="dot">•</span>
+                  <span class="date">{{ act.createdAt | date:'dd/MM HH:mm' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <app-estado-vazio *ngIf="activities.length === 0" mensagem="Sem atividades registradas hoje." icone="pi-calendar-times"></app-estado-vazio>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção de Gráficos Secundários -->
+    <div class="dh-grid secondary" *ngIf="!loading && charts" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+      <div class="atlas-panel mini">
+        <div class="atlas-form-group"><h3 class="atlas-stat-card__val">Situação do Material</h3></div>
+        <div class="dh-card__content">
+          <p-chart type="polarArea" [data]="charts.porStatus" [options]="opcoesPolar"></p-chart>
+        </div>
+      </div>
+
+      <div class="atlas-panel mini">
+        <div class="atlas-form-group"><h3 class="atlas-stat-card__val">Disponibilidade Imediata</h3></div>
+        <div class="dh-card__content">
+          <p-chart type="pie" [data]="charts.porDisponibilidade" [options]="opcoesPie" height="200px"></p-chart>
+        </div>
+      </div>
+
+      <div class="atlas-panel mini">
+        <div class="atlas-form-group"><h3 class="atlas-stat-card__val">Tipos Predominantes</h3></div>
+        <div class="dh-card__content">
+          <p-chart type="bar" [data]="charts.porTipo" [options]="opcoesBar" height="200px"></p-chart>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-layout-pagina>

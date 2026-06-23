@@ -1,0 +1,149 @@
+::ng-deep .filtro-lateral-drawer {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+  backdrop-filter: blur(20px) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #f8fafc !important;
+  width: 380px !important;
+
+  .p-drawer-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1rem 1.25rem;
+    color: white;
+
+    .p-drawer-close {
+      color: #94a3b8;
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+    }
+  }
+
+  .p-drawer-content {
+    padding: 0;
+    overflow-y: auto;
+    
+    /* Scrollbar minimalista */
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+  }
+
+  .p-drawer-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1rem 1.25rem;
+    background: rgba(0, 0, 0, 0.2);
+  }
+}
+
+.filtro-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.5px;
+
+  .flex { display: flex; align-items: center; gap: 8px; }
+
+  i {
+    font-size: 1.1rem;
+    color: #60a5fa;
+  }
+}
+
+.escopo-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  
+  &.escopo-global {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+  }
+  
+  &.escopo-inline {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+}
+
+.filtro-body {
+  padding: 0.75rem 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.filtro-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .filtro-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* Customizações internas pros inputs do PrimeNG em ambiente dark */
+  ::ng-deep {
+    .p-inputtext, .p-select, .p-datepicker {
+      width: 100%;
+    }
+    
+    .p-inputtext {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: white !important;
+      border-radius: 8px !important;
+      padding: 0.75rem 1rem !important;
+
+      &:enabled:focus {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+      }
+    }
+  }
+}
+
+.filtro-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+
+  .btn-limpar {
+    color: #ef4444;
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    &:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+  }
+
+  .btn-aplicar {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    border: none;
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    }
+  }
+}

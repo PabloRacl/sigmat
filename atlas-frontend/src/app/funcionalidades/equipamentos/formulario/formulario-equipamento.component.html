@@ -1,0 +1,203 @@
+<p-dialog 
+  [(visible)]="visible" 
+  [header]="editando ? 'Editar Equipamento' : 'Novo Equipamento'" 
+  [modal]="true" 
+  [style]="{width: '680px'}" 
+  styleClass="eq-dialog" 
+  [draggable]="false" 
+  [resizable]="false"
+  (onHide)="fechar()"
+>
+  <form [formGroup]="form" (ngSubmit)="salvar()" class="eq-form">
+    <div class="eq-form__row">
+      <div class="eq-form__field flex-1">
+        <label>Patrimônio <span class="req">*</span></label>
+        <input type="text" pInputText formControlName="patrimonio" placeholder="Ex: PMPE-HT-001" class="w-full" />
+      </div>
+      <div class="eq-form__field flex-1">
+        <label>Nº de Série</label>
+        <input type="text" pInputText formControlName="numeroSerie" placeholder="Ex: 123456789" class="w-full" />
+      </div>
+    </div>
+
+    <div class="eq-form__row">
+      <div class="eq-form__field flex-1">
+        <label>Tipo <span class="req">*</span></label>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <p-select [options]="tipos" formControlName="tipoEquipamentoId" optionLabel="nome" optionValue="id"
+            [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+          </p-select>
+          <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="solicitarNovoTipo()" pTooltip="Adicionar novo tipo" tooltipPosition="top"></button>
+        </div>
+      </div>
+      <div class="eq-form__field flex-1">
+        <label>Marca</label>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <p-select [options]="marcas" formControlName="marcaId" optionLabel="nome" optionValue="id" 
+            [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+          </p-select>
+          <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="solicitarNovaMarca()" pTooltip="Adicionar nova marca" tooltipPosition="top"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="eq-form__row">
+      <div class="eq-form__field flex-1">
+        <label>Modelo</label>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <p-select [options]="modelosFiltrados" formControlName="modeloId" optionLabel="nome" optionValue="id"
+            [filter]="true" filterBy="nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+          </p-select>
+          <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="solicitarNovoModelo()" pTooltip="Adicionar novo modelo" tooltipPosition="top"></button>
+        </div>
+      </div>
+      <div class="eq-form__field flex-1">
+        <label>Status <span class="req">*</span></label>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <p-select [options]="status" formControlName="statusId" optionLabel="nome" optionValue="id"
+            styleClass="w-full" appendTo="body"></p-select>
+          <button pButton type="button" icon="pi pi-plus" class="p-button-text p-button-sm"
+            (click)="solicitarNovoStatus()" pTooltip="Adicionar novo status" tooltipPosition="top"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DADOS ESPECÍFICOS: CELULAR -->
+    <div class="eq-form-section" *ngIf="exibirCamposCelular">
+      <div class="eq-form-section__title"><i class="pi pi-mobile"></i> Dados do Celular/Smartphone</div>
+      <div class="eq-form-info-helper" style="margin-bottom: 12px; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); padding: 10px 14px; border-radius: 10px; font-size: 0.8rem; color: #4f46e5; display: flex; gap: 8px; align-items: flex-start; line-height: 1.4;">
+        <i class="pi pi-info-circle" style="color: #6366f1; font-size: 1.05rem; margin-top: 1px;"></i>
+        <span>Preencha as informações de comunicação do aparelho móvel e selecione o chip cadastrado correspondente para vincular a linha telefônica ao aparelho.</span>
+      </div>
+      <div class="eq-form__row">
+        <div class="eq-form__field flex-1">
+          <label>IMEI Principal</label>
+          <input type="text" pInputText [(ngModel)]="campoIMEI" [ngModelOptions]="{standalone: true}" placeholder="IMEI 1" class="w-full" />
+        </div>
+        <div class="eq-form__field flex-1">
+          <label>Número de Telefone</label>
+          <input type="text" pInputText [(ngModel)]="campoTelefone" [ngModelOptions]="{standalone: true}" placeholder="(81) 9...." class="w-full" />
+        </div>
+      </div>
+      <div class="eq-form__field">
+        <label>Chip Vinculado (ICCID / Patrimônio)</label>
+        <p-select [options]="chipsDisponiveis" [(ngModel)]="chipSelecionado" [ngModelOptions]="{standalone: true}" 
+          optionLabel="patrimonio" placeholder="Buscar chip para vincular..." [filter]="true" filterBy="patrimonio,numeroSerie" 
+          [showClear]="true" styleClass="w-full" appendTo="body">
+          <ng-template let-c pTemplate="item">
+            <div class="chip-item">
+              <span><strong>{{ c.patrimonio }}</strong></span>
+              <small>{{ c.numeroSerie }}</small>
+            </div>
+          </ng-template>
+        </p-select>
+      </div>
+    </div>
+
+    <!-- DADOS TÉCNICOS ESPECÍFICOS (DINÂMICO) -->
+    <div class="eq-form-section" *ngIf="camposDinamicos.length > 0">
+      <div class="eq-form-section__title"><i class="pi pi-cog"></i> Dados Técnicos Adicionais</div>
+      <div class="eq-form-info-helper" style="margin-bottom: 12px; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); padding: 10px 14px; border-radius: 10px; font-size: 0.8rem; color: #4f46e5; display: flex; gap: 8px; align-items: flex-start; line-height: 1.4;">
+        <i class="pi pi-info-circle" style="color: #6366f1; font-size: 1.05rem; margin-top: 1px;"></i>
+        <span>Estes atributos técnicos foram carregados automaticamente com base no <strong>Tipo de Equipamento</strong> selecionado para garantir a padronização e detalhamento de hardware no inventário.</span>
+      </div>
+      <div class="eq-form__row flex-wrap" style="gap: 1rem;">
+        <div class="eq-form__field flex-1" style="min-width: 200px;" *ngFor="let campo of camposDinamicos">
+          <label>{{ campo.label }}</label>
+          <input type="text" pInputText [(ngModel)]="valoresDinamicos[campo.key]" [ngModelOptions]="{standalone: true}" 
+            [placeholder]="campo.placeholder" class="w-full" />
+        </div>
+      </div>
+    </div>
+
+    <div class="eq-form__row">
+      <div class="eq-form__field flex-1">
+        <label>Disponibilidade <span class="req">*</span></label>
+        <p-select [options]="disponibilidades" formControlName="disponibilidadeId" optionLabel="nome" optionValue="id" 
+          styleClass="w-full" appendTo="body"></p-select>
+      </div>
+      <div class="eq-form__field flex-1">
+        <label>OME (Batalhão/Diretoria)</label>
+        <p-select [options]="batalhoes" formControlName="batalhaoId" optionLabel="sigla" optionValue="id"
+          [filter]="true" filterBy="sigla,nome" placeholder="Selecione o batalhão..." styleClass="w-full" appendTo="body" [showClear]="true">
+        </p-select>
+      </div>
+    </div>
+
+    <div class="eq-form__row">
+      <div class="eq-form__field" style="flex: 1.2;">
+        <label>Seção <span class="req">*</span></label>
+        <p-select [options]="secoesFiltradas" formControlName="secaoId" optionLabel="sigla" optionValue="id" 
+          [filter]="true" filterBy="sigla,nome" placeholder="Selecione ou busque..." styleClass="w-full" appendTo="body">
+        </p-select>
+      </div>
+      <div class="eq-form__field" style="flex: 1;">
+        <label>Data Aquisição</label>
+        <p-datepicker formControlName="dataAquisicao" dateFormat="dd/mm/yy" appendTo="body" styleClass="w-full"></p-datepicker>
+      </div>
+    </div>
+
+    <!-- SEÇÃO DE FOTO DO EQUIPAMENTO (ENTERPRISE) -->
+    <div class="eq-form-section" style="margin-top: 1rem; margin-bottom: 1rem;">
+      <div class="eq-form-section__title"><i class="pi pi-image"></i> Foto do Equipamento</div>
+      <div class="photo-upload-zone" style="display: flex; gap: 1rem; align-items: center; padding: 12px; border: 1px dashed #cbd5e1; border-radius: 12px; background: #f8fafc;">
+        
+        <!-- Preview da Imagem -->
+        <div class="photo-preview-box" style="width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; background: #f1f5f9; flex-shrink: 0;">
+          <img *ngIf="fotoUrl" [src]="uploadService.getUrlCompleta(fotoUrl)" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;" />
+          <i *ngIf="!fotoUrl && !carregandoFoto" class="pi pi-camera" style="font-size: 1.5rem; color: #94a3b8;"></i>
+          <i *ngIf="carregandoFoto" class="pi pi-spinner pi-spin" style="font-size: 1.5rem; color: #6366f1;"></i>
+        </div>
+
+        <div class="photo-upload-controls" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 0.85rem; font-weight: 600; color: #334155;">{{ fotoUrl ? 'Imagem Carregada' : 'Adicionar Foto' }}</span>
+          <span style="font-size: 0.75rem; color: #64748b;">Apenas arquivos PNG ou JPG até 5MB</span>
+          
+          <div style="display: flex; gap: 0.5rem; margin-top: 4px;">
+            <!-- Input oculto -->
+            <input type="file" #fileInput (change)="selecionarFoto($event)" accept="image/png, image/jpeg, image/jpg" style="display: none;" />
+            <button type="button" class="eq-btn-upload-file" style="cursor: pointer; padding: 6px 12px; background: white; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem; font-weight: 600; color: #475569;" (click)="fileInput.click()" [disabled]="carregandoFoto">
+              <i class="pi pi-upload" style="margin-right: 4px;"></i> {{ fotoUrl ? 'Alterar Foto' : 'Selecionar Arquivo' }}
+            </button>
+            <button type="button" class="eq-btn-remove-file" style="cursor: pointer; padding: 6px 12px; background: white; border: 1px solid #fecaca; border-radius: 6px; font-size: 0.8rem; font-weight: 600; color: #dc2626;" *ngIf="fotoUrl" (click)="removerFoto()">
+              <i class="pi pi-trash" style="margin-right: 4px;"></i> Remover
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="eq-form__field">
+      <label>Observações</label>
+      <textarea pTextarea formControlName="observacao" rows="3" class="w-full" placeholder="Observações..."></textarea>
+    </div>
+
+    <div class="eq-dialog-footer">
+      <button type="button" class="eq-btn-cancel" (click)="fechar()">Cancelar</button>
+      <button type="submit" class="eq-btn-primary" [disabled]="form.invalid">{{ editando ? 'Salvar Alterações' : 'Cadastrar' }}</button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="exibirDialogoPrompt"
+  [header]="rotuloPrompt"
+  [modal]="true"
+  [style]="{width: '400px'}"
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="confirmarPrompt()"
+>
+  <div class="eq-prompt-field">
+    <input type="text" pInputText [(ngModel)]="valorPrompt"
+      [ngModelOptions]="{standalone: true}"
+      placeholder="Digite o nome..."
+      class="w-full" (keyup.enter)="confirmarPrompt()" autofocus />
+  </div>
+  <div class="eq-dialog-footer">
+    <button type="button" class="eq-btn-cancel" (click)="exibirDialogoPrompt = false; valorPrompt = ''">Cancelar</button>
+    <button type="button" class="eq-btn-primary" (click)="confirmarPrompt()" [disabled]="!valorPrompt.trim()">Confirmar</button>
+  </div>
+</p-dialog>
+

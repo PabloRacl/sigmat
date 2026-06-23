@@ -1,0 +1,79 @@
+<p-dialog 
+  [(visible)]="visible" 
+  [header]="'Histórico & Linha do Tempo — ' + (equipment?.patrimonio)" 
+  [modal]="true" 
+  [style]="{width: '640px'}" 
+  styleClass="eq-timeline-dialog" 
+  [draggable]="false"
+  [resizable]="false"
+  (onHide)="fechar()"
+>
+  <div class="eq-timeline-wrapper" *ngIf="equipment">
+    <!-- Header Hero OPM Info -->
+    <div class="eq-timeline-hero">
+      <div class="hero-icon-box">
+        <i class="pi pi-history"></i>
+      </div>
+      <div class="hero-details">
+        <span class="hero-sub">Histórico de Movimentações & Alterações</span>
+        <h4 class="hero-title">{{ equipment?.tipoEquipamento?.nome }} — {{ equipment?.marca?.nome }} {{ equipment?.modelo?.nome || '' }}</h4>
+      </div>
+    </div>
+
+    <!-- Timeline List -->
+    <div class="eq-timeline" *ngIf="history.length > 0">
+      <div class="eq-timeline-item" *ngFor="let log of history">
+        
+        <!-- Marker containing an explicit icon -->
+        <div class="eq-timeline-marker" [ngClass]="obterClasseAcao(log.acao)">
+          <i [ngClass]="obterIconeAcao(log.acao)"></i>
+        </div>
+
+        <!-- Boxed Content -->
+        <div class="eq-timeline-card">
+          <div class="eq-timeline-card-header">
+            <span class="eq-action-pill" [ngClass]="obterClasseAcao(log.acao)">
+              {{ log.acao }}
+            </span>
+            <span class="date"><i class="pi pi-clock"></i> {{ log.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+
+          <p class="desc">{{ log.descricao }}</p>
+
+          <div class="eq-timeline-footer">
+            <span class="user"><i class="pi pi-user-edit"></i> Realizado por: <strong>{{ log.usuario?.nome }}</strong></span>
+          </div>
+          
+          <!-- Structured Diff Segment -->
+          <div class="eq-diff-wrap" *ngIf="log.dadosAlterados">
+            <button class="eq-btn-toggle-diff" (click)="log.showDiff = !log.showDiff">
+              <i class="pi" [ngClass]="log.showDiff ? 'pi-chevron-up' : 'pi-chevron-down'"></i>
+              <span>{{ log.showDiff ? 'Ocultar alterações detalhadas' : 'Ver alterações detalhadas' }}</span>
+            </button>
+
+            <div *ngIf="log.showDiff" class="eq-diff-box">
+              <div class="eq-diff-row-modern" *ngFor="let item of log.parsedDiff">
+                <span class="diff-field-name">{{ item.key }}</span>
+                
+                <div class="diff-values-wrapper">
+                  <ng-container *ngIf="item.isUpdate; else createView">
+                    <span class="diff-val old-val" [title]="item.oldValue">{{ item.oldValue }}</span>
+                    <i class="pi pi-arrow-right diff-arrow"></i>
+                    <span class="diff-val new-val" [title]="item.newValue">{{ item.newValue }}</span>
+                  </ng-container>
+                  
+                  <ng-template #createView>
+                    <span class="diff-val new-val" [title]="item.value">{{ item.value }}</span>
+                  </ng-template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    
+    <app-estado-vazio *ngIf="history.length === 0 && !loading" mensagem="Nenhum registro encontrado. Este equipamento ainda não possui histórico de alterações cadastrado no banco de dados."></app-estado-vazio>
+  </div>
+</p-dialog>

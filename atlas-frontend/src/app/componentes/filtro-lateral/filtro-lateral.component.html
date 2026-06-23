@@ -1,0 +1,81 @@
+<p-drawer 
+  [(visible)]="visible" 
+  (visibleChange)="visibleChange.emit($event)" 
+  position="right" 
+  styleClass="filtro-lateral-drawer"
+  [modal]="true"
+>
+  <ng-template pTemplate="header">
+    <div class="filtro-header">
+      <div class="flex items-center gap-2">
+        <i class="pi pi-filter"></i>
+        <span>{{ titulo }}</span>
+      </div>
+      <!-- Badge identificador inline/global -->
+      <span class="escopo-badge" [ngClass]="escopo === 'global' ? 'escopo-global' : 'escopo-inline'">
+        {{ escopo === 'global' ? 'Global' : 'Na tela' }}
+      </span>
+    </div>
+  </ng-template>
+
+  <div class="filtro-body">
+    <div class="filtro-item" *ngFor="let campo of config">
+      <label class="filtro-label">{{ campo.label }}</label>
+
+      <!-- Text -->
+      <ng-container *ngIf="campo.tipo === 'text'">
+        <input 
+          pInputText 
+          type="text" 
+          class="w-full"
+          [(ngModel)]="modelo[campo.key]" 
+          [placeholder]="campo.placeholder || 'Digite...'"
+          (keyup.enter)="onAplicar()"
+        />
+      </ng-container>
+
+      <!-- Select -->
+      <ng-container *ngIf="campo.tipo === 'select'">
+        <p-select 
+          styleClass="w-full"
+          [(ngModel)]="modelo[campo.key]"
+          [options]="campo.opcoes || []" 
+          [optionLabel]="campo.optionLabel!" 
+          [optionValue]="campo.optionValue!" 
+          [showClear]="campo.showClear !== false" 
+          [placeholder]="campo.placeholder || 'Selecione...'"
+          [filter]="(campo.opcoes || []).length > 5"
+        ></p-select>
+      </ng-container>
+
+      <!-- Date -->
+      <ng-container *ngIf="campo.tipo === 'date'">
+        <p-datepicker 
+          styleClass="w-full"
+          [(ngModel)]="modelo[campo.key]"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          [placeholder]="campo.placeholder || 'dd/mm/aaaa'"
+        ></p-datepicker>
+      </ng-container>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="filtro-footer">
+      <button 
+        class="btn-premium-danger" 
+        (click)="onLimpar()"
+      >
+        <i class="pi pi-eraser"></i> Limpar
+      </button>
+      
+      <button 
+        class="btn-premium-primary" 
+        (click)="onAplicar()"
+      >
+        <i class="pi pi-check"></i> Aplicar
+      </button>
+    </div>
+  </ng-template>
+</p-drawer>

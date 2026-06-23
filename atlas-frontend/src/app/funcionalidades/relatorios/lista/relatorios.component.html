@@ -1,0 +1,560 @@
+<app-layout-pagina 
+  [hasStats]="false" 
+  [hasSearch]="false" 
+  [noContentPadding]="true"
+>
+  <!-- Cabeçalho -->
+  <div header-title>
+    <h1>Relatórios atlas</h1>
+    <p>Extração de dados e histórico de movimentações do sistema</p>
+  </div>
+
+  <!-- Abas e Tabelas Grid Principais -->
+  <div content>
+    <!-- Seção de Abas do Relatório -->
+    <p-tabs [(value)]="abaAtiva" styleClass="re-tabview">
+      <p-tablist>
+        <p-tab [value]="0">Inventário Completo</p-tab>
+        <p-tab [value]="1">Transferências</p-tab>
+        <p-tab [value]="2">Resumo por Unidade</p-tab>
+        <p-tab [value]="3">Manutenções (OS)</p-tab>
+        <p-tab [value]="4">Histórico de Aprovações</p-tab>
+        <p-tab [value]="5">Logs de Auditoria</p-tab>
+      </p-tablist>
+      <p-tabpanels>
+
+        <!-- Aba 1: Inventário Geral -->
+        <p-tabpanel [value]="0">
+          <!-- Cabeçalho de informações -->
+          <div class="atlas-section-header success">
+            <span>
+              <i class="pi pi-box"></i>
+              Total de Equipamentos Carregados: <strong>{{ inventario.length | number }}</strong>
+              <span *ngIf="inventario.length !== inventarioOriginal.length" class="atlas-text-success-sm">
+                (de {{ inventarioOriginal.length | number }} no total)
+              </span>
+            </span>
+            <div class="re-export-actions" style="display: flex; gap: 8px;">
+              <button pButton type="button" icon="pi pi-print" label="Imprimir" class="p-button-outlined p-button-sm re-btn-export" onclick="window.print()" pTooltip="Imprimir inventário" tooltipPosition="bottom"></button>
+              <button pButton type="button" icon="pi pi-file-excel" label="CSV" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarCSV()" [disabled]="inventario.length === 0" pTooltip="Exportar CSV" tooltipPosition="bottom"></button>
+              <button pButton type="button" icon="pi pi-file-pdf" label="PDF" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarPDF()" [disabled]="inventario.length === 0" pTooltip="Exportar PDF" tooltipPosition="bottom"></button>
+            </div>
+          </div>
+
+          <!-- Barra de busca e filtros -->
+          <div class="atlas-section-header">
+            <div class="atlas-search-premium">
+              <div class="search-input-wrapper">
+                <i class="pi pi-search search-icon"></i>
+                <input #searchInput type="text"
+                  class="search-input"
+                  placeholder="Buscar por Patrimônio, Série, SEI, Marca, Seção..."
+                  [(ngModel)]="termoBusca"
+                  (input)="aplicarFiltros()"
+                />
+                <button *ngIf="termoBusca" class="clear-btn" (click)="termoBusca=''; aplicarFiltros()" pTooltip="Limpar busca" tooltipPosition="top">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="re-filter-row" style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <p-select [options]="diretorias" [(ngModel)]="filtroDiretoriaId"
+                optionLabel="sigla" optionValue="id" [showClear]="true"
+                placeholder="Diretoria (Cascata)" appendTo="body" (onChange)="aplicarFiltros()" pTooltip="Filtra a diretoria e todas as suas unidades">
+              </p-select>
+
+              <p-select [options]="batalhoes" [(ngModel)]="filtroBatalhaoId"
+                optionLabel="sigla" optionValue="id" [showClear]="true"
+                placeholder="Batalhão (Cascata)" appendTo="body" (onChange)="aplicarFiltros()" pTooltip="Filtra o batalhão e todas as suas seções">
+              </p-select>
+
+              <p-select [options]="secoes" [(ngModel)]="filtroSecaoId"
+                optionLabel="sigla" optionValue="id" [showClear]="true"
+                placeholder="Seção Exata" appendTo="body" (onChange)="aplicarFiltros()">
+              </p-select>
+
+              <p-select [options]="tipos" [(ngModel)]="filtroTipoId"
+                optionLabel="nome" optionValue="id" [showClear]="true"
+                placeholder="Tipo" appendTo="body" (onChange)="aplicarFiltros()">
+              </p-select>
+
+              <p-select [options]="status" [(ngModel)]="filtroStatusId"
+                optionLabel="nome" optionValue="id" [showClear]="true"
+                placeholder="Status" appendTo="body" (onChange)="aplicarFiltros()">
+              </p-select>
+
+              <p-select [options]="disponibilidades" [(ngModel)]="filtroDisponibilidadeId"
+                optionLabel="nome" optionValue="id" [showClear]="true"
+                placeholder="Disponibilidade" appendTo="body" (onChange)="aplicarFiltros()">
+              </p-select>
+
+              <button pButton type="button" icon="pi pi-times" label="Limpar" class="p-button-text re-btn-ghost" (click)="limparFiltros()"></button>
+            </div>
+          </div>
+
+          <!-- Tabela -->
+          <div class="re-table-wrap">
+            <app-tabela-scroll></app-tabela-scroll>
+            <p-table
+              [value]="inventario"
+              [rowTrackBy]="trackByEquipamentoId"
+              [loading]="carregando"
+              [rows]="50"
+              [paginator]="true"
+              [rowHover]="true"
+              styleClass="p-datatable-sm p-datatable-gridlines"
+              [scrollable]="true"
+            >
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="min-width: 150px" pFrozenColumn>PATRIMÔNIO</th>
+                  <th style="min-width: 130px; text-align: center">DISPONIBILIDADE</th>
+                  <th style="min-width: 110px">SEÇÃO</th>
+                  <th style="min-width: 120px">DIRETORIA</th>
+                  <th style="min-width: 150px">TIPO</th>
+                  <th style="min-width: 130px">SEI</th>
+                  <th style="min-width: 130px">N.SÉRIE</th>
+                  <th style="min-width: 120px">MARCA</th>
+                  <th style="min-width: 120px">MODELO</th>
+                  <th style="min-width: 100px; text-align: center">STATUS</th>
+                  <th style="min-width: 130px">DATA AQUISIÇÃO</th>
+                  <th style="min-width: 140px">TIPO AQUISIÇÃO</th>
+                  <th style="min-width: 170px">USUÁRIO SOLICITANTE</th>
+                  <th style="min-width: 140px">DATA SOLICITAÇÃO</th>
+                  <th style="min-width: 160px">RETORNO EMPRÉSTIMO</th>
+                  <th style="min-width: 220px">OBSERVAÇÃO</th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-e>
+                <tr>
+                  <td pFrozenColumn><span class="re-patrimonio" style="font-weight: 700;">{{ e.patrimonio }}</span></td>
+                  <td style="text-align: center">
+                    <app-indicador-status [valor]="e.disponibilidade?.nome || '—'" tipo="disponibilidade"></app-indicador-status>
+                  </td>
+                  <td><strong>{{ e.secao?.sigla || '—' }}</strong></td>
+                  <td>{{ e.secao?.diretoria?.sigla || '—' }}</td>
+                  <td>{{ e.tipoEquipamento?.nome || '—' }}</td>
+                  <td>{{ e.sei || '—' }}</td>
+                  <td>{{ e.numeroSerie || '—' }}</td>
+                  <td>{{ e.marca?.nome || '—' }}</td>
+                  <td>{{ e.modelo?.nome || '—' }}</td>
+                  <td style="text-align: center">
+                    <app-indicador-status [valor]="e.status?.nome || '—'" tipo="status"></app-indicador-status>
+                  </td>
+                  <td>{{ formatarData(e.dataAquisicao) || '—' }}</td>
+                  <td>{{ e.tipoAquisicao?.nome || '—' }}</td>
+                  <td>
+                    <span *ngIf="e.solicitante; else noUser">
+                      <i class="pi pi-user" style="font-size: 0.75rem; margin-right: 4px"></i>
+                      {{ e.solicitante }}
+                    </span>
+                    <ng-template #noUser>—</ng-template>
+                  </td>
+                  <td>{{ formatarData(e.dataSolicitacao) || '—' }}</td>
+                  <td>{{ formatarData(e.dataRetornoEmprestimo) || '—' }}</td>
+                  <td>
+                    <span class="re-obs" [pTooltip]="e.observacao" tooltipPosition="top">
+                      {{ e.observacao || '—' }}
+                    </span>
+                  </td>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="16">
+                    <div class="atlas-empty-state">
+                      <i class="pi pi-box" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+                      <p *ngIf="!carregando">Nenhum equipamento encontrado com os filtros atuais.</p>
+                      <p *ngIf="carregando">Carregando inventário...</p>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </p-tabpanel>
+
+        <!-- Aba 2: Transferências -->
+        <p-tabpanel [value]="1">
+          <div class="atlas-section-header success">
+            <span>
+              <i class="pi pi-exchange"></i>
+              Total de Transferências: <strong>{{ transferencias.length | number }}</strong>
+            </span>
+            <div class="re-export-actions" style="display: flex; gap: 8px;">
+              <button pButton type="button" icon="pi pi-print" label="Imprimir" class="p-button-outlined p-button-sm re-btn-export" (click)="imprimirTransferencias()" [disabled]="transferencias.length === 0" pTooltip="Imprimir transferências" tooltipPosition="bottom"></button>
+              <button pButton type="button" icon="pi pi-file-excel" label="CSV" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarTransferCSV()" [disabled]="transferencias.length === 0" pTooltip="Exportar transferências" tooltipPosition="bottom"></button>
+              <button pButton type="button" icon="pi pi-file-pdf" label="PDF" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarTransferPDF()" [disabled]="transferencias.length === 0" pTooltip="Exportar como PDF" tooltipPosition="bottom"></button>
+            </div>
+          </div>
+
+          <div class="atlas-section-header">
+            <div class="atlas-search-premium">
+              <div class="search-input-wrapper">
+                <i class="pi pi-search search-icon"></i>
+                <input #searchTransfer type="text"
+                  class="search-input"
+                  placeholder="Buscar por patrimônio, solicitante, recebedor..."
+                  [(ngModel)]="filtroTransferPatrimonio"
+                  (input)="aplicarFiltrosTransferencias()"
+                />
+                <button *ngIf="filtroTransferPatrimonio" class="clear-btn" (click)="filtroTransferPatrimonio=''; aplicarFiltrosTransferencias()" pTooltip="Limpar busca" tooltipPosition="top">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="re-filter-row" style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <p-select [options]="statusTransferencias" [(ngModel)]="filtroTransferStatus"
+                optionLabel="label" optionValue="value" [showClear]="true"
+                placeholder="Status" appendTo="body" (onChange)="aplicarFiltrosTransferencias()">
+              </p-select>
+
+              <p-select [options]="secoes" [(ngModel)]="filtroTransferOrigemId"
+                optionLabel="sigla" optionValue="id" [showClear]="true"
+                placeholder="Origem" appendTo="body" (onChange)="aplicarFiltrosTransferencias()">
+              </p-select>
+
+              <p-select [options]="secoes" [(ngModel)]="filtroTransferDestinoId"
+                optionLabel="sigla" optionValue="id" [showClear]="true"
+                placeholder="Destino" appendTo="body" (onChange)="aplicarFiltrosTransferencias()">
+              </p-select>
+
+              <input type="text" pInputText [(ngModel)]="filtroTransferLote" (input)="aplicarFiltrosTransferencias()" placeholder="Lote / ID" class="atlas-input-field" />
+              <input type="date" pInputText [(ngModel)]="filtroTransferEnvioInicio" (change)="aplicarFiltrosTransferencias()" class="atlas-input-field" />
+              <input type="date" pInputText [(ngModel)]="filtroTransferEnvioFim" (change)="aplicarFiltrosTransferencias()" class="atlas-input-field" />
+
+              <button pButton type="button" icon="pi pi-times" label="Limpar" class="p-button-text re-btn-ghost" (click)="limparFiltrosTransferencias()"></button>
+            </div>
+          </div>
+
+          <div class="re-table-wrap">
+            <app-tabela-scroll></app-tabela-scroll>
+            <p-table
+              [value]="transferencias"
+              [rowTrackBy]="trackByTransferenciaId"
+              [loading]="false"
+              [rows]="50"
+              [paginator]="true"
+              [rowHover]="true"
+              styleClass="p-datatable-sm p-datatable-gridlines"
+              [scrollable]="true"
+            >
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="min-width: 130px" pFrozenColumn>PATRIMÔNIO</th>
+                  <th style="min-width: 130px">N.SÉRIE</th>
+                  <th style="min-width: 140px">TIPO</th>
+                  <th style="min-width: 130px">MARCA</th>
+                  <th style="min-width: 130px">DATA ENVIO</th>
+                  <th style="min-width: 120px">ORIGEM</th>
+                  <th style="min-width: 120px">DESTINO</th>
+                  <th style="min-width: 150px">SOLICITANTE</th>
+                  <th style="min-width: 150px">RECEBEDOR</th>
+                  <th style="min-width: 110px; text-align: center">STATUS</th>
+                  <th style="min-width: 140px">DATA RECEBIMENTO</th>
+                  <th style="min-width: 220px">OBSERVAÇÃO</th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-t>
+                <tr>
+                  <td pFrozenColumn style="font-weight: bold;">{{ t.equipamento?.patrimonio || '—' }}</td>
+                  <td>{{ t.equipamento?.numeroSerie || '—' }}</td>
+                  <td>{{ t.equipamento?.tipoEquipamento?.nome || '—' }}</td>
+                  <td>{{ t.equipamento?.marca?.nome || '—' }}</td>
+                  <td>{{ formatarData(t.dataEnvio) || '—' }}</td>
+                  <td>{{ t.origem?.sigla || '—' }}</td>
+                  <td>{{ t.destino?.sigla || '—' }}</td>
+                  <td>{{ t.solicitante?.nome || '—' }}</td>
+                  <td>{{ t.recebedor?.nome || '—' }}</td>
+                  <td style="text-align: center">
+                    <app-indicador-status [valor]="t.status" tipo="transferencia"></app-indicador-status>
+                  </td>
+                  <td>{{ formatarData(t.dataRecebimento) || '—' }}</td>
+                  <td>
+                    <span class="re-obs" [pTooltip]="t.observacao" tooltipPosition="top">
+                      {{ t.observacao || '—' }}
+                    </span>
+                  </td>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="9">
+                    <div class="atlas-empty-state">
+                      <i class="pi pi-box" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+                      <p>Nenhuma transferência encontrada com os filtros atuais.</p>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </p-tabpanel>
+
+        <!-- Aba 3: Consolidado por Unidade -->
+        <p-tabpanel [value]="2">
+          <div class="atlas-section-header success">
+            <span>
+              <i class="pi pi-chart-bar"></i>
+              Total de Unidades: <strong>{{ resumoUnidades.length | number }}</strong>
+              <span *ngIf="inventarioOriginal.length > 0" class="atlas-text-success-sm">
+                (base de {{ inventarioOriginal.length | number }} equipamentos)
+              </span>
+            </span>
+            <div class="re-export-actions" style="display: flex; gap: 8px;">
+              <button pButton type="button" icon="pi pi-file-excel" label="CSV" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarResumoCSV()" [disabled]="resumoUnidades.length === 0" pTooltip="Exportar resumo" tooltipPosition="bottom"></button>
+              <button pButton type="button" icon="pi pi-file-pdf" label="PDF" class="p-button-outlined p-button-sm re-btn-export" (click)="exportarResumoPDF()" [disabled]="resumoUnidades.length === 0" pTooltip="Exportar resumo" tooltipPosition="bottom"></button>
+              <button pButton type="button" icon="pi pi-print" label="Imprimir" class="p-button-outlined p-button-sm re-btn-export" (click)="imprimirResumoUnidades()" [disabled]="resumoUnidades.length === 0" pTooltip="Imprimir resumo" tooltipPosition="bottom"></button>
+            </div>
+          </div>
+
+          <div class="re-resumo-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; padding: 1rem;">
+            <div class="atlas-stat-card" *ngFor="let u of resumoUnidades" style="flex-direction: column; justify-content: center; text-align: center;">
+              <div class="atlas-stat-card__val" style="font-size: 1.25rem;">{{ u.sigla }}</div>
+              <div class="atlas-stat-card__val" style="font-size: 1.75rem; color: #2563eb;">{{ u.total | number }}</div>
+              <div class="atlas-stat-card__label">equipamentos</div>
+              <div class="atlas-progress-bar-bg">
+                <div class="re-resumo-card__fill"
+                  style="height: 100%; background: #2563eb;"
+                  [style.width.%]="inventarioOriginal.length ? (u.total / inventarioOriginal.length) * 100 : 0">
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-tabpanel>
+        <!-- Aba 3: Manutenções (OS) -->
+        <p-tabpanel [value]="3">
+          <div class="atlas-section-header success">
+            <span><i class="pi pi-wrench"></i> Histórico de Ordens de Serviço (Manutenções)</span>
+            <div class="re-export-actions">
+              <button pButton type="button" icon="pi pi-print" label="Imprimir" class="p-button-outlined p-button-sm re-btn-export" onclick="window.print()"></button>
+            </div>
+          </div>
+          
+          <div class="atlas-section-header">
+            <div class="atlas-search-premium">
+              <div class="search-input-wrapper">
+                <i class="pi pi-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Buscar por OS, Patrimônio, Técnico..." [(ngModel)]="termoBuscaManutencao" (input)="aplicarFiltrosManutencoes()" />
+                <button *ngIf="termoBuscaManutencao" class="clear-btn" (click)="termoBuscaManutencao=''; aplicarFiltrosManutencoes()" pTooltip="Limpar busca"><i class="pi pi-times"></i></button>
+              </div>
+            </div>
+            <div class="re-filter-row" style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <p-select [options]="status" [(ngModel)]="filtroManutencaoStatus" optionLabel="nome" [showClear]="true" placeholder="Status" appendTo="body" (onChange)="aplicarFiltrosManutencoes()"></p-select>
+              <input type="date" pInputText [(ngModel)]="filtroManutencaoAberturaInicio" (change)="aplicarFiltrosManutencoes()" class="atlas-input-field" pTooltip="Abertura a partir de" />
+              <input type="date" pInputText [(ngModel)]="filtroManutencaoAberturaFim" (change)="aplicarFiltrosManutencoes()" class="atlas-input-field" pTooltip="Abertura até" />
+              <button pButton type="button" icon="pi pi-times" label="Limpar" class="p-button-text re-btn-ghost" (click)="limparFiltrosManutencoes()"></button>
+            </div>
+          </div>
+
+          <div class="re-table-wrap">
+            <app-tabela-scroll></app-tabela-scroll>
+            <p-table [value]="manutencoes" [rowHover]="true" styleClass="p-datatable-sm p-datatable-gridlines" [paginator]="true" [rows]="20">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="min-width: 70px">OS #</th>
+                  <th style="min-width: 120px" pFrozenColumn>EQUIPAMENTO</th>
+                  <th style="min-width: 120px">N.SÉRIE</th>
+                  <th style="min-width: 130px">TIPO</th>
+                  <th style="min-width: 110px">MARCA</th>
+                  <th style="min-width: 150px">SOLICITANTE</th>
+                  <th style="min-width: 180px">PROBLEMA RELATADO</th>
+                  <th style="min-width: 150px">TÉCNICO</th>
+                  <th style="min-width: 120px; text-align: center">STATUS</th>
+                  <th style="min-width: 120px">DATA ABERTURA</th>
+                  <th style="min-width: 130px">DATA FECHAMENTO</th>
+                  <th style="min-width: 180px">SOLUÇÃO APLICADA</th>
+                  <th style="min-width: 100px">GASTO (R$)</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-m>
+                <tr>
+                  <td>{{ m.id }}</td>
+                  <td pFrozenColumn style="font-weight: bold;">{{ m.equipamento?.patrimonio || '—' }}</td>
+                  <td>{{ m.equipamento?.numeroSerie || '—' }}</td>
+                  <td>{{ m.equipamento?.tipoEquipamento?.nome || '—' }}</td>
+                  <td>{{ m.equipamento?.marca?.nome || '—' }}</td>
+                  <td>{{ m.solicitante?.nome || '—' }}</td>
+                  <td><span class="re-obs" [pTooltip]="m.descricaoProblema" tooltipPosition="top">{{ m.descricaoProblema || '—' }}</span></td>
+                  <td>{{ m.tecnicoResponsavel || '—' }}</td>
+                  <td style="text-align: center"><app-indicador-status [valor]="m.status" tipo="status"></app-indicador-status></td>
+                  <td>{{ formatarData(m.dataAbertura) || '—' }}</td>
+                  <td>{{ formatarData(m.dataFechamento) || '—' }}</td>
+                  <td><span class="re-obs" [pTooltip]="m.descricaoSolucao" tooltipPosition="top">{{ m.descricaoSolucao || '—' }}</span></td>
+                  <td style="font-weight: 600;">{{ m.valorGasto ? (m.valorGasto | currency:'BRL') : '—' }}</td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="13">
+                    <div class="atlas-empty-state" style="text-align: center; padding: 3rem; color: #64748b;">
+                      <i class="pi pi-wrench" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; color: #94a3b8;"></i>
+                      <p style="margin: 0;">Nenhuma Ordem de Serviço encontrada.</p>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </p-tabpanel>
+
+        <!-- Aba 4: Aprovações -->
+        <p-tabpanel [value]="4">
+          <div class="atlas-section-header success">
+            <span><i class="pi pi-check-circle"></i> Histórico de Aprovações Cadastrais</span>
+            <div class="re-export-actions">
+              <button pButton type="button" icon="pi pi-print" label="Imprimir" class="p-button-outlined p-button-sm re-btn-export" onclick="window.print()"></button>
+            </div>
+          </div>
+
+          <div class="atlas-section-header">
+            <div class="atlas-search-premium">
+              <div class="search-input-wrapper">
+                <i class="pi pi-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Buscar por Patrimônio, Solicitante, Avaliador..." [(ngModel)]="termoBuscaAprovacoes" (input)="aplicarFiltrosAprovacoes()" />
+                <button *ngIf="termoBuscaAprovacoes" class="clear-btn" (click)="termoBuscaAprovacoes=''; aplicarFiltrosAprovacoes()" pTooltip="Limpar busca"><i class="pi pi-times"></i></button>
+              </div>
+            </div>
+            <div class="re-filter-row" style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <p-select [options]="statusOpcoes" [(ngModel)]="filtroAprovacoesStatus" optionLabel="label" optionValue="value" [showClear]="true" placeholder="Decisão" appendTo="body" (onChange)="aplicarFiltrosAprovacoes()"></p-select>
+              <input type="date" pInputText [(ngModel)]="filtroAprovacoesDataInicio" (change)="aplicarFiltrosAprovacoes()" class="atlas-input-field" pTooltip="Pedido a partir de" />
+              <input type="date" pInputText [(ngModel)]="filtroAprovacoesDataFim" (change)="aplicarFiltrosAprovacoes()" class="atlas-input-field" pTooltip="Pedido até" />
+              <button pButton type="button" icon="pi pi-times" label="Limpar" class="p-button-text re-btn-ghost" (click)="limparFiltrosAprovacoes()"></button>
+            </div>
+          </div>
+
+          <div class="re-table-wrap">
+            <p-table [value]="aprovacoes" [rowHover]="true" styleClass="p-datatable-sm p-datatable-gridlines" [paginator]="true" [rows]="20" [scrollable]="true">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="min-width: 60px">ID</th>
+                  <th style="min-width: 120px" pFrozenColumn>EQUIPAMENTO</th>
+                  <th style="min-width: 120px">N.SÉRIE</th>
+                  <th style="min-width: 130px">TIPO</th>
+                  <th style="min-width: 110px">MARCA</th>
+                  <th style="min-width: 150px">SOLICITANTE</th>
+                  <th style="min-width: 140px">DATA PEDIDO</th>
+                  <th style="min-width: 180px">CAMPOS ALTERADOS</th>
+                  <th style="min-width: 110px; text-align: center">STATUS</th>
+                  <th style="min-width: 150px">ANALISADO POR</th>
+                  <th style="min-width: 140px">DATA ANÁLISE</th>
+                  <th style="min-width: 180px">MOTIVO RECUSA / OBS</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-a>
+                <tr>
+                  <td>{{ a.id }}</td>
+                  <td pFrozenColumn style="font-weight: bold;">{{ a.equipamento?.patrimonio || '—' }}</td>
+                  <td>{{ a.equipamento?.numeroSerie || '—' }}</td>
+                  <td>{{ a.equipamento?.tipoEquipamento?.nome || '—' }}</td>
+                  <td>{{ a.equipamento?.marca?.nome || '—' }}</td>
+                  <td>{{ a.solicitante?.nome || '—' }}</td>
+                  <td>{{ formatarData(a.dataSolicitacao) || '—' }}</td>
+                  <td><span class="re-obs" [pTooltip]="a.camposAlterados?.join(', ')" tooltipPosition="top">{{ a.camposAlterados?.join(', ') || '—' }}</span></td>
+                  <td style="text-align: center">
+                    <span *ngIf="a.aprovado === true" class="atlas-badge-gray" style="background:#dcfce7;color:#166534;border-color:#bbf7d0">APROVADO</span>
+                    <span *ngIf="a.aprovado === false" class="atlas-badge-gray" style="background:#fee2e2;color:#991b1b;border-color:#fecaca">REJEITADO</span>
+                    <span *ngIf="a.aprovado === null || a.aprovado === undefined" class="atlas-badge-gray" style="background:#fef9c3;color:#854d0e;border-color:#fef08a">PENDENTE</span>
+                  </td>
+                  <td>{{ a.avaliador?.nome || '—' }}</td>
+                  <td>{{ formatarData(a.dataAvaliacao) || formatarData(a.dataAtualizacao) || '—' }}</td>
+                  <td><span class="re-obs" [pTooltip]="a.motivoRejeicao" tooltipPosition="top">{{ a.motivoRejeicao || '—' }}</span></td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="12">
+                    <div class="atlas-empty-state" style="text-align: center; padding: 3rem; color: #64748b;">
+                      <i class="pi pi-check-circle" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; color: #94a3b8;"></i>
+                      <p style="margin: 0;">Nenhum registro de aprovação encontrado.</p>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </p-tabpanel>
+
+        <!-- Aba 5: Logs de Auditoria -->
+        <p-tabpanel [value]="5">
+          <div class="atlas-section-header success">
+            <span><i class="pi pi-shield"></i> Logs de Auditoria do Sistema</span>
+            <div class="re-export-actions">
+              <button pButton type="button" icon="pi pi-print" label="Imprimir" class="p-button-outlined p-button-sm re-btn-export" onclick="window.print()"></button>
+            </div>
+          </div>
+
+          <div class="atlas-section-header">
+            <div class="atlas-search-premium">
+              <div class="search-input-wrapper">
+                <i class="pi pi-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Buscar por Ação, Usuário, IP ou texto no JSON..." [(ngModel)]="termoBuscaAuditoria" (input)="aplicarFiltrosAuditoria()" />
+                <button *ngIf="termoBuscaAuditoria" class="clear-btn" (click)="termoBuscaAuditoria=''; aplicarFiltrosAuditoria()" pTooltip="Limpar busca"><i class="pi pi-times"></i></button>
+              </div>
+            </div>
+            <div class="re-filter-row" style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <input type="date" pInputText [(ngModel)]="filtroAuditoriaDataInicio" (change)="aplicarFiltrosAuditoria()" class="atlas-input-field" pTooltip="Data do Log a partir de" />
+              <input type="date" pInputText [(ngModel)]="filtroAuditoriaDataFim" (change)="aplicarFiltrosAuditoria()" class="atlas-input-field" pTooltip="Data do Log até" />
+              <button pButton type="button" icon="pi pi-times" label="Limpar" class="p-button-text re-btn-ghost" (click)="limparFiltrosAuditoria()"></button>
+            </div>
+          </div>
+
+          <div class="re-table-wrap">
+            <p-table [value]="auditoria" [rowHover]="true" styleClass="p-datatable-sm p-datatable-gridlines" [paginator]="true" [rows]="50" [scrollable]="true">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="min-width: 150px">Data/Hora</th>
+                  <th style="min-width: 160px">Usuário / IP</th>
+                  <th style="min-width: 140px">Dispositivo</th>
+                  <th style="min-width: 120px">Patrimônio</th>
+                  <th style="min-width: 160px">Ação de Sistema</th>
+                  <th style="min-width: 250px">Descrição</th>
+                  <th style="min-width: 350px">Detalhes Técnicos</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-log>
+                <tr>
+                  <td><strong>{{ log.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}</strong></td>
+                  <td>
+                    <div>{{ log.usuario?.nome || 'Sistema' }}</div>
+                    <div style="font-size: 0.7rem; color: #64748b;">{{ log.ip || '—' }}</div>
+                  </td>
+                  <td><span class="re-obs" [pTooltip]="log.userAgent" tooltipPosition="top">{{ log.userAgent || '—' }}</span></td>
+                  <td style="font-weight: 600;">{{ log.equipamento?.patrimonio || '—' }}</td>
+                  <td><span class="atlas-badge-gray" style="font-size: 0.70rem; text-transform: uppercase;">{{ log.acao }}</span></td>
+                  <td>{{ log.descricao || '—' }}</td>
+                  <td style="padding: 0; vertical-align: top;">
+                    <div *ngIf="log.dadosAlterados && (log.dadosAlterados | json) !== '{}' && (log.dadosAlterados | json) !== 'null'" style="padding: 0.5rem; font-size: 0.75rem;">
+                      <div *ngFor="let det of obterListaDetalhes(log.dadosAlterados)" style="margin-bottom: 4px; padding-bottom: 2px;">
+                        <span style="font-weight: 600; color: #475569;">{{ formatarChave(det.chave) }}:</span> 
+                        <span style="color: #0f172a; margin-left: 4px;">{{ det.valor }}</span>
+                      </div>
+                    </div>
+                    <div *ngIf="!log.dadosAlterados || (log.dadosAlterados | json) === '{}' || (log.dadosAlterados | json) === 'null'" style="padding: 0.75rem; color: #94a3b8;">—</div>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="7">
+                    <div class="atlas-empty-state" style="text-align: center; padding: 3rem; color: #64748b;">
+                      <i class="pi pi-shield" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; color: #94a3b8;"></i>
+                      <p style="margin: 0;">Nenhum log de auditoria encontrado neste período.</p>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </p-tabpanel>
+
+      </p-tabpanels>
+    </p-tabs>
+  </div>
+</app-layout-pagina>
