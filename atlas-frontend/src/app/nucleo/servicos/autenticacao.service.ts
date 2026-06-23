@@ -3,8 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { environment } from '../../environment';
-import { MockModeService } from './modo-mock.service';
-import { USUARIOS_MOCK } from '../dados-teste/usuarios.teste';
 import { UsuarioLogado } from '../interfaces/usuario.interface';
 
 @Injectable({
@@ -12,31 +10,13 @@ import { UsuarioLogado } from '../interfaces/usuario.interface';
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private mockMode = inject(MockModeService);
   private readonly API_URL = `${environment.apiUrl}/autenticacao`;
 
   private usuarioSubject = new BehaviorSubject<UsuarioLogado | null>(this.getUsuario());
   public usuario$ = this.usuarioSubject.asObservable();
 
   login(matricula: string, senha: string) {
-    if (this.mockMode.useMock) {
-      const mockUsuario = USUARIOS_MOCK[matricula?.toLowerCase()];
-      if (mockUsuario && senha === '123') {
-        const mockResponse = {
-          access_token: 'mock-access-token',
-          refresh_token: 'mock-refresh-token',
-          usuario: mockUsuario
-        };
 
-        return of(mockResponse).pipe(
-          tap(res => {
-            this.salvarSessao(res.access_token, res.refresh_token, res.usuario);
-          })
-        );
-      }
-
-      return throwError(() => new Error('Usuário ou senha inválidos'));
-    }
 
     return this.http.post<{ access_token: string; refresh_token: string; usuario: UsuarioLogado }>(`${this.API_URL}/login-sei`, { usuario: matricula, senha })
       .pipe(
@@ -49,20 +29,7 @@ export class AuthService {
   }
 
   refresh() {
-    if (this.mockMode.useMock) {
-      const refreshToken = this.getRefreshToken();
-      const mockResponse = {
-        access_token: 'mock-access-token',
-        refresh_token: refreshToken || 'mock-refresh-token'
-      };
-      return of(mockResponse).pipe(
-        tap(res => {
-          if (res.access_token) {
-            this.salvarSessao(res.access_token, res.refresh_token, this.getUsuario()!);
-          }
-        })
-      );
-    }
+
 
     const refreshToken = this.getRefreshToken();
     return this.http.post<{ access_token: string; refresh_token: string }>(`${this.API_URL}/refresh`, { refresh_token: refreshToken })
@@ -84,10 +51,7 @@ export class AuthService {
   }
 
   logout() {
-    if (this.mockMode.useMock) {
-      this.limparSessao();
-      return;
-    }
+
 
     const token = this.getToken();
     if (token) {

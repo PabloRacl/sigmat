@@ -98,10 +98,15 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
   modeloFiltros: Record<string, any> = {};
 
   configFiltros: FiltroConfig[] = [
-    { key: 'dataAberturaInicio', label: 'Abertas a partir de', tipo: 'date' },
-    { key: 'dataAberturaFim', label: 'Abertas até', tipo: 'date' },
+    { key: 'osId', label: 'Número da OS (#)', tipo: 'text', placeholder: 'Ex: 15' },
+    { key: 'equipamento', label: 'Equipamento (Patrimônio, Marca...)', tipo: 'text', placeholder: 'Ex: HT Motorola' },
+    { key: 'descricaoProblema', label: 'Problema Relatado', tipo: 'text', placeholder: 'Ex: Tela quebrada' },
     { key: 'tecnicoResponsavel', label: 'Técnico Responsável', tipo: 'text', placeholder: 'Ex: SD Silva' },
     { key: 'solicitante', label: 'Solicitante', tipo: 'text', placeholder: 'Ex: Sgt Oliveira' },
+    { key: 'dataAberturaInicio', label: 'Abertas a partir de', tipo: 'date' },
+    { key: 'dataAberturaFim', label: 'Abertas até', tipo: 'date' },
+    { key: 'dataPrevisaoInicio', label: 'Previsão a partir de', tipo: 'date' },
+    { key: 'dataPrevisaoFim', label: 'Previsão até', tipo: 'date' },
     { key: 'status', label: 'Status da OS', tipo: 'select', opcoes: [
       { label: 'Todos os Status', value: null },
       { label: 'Aberta', value: 'ABERTA' },
@@ -238,14 +243,38 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
         os.equipamento?.patrimonio,
         os.equipamento?.tipoEquipamento?.nome,
         os.equipamento?.marca?.nome,
+        os.equipamento?.modelo?.nome,
+        os.equipamento?.secao?.sigla,
+        os.equipamento?.secao?.nome,
         os.tecnicoResponsavel,
         os.descricaoProblema,
         os.solicitante?.nome,
+        this.formatarStatusLabel(os.status),
+        this.diasAberta(os.dataAbertura).toString(),
+        this.formatDate(os.dataAbertura),
+        this.formatDate(os.dataPrevisao)
       ].some(v => v?.toLowerCase().includes(texto));
 
       // 3. Filtros Avançados (Lateral)
       let matchAvancado = true;
       if (this.filtroAtivo) {
+        if (this.modeloFiltros['osId'] && os.id?.toString() !== this.modeloFiltros['osId'].trim()) {
+          matchAvancado = false;
+        }
+        if (this.modeloFiltros['equipamento']) {
+          const termoEquip = this.modeloFiltros['equipamento'].toLowerCase();
+          const equipMatch = [
+            os.equipamento?.patrimonio,
+            os.equipamento?.tipoEquipamento?.nome,
+            os.equipamento?.marca?.nome,
+            os.equipamento?.modelo?.nome,
+            os.equipamento?.secao?.sigla
+          ].some(v => v?.toLowerCase().includes(termoEquip));
+          if (!equipMatch) matchAvancado = false;
+        }
+        if (this.modeloFiltros['descricaoProblema'] && (!os.descricaoProblema || !os.descricaoProblema.toLowerCase().includes(this.modeloFiltros['descricaoProblema'].toLowerCase()))) {
+          matchAvancado = false;
+        }
         if (this.modeloFiltros['status'] && os.status !== this.modeloFiltros['status']) {
           matchAvancado = false;
         }
@@ -268,6 +297,22 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
           const fim = new Date(this.modeloFiltros['dataAberturaFim']);
           fim.setHours(23, 59, 59, 999);
           if (dataAbertura > fim) matchAvancado = false;
+        }
+        if (this.modeloFiltros['dataPrevisaoInicio'] && os.dataPrevisao) {
+          const dataPrevisao = new Date(os.dataPrevisao);
+          const inicio = new Date(this.modeloFiltros['dataPrevisaoInicio']);
+          inicio.setHours(0, 0, 0, 0);
+          if (dataPrevisao < inicio) matchAvancado = false;
+        } else if (this.modeloFiltros['dataPrevisaoInicio'] && !os.dataPrevisao) {
+          matchAvancado = false;
+        }
+        if (this.modeloFiltros['dataPrevisaoFim'] && os.dataPrevisao) {
+          const dataPrevisao = new Date(os.dataPrevisao);
+          const fim = new Date(this.modeloFiltros['dataPrevisaoFim']);
+          fim.setHours(23, 59, 59, 999);
+          if (dataPrevisao > fim) matchAvancado = false;
+        } else if (this.modeloFiltros['dataPrevisaoFim'] && !os.dataPrevisao) {
+          matchAvancado = false;
         }
       }
 
@@ -426,6 +471,15 @@ export class MaintenanceListComponent implements OnInit, OnDestroy {
     if (!dataAbertura) return 0;
     const diff = Date.now() - new Date(dataAbertura).getTime();
     return Math.floor(diff / (1000 * 60 * 60 * 24));
+  }
+
+  formatDate(dateString: string | undefined | null): string {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    const day = d.getDate().toString().padStart(2, '0');
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
   }
 
   isAtrasada(os: OrdemServico): boolean {

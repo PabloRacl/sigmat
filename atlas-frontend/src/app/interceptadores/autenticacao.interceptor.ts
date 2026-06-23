@@ -1,13 +1,11 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from '../nucleo/servicos/autenticacao.service';
-import { MockModeService } from '../nucleo/servicos/modo-mock.service';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { environment } from '../environment';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
-  const mockMode = inject(MockModeService);
   const token = authService.getToken();
 
   let authReq = req;
@@ -15,10 +13,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     authReq = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` }
     });
-  }
-
-  if (mockMode.useMock) {
-    return next(authReq);
   }
 
   return next(authReq).pipe(

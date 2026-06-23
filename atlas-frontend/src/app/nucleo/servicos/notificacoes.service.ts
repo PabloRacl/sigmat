@@ -8,7 +8,6 @@ import { AuthService } from './autenticacao.service';
 import { AccessRequestsFrontendService } from './solicitacoes-acesso.service';
 import { io, Socket } from 'socket.io-client';
 import { environment } from '../../environment';
-import { MockModeService } from './modo-mock.service';
 
 export interface NotificacaoDetalhes {
   total: number;
@@ -25,7 +24,7 @@ export class NotificationsService {
   private maintenanceService = inject(MaintenanceService);
   private authService = inject(AuthService);
   private accessRequestsService = inject(AccessRequestsFrontendService);
-  private mockMode = inject(MockModeService);
+
 
   private pendentesSubject = new BehaviorSubject<NotificacaoDetalhes>({ total: 0, aprovacoes: 0, transferencias: 0, manutencao: 0, acesso: 0 });
   pendentes$ = this.pendentesSubject.asObservable();
@@ -34,11 +33,7 @@ export class NotificationsService {
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
-    if (this.mockMode.useMock) {
-      this.atualizarContagem();
-    } else {
-      this.iniciarConexao();
-    }
+    this.iniciarConexao();
   }
 
   private iniciarConexao() {
@@ -68,10 +63,7 @@ export class NotificationsService {
     const user = this.authService.getUsuario();
     if (!user) return;
 
-    if (this.mockMode.useMock) {
-      this.pendentesSubject.next({ total: 0, aprovacoes: 0, transferencias: 0, manutencao: 0, acesso: 0 });
-      return;
-    }
+
 
     const isAdminDtec = user.perfil === 'ADMIN_DTEC';
     const isAdmin = isAdminDtec || user.perfil === 'DIRETORIA';

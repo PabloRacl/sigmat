@@ -90,43 +90,7 @@
         {{ error }}
       </div>
 
-      <div class="advanced-menu-container" *ngIf="showAdvancedMenu">
-        <div class="advanced-menu-header">
-          <h4><i class="pi pi-sliders-h"></i> Ferramentas de Desenvolvedor</h4>
-          <button type="button" class="close-adv-btn" (click)="toggleAdvancedMenu()"><i
-              class="pi pi-times"></i></button>
-        </div>
-        <div class="advanced-menu-content">
-          <div class="mock-mode-toggle" *ngIf="mockLoginHint">
-            <label class="p-checkbox-label">
-              <input type="checkbox" name="mockMode" [(ngModel)]="mockMode" (change)="toggleMockMode()" />
-              Usar login mock local
-            </label>
-            <div class="mock-login-hint">
-              {{ mockLoginHint }}
-            </div>
-          </div>
 
-          <div class="mock-banner warning" *ngIf="mockModeService.useMock">
-            <div>
-              <div class="mock-banner-title">Modo mock local ativo</div>
-              <div class="mock-banner-text">As requisições irão usar dados de teste locais.</div>
-              <div class="mock-key" *ngIf="mockModeService.hasOverride">Override atual: {{ mockModeService.overrideValue
-                }}</div>
-            </div>
-            <button type="button" class="link-btn" (click)="forceRealMode()">Forçar modo real</button>
-          </div>
-
-          <div class="mock-banner real-mode" *ngIf="!mockModeService.useMock && mockModeService.hasOverride">
-            <div>
-              <div class="mock-banner-title">Modo real forçado</div>
-              <div class="mock-banner-text">O backend real.</div>
-              <div class="mock-key">Override atual: {{ mockModeService.overrideValue }}</div>
-            </div>
-            <button type="button" class="link-btn" (click)="resetMockOverride()">Remover override</button>
-          </div>
-        </div>
-      </div>
 
       <button type="submit" class="login-btn" [disabled]="loading">
         <span *ngIf="!loading">Acessar Sistema</span>
@@ -240,8 +204,7 @@
     </p-dialog>
 
     <div class="footer">
-      <p>&copy; 2026 DTEC - PMPE <i class="pi pi-cog admin-trigger" (click)="toggleAdvancedMenu()"
-          title="Opções avançadas"></i></p>
+      <p>&copy; 2026 DTEC - PMPE</p>
     </div>
   </div>
 </div>

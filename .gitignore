@@ -27,3 +27,6 @@ Obsidian/
 # Arquivos grandes / instaladores
 *.exe
 implantar-login/Roo-Code-main.zip
+
+# Arquivos antigos
+arquivos-antigos/
